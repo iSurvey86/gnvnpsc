@@ -1,0 +1,56 @@
+# QUY TẮC TẠO SƠ ĐỒ MERMAID CHO DỰ ÁN ISURVEY
+
+Với tư cách là một AI Assistant, khi người dùng yêu cầu vẽ sơ đồ (workflow, flowchart) từ mã nguồn hiện tại, bạn PHẢI tuân thủ NGHIÊM NGẶT các quy tắc cú pháp (Strict Mode) sau đây. Nếu vi phạm, trình biên dịch Preview của Cursor sẽ báo lỗi.
+
+1. KHÔNG LỒNG GHÉP CODE BLOCK:
+- Tuyệt đối KHÔNG bọc block ` ```mermaid ` bên trong ` ```markdown `.
+- Chỉ tạo một khối duy nhất bắt đầu bằng ` ```mermaid ` và kết thúc bằng ` ``` `.
+
+2. CÚ PHÁP KHỐI (NODE) VÀ VĂN BẢN (TEXT):
+- Luôn sử dụng hướng từ trên xuống: `flowchart TD`
+- Mọi Text nằm trong Node nếu có chứa Tiếng Việt có dấu, khoảng trắng, hoặc ký tự đặc biệt (Emoji) thì BẮT BUỘC phải được bọc trong cặp dấu nháy kép `"..."`.
+- Ví dụ ĐÚNG: `Start(["👤 Người dùng đăng nhập"])`
+- Ví dụ SAI: `Start([👤 Người dùng đăng nhập])` - (Sẽ gây lỗi parser).
+
+3. ĐỊNH DẠNG MÀU SẮC (CLASS & STYLE) - QUY TẮC SỐNG CÒN:
+- TUYỆT ĐỐI KHÔNG gán class trực tiếp cạnh node (KHÔNG dùng cú pháp `:::className`).
+- Khai báo toàn bộ `classDef` ở ĐẦU sơ đồ (ngay dưới `flowchart TD`).
+- BẮT BUỘC gán class cho các node ở CUỐI CÙNG của sơ đồ.
+- KHÔNG thêm dấu `;` cuối dòng `class` — Mermaid sẽ hiển thị node lạ tên «class» và mất màu.
+- Ví dụ ĐÚNG: `class NodeA,NodeB processClass`
+
+4. BẢNG MÀU CHUẨN CỦA HỆ THỐNG ISURVEY (Sử dụng mặc định):
+classDef userClass fill:#E1F5FE,stroke:#0288D1,stroke-width:2px,color:#000
+classDef processClass fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000
+classDef aiClass fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px,color:#000
+classDef dbClass fill:#E8F5E9,stroke:#388E3C,stroke-width:2px,color:#000
+classDef exportClass fill:#FFEBEE,stroke:#D32F2F,stroke-width:2px,color:#000
+
+5. NỘI DUNG WORKFLOW (LOGIC):
+- Phân tích kỹ logic mã nguồn (Next.js/API/Database). Thể hiện đầy đủ các nhánh điều kiện (Validate lỗi, rẽ nhánh AI/Thủ công, lưu DB, xuất file).
+- Sử dụng khối hình thoi cho câu lệnh If/Else: `Check{"Kiểm tra điều kiện"}`
+- Dán nhãn lên mũi tên để luồng đi được rõ ràng: `Check -->|Hợp lệ| NodeTiếpTheo`
+
+6. NGÔN NGỮ NODE — CHỈ MÔ TẢ NGHIỆP VỤ (QUY TẮC BẮT BUỘC):
+Sơ đồ phục vụ lãnh đạo / nghiệp vụ — KHÔNG phải sơ đồ code. Text trong node Mermaid PHẢI là tiếng Việt mô tả hành động, màn hình, hoặc trạng thái nghiệp vụ.
+
+TUYỆT ĐỐI KHÔNG ghi trong node (kể cả trong dấu nháy):
+- Route URL: `/dashboard`, `→ /ban-lanh-dao`, `?trang_thai=hoan_thanh`
+- Tên hàm / API / file: `canAccessDashboardHub()`, `resolvePostLoginRoute`, `computeHubDashboard`, `handleMarkBatchReviewed()`
+- Tên biến / state code: `reviewStatus = reviewed`, `projects + savedRecords`, `entryMode = scan`
+- Tên bảng DB dạng mã hóa: `DANH_MUC_DA`, `PHAN_CONG_NV` — thay bằng "Danh mục dự án", "Phân công nhân viên"
+- Hằng số / env / quyền dạng mã: `POST_LOGIN_ROUTE`, `Q_ADMIN` — thay bằng "Quyền Admin", "Sau đăng nhập"
+
+Chi tiết kỹ thuật (route, file `.js`, bảng DB, hàm, biến) chỉ đặt NGOÀI sơ đồ:
+- Metadata `> **Route:**` đầu file workflow
+- Bảng markdown trong thân file
+- Mục `## Phụ lục kỹ thuật` cuối file (theo mẫu `00_sobo.md`, `12_module_phan_cong.md`)
+
+Ví dụ ĐÚNG / SAI:
+- SAI: `Gate{"canAccessDashboardHub?"}` → ĐÚNG: `Gate{"Có quyền vào bàn làm việc?"}`
+- SAI: `Hub["📊 Bàn làm việc /dashboard"]` → ĐÚNG: `Hub["📊 Bàn làm việc"]`
+- SAI: `L2["Chờ giao NV → /ban-lanh-dao"]` → ĐÚNG: `L2["Thẻ Chờ giao NV — mở Ban lãnh đạo"]`
+- SAI: `Merge["projects + savedRecords"]` → ĐÚNG: `Merge["Gộp dự án đã lưu vào danh sách"]`
+- SAI: `MustReview{"reviewStatus = reviewed?"}` → ĐÚNG: `MustReview{"Đã xác nhận duyệt batch?"}`
+
+Khi cập nhật hoặc tạo workflow: đọc code để hiểu logic, nhưng VẼ bằng ngôn ngữ nghiệp vụ; không copy-paste identifier từ source.

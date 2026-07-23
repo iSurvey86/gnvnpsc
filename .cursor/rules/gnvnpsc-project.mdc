@@ -1,0 +1,31 @@
+---
+description: Định danh dự án gnvnpsc — path, nghiệp vụ, phân biệt ksnpsc/iSurvey
+alwaysApply: true
+---
+
+# Dự án gnvnpsc — Giao nhiệm vụ Phòng chuyên môn
+
+## Workspace
+
+- Path: `D:\AIProject\gnvnpsc`
+- Tên sản phẩm: **gnvnpsc** (Giao nhiệm vụ PCM)
+- **Không** nhầm với `ksnpsc` / iSurvey (kiểm soát nội bộ / khảo sát). Chỉ tham chiếu KS khi user yêu cầu copy pattern kỹ thuật.
+
+## Nghiệp vụ lõi
+
+1. Nhận **Quyết định Giao A** (PDF) → ScanAI extract → **danh mục dự án**.
+2. Soạn **Quyết định trình GĐ giao Xí nghiệp** — 2 loại:
+   - Tư vấn thiết kế (TVTK)
+   - Thí nghiệm
+3. Xuất Word theo mẫu (mẫu sẽ bổ sung sau).
+
+## Stack đã chốt (Phase 0+)
+
+- Next.js (App Router) + TypeScript + Tailwind
+- Supabase (Auth / DB / Storage PDF)
+- ScanAI: Gemini **Flash-Lite** cho OCR/parse Giao A (`scan-pdf` / `parse-*`); package `@google/genai`, Interactions API
+
+## Ngôn ngữ agent
+
+- UI / workflow / HANDOFF: tiếng Việt nghiệp vụ.
+- Không gọi sản phẩm này là iSurvey trừ khi nói về pattern Mermaid trong `.cursorrules`.

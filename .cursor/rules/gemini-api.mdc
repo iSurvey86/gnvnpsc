@@ -1,0 +1,37 @@
+---
+description: Chuẩn Gemini API (3.6 Flash / 3.5 Flash-Lite) khi tư vấn hoặc tích hợp AI trong dự án
+alwaysApply: true
+---
+
+# Gemini API — mô hình & quy ước (GA 2026-07)
+
+Nguồn: [Gemini latest models](https://ai.google.dev/gemini-api/docs/latest-model) · email Google AI Studio 2026-07-22.
+
+## Model ưu tiên
+
+| Use case | Model ID | Thinking mặc định | Giá (USD / 1M token) |
+|----------|----------|-------------------|----------------------|
+| Agent đa bước, code, multimodal phức tạp | `gemini-3.6-flash` | `medium` | in 1.5 · out 7.5 |
+| Throughput cao, extract/parse/JSON hàng loạt, sub-agent rẻ | `gemini-3.5-flash-lite` | `minimal` | in 0.3 · out 2.5 |
+
+- Context **1M** token · max output **64K** · có thinking + computer use.
+- 3.6 Flash: ~17% tiết kiệm token vs 3.5 Flash; output rẻ hơn ($7.5 vs $9).
+
+## API
+
+- Ưu tiên **Interactions API** (`client.interactions.create`) — GA, đầy đủ tính năng mới.
+- Package: `@google/genai` (không dùng pattern cũ nếu viết mới).
+
+## Breaking (3.6 Flash, 3.5 Flash-Lite và model sau)
+
+- **Không** gửi `temperature`, `top_p`, `top_k` (bỏ qua / sẽ lỗi 400 ở gen sau).
+- **Không** prefills lượt `model` cuối payload → HTTP 400. Dùng `system_instruction` hoặc structured output.
+- Dùng `thinking_level` (`minimal` / `medium` / `high`), không dùng `thinking_budget`.
+- Hội thoại nhiều lượt: `previous_interaction_id` phía server; bỏ candidate_count (Gemini 3.x).
+
+## Khi tư vấn dự án gnvnpsc (và tham chiếu ksnpsc)
+
+- OCR / parse QĐ Giao A / extract PDF → **Flash-Lite** trên route `scan-pdf` / `parse-*`.
+- Sinh code, agent nhiều bước, layout/biểu đồ khó → **3.6 Flash**.
+- Không bịa giá/model ID; nếu nghi ngờ, đối chiếu docs Google mới nhất.
+- Trước khi đổi production: A/B vài file thật (độ đúng JSON + latency).

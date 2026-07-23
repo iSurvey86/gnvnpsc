@@ -1,0 +1,574 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CAP_DIEN_AP_OPTIONS, labelCapDienAp } from "@/lib/cap-dien-ap";
+import type { CapDienAp } from "@/lib/types";
+
+type QdGiaoARef = {
+  id: string;
+  so_qd: string | null;
+  ngay_qd: string | null;
+  scan_status: string;
+} | null;
+
+type QdXnRef = {
+  id: string;
+  loai: string;
+  trang_thai: string;
+  so_qd_du_thao: string | null;
+};
+
+export type DuAnRow = {
+  id: string;
+  ma_du_an: string | null;
+  ten_du_an: string;
+  dia_diem: string | null;
+  quy_mo: string | null;
+  goi_cong_viec: string | null;
+  cap_dien_ap: CapDienAp | null;
+  qd_giao_a_id: string | null;
+  created_at: string;
+  qd_giao_a: QdGiaoARef | QdGiaoARef[];
+  qd_giao_xn: QdXnRef[] | null;
+};
+
+function one<T>(v: T | T[] | null | undefined): T | null {
+  if (v == null) return null;
+  return Array.isArray(v) ? (v[0] ?? null) : v;
+}
+
+export function DuAnDashboard() {
+  const [rows, setRows] = useState<DuAnRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterQdGiaoA, setFilterQdGiaoA] = useState("");
+  const [filterDiaDiem, setFilterDiaDiem] = useState("");
+  const [filterLoaiXn, setFilterLoaiXn] = useState("");
+  const [filterCapDienAp, setFilterCapDienAp] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
+  const fetchProjects = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await fetch("/api/du-an");
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error ?? "Lỗi tải");
+      setRows((json.data ?? []) as DuAnRow[]);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Lỗi tải");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchProjects();
+  }, [fetchProjects]);
+
+  const filtered = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const qd = filterQdGiaoA.trim().toLowerCase();
+    const dd = filterDiaDiem.trim().toLowerCase();
+
+    return rows.filter((r) => {
+      const giaoA = one(r.qd_giao_a);
+      const xns = r.qd_giao_xn ?? [];
+      if (q) {
+        const hay = `${r.ten_du_an} ${r.ma_du_an ?? ""} ${r.dia_diem ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (qd) {
+        const so = (giaoA?.so_qd ?? "").toLowerCase();
+        if (!so.includes(qd)) return false;
+      }
+      if (dd) {
+        if (!(r.dia_diem ?? "").toLowerCase().includes(dd)) return false;
+      }
+      if (filterLoaiXn === "tvtk" && !xns.some((x) => x.loai === "tvtk")) return false;
+      if (filterLoaiXn === "thi_nghiem" && !xns.some((x) => x.loai === "thi_nghiem"))
+        return false;
+      if (filterLoaiXn === "chua" && xns.length > 0) return false;
+      if (filterCapDienAp && r.cap_dien_ap !== filterCapDienAp) return false;
+      return true;
+    });
+  }, [rows, searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterCapDienAp]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterCapDienAp]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const current = filtered.slice((page - 1) * pageSize, page * pageSize);
+
+  const kpi = useMemo(() => {
+    let tvtk = 0;
+    let tn = 0;
+    let chua = 0;
+    for (const r of rows) {
+      const xns = r.qd_giao_xn ?? [];
+      const hasTvtk = xns.some((x) => x.loai === "tvtk");
+      const hasTn = xns.some((x) => x.loai === "thi_nghiem");
+      if (hasTvtk) tvtk += 1;
+      if (hasTn) tn += 1;
+      if (!xns.length) chua += 1;
+    }
+    return { total: rows.length, tvtk, tn, chua };
+  }, [rows]);
+
+  const clearFilters = () => {
+    setFilterQdGiaoA("");
+    setFilterDiaDiem("");
+    setFilterLoaiXn("");
+    setFilterCapDienAp("");
+  };
+
+  const hasAdv =
+    Boolean(filterQdGiaoA) ||
+    Boolean(filterDiaDiem) ||
+    Boolean(filterLoaiXn) ||
+    Boolean(filterCapDienAp);
+
+  return (
+    <div className="relative z-0 mx-auto flex min-h-full w-full max-w-[1600px] flex-1 flex-col space-y-4 p-6 antialiased">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-teal-900">
+            QUẢN LÝ DỰ ÁN
+          </h2>
+          <p className="mt-0.5 text-xs text-teal-700/60">
+            Danh mục dự án · Giao A → giao Xí nghiệp (TVTK / Thí nghiệm)
+          </p>
+        </div>
+        <Link href="/nhap-du-an">
+          <button
+            type="button"
+            className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-teal-500 bg-teal-50 px-8 py-3 text-sm font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-100 hover:shadow-md"
+          >
+            <span className="text-base leading-none">🆕</span>
+            Nhập Dự án (Giao A)
+          </button>
+        </Link>
+      </div>
+
+      {/* KPI pastel */}
+      <div className="grid w-full grid-cols-1 gap-3 rounded-2xl border border-gray-100 bg-white p-2 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          title="Tổng dự án"
+          subtitle="Số công trình trong danh mục"
+          value={kpi.total}
+          tone="navy"
+        />
+        <KpiCard
+          title="TVTK"
+          subtitle="Đã có dự thảo Tư vấn thiết kế"
+          value={kpi.tvtk}
+          tone="sky"
+        />
+        <KpiCard
+          title="Thí nghiệm"
+          subtitle="Đã có dự thảo Thí nghiệm"
+          value={kpi.tn}
+          tone="orange"
+        />
+        <KpiCard
+          title="Chưa giao XN"
+          subtitle="Chưa có QĐ giao Xí nghiệp"
+          value={kpi.chua}
+          tone="purple"
+        />
+      </div>
+
+      {/* Filters */}
+      <div className="mb-1 flex flex-col gap-3 xl:flex-row">
+        <div className="relative flex w-full items-center rounded-lg border border-teal-200 bg-teal-50/80 p-2 shadow-sm xl:w-[28%]">
+          <div className="pointer-events-none absolute left-4 text-teal-500">
+            <SearchIcon />
+          </div>
+          <input
+            type="text"
+            placeholder="Tìm kiếm chung (tên, mã, địa điểm)..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded border border-teal-200 bg-white py-2 pr-8 pl-8 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 transition-all focus:border-teal-400 focus:ring-2 focus:ring-teal-400 focus:outline-none"
+          />
+          {searchTerm ? (
+            <button
+              type="button"
+              onClick={() => setSearchTerm("")}
+              className="absolute right-4 cursor-pointer text-rose-400 transition hover:text-rose-600"
+              title="Xóa tìm kiếm"
+            >
+              <XIcon />
+            </button>
+          ) : null}
+        </div>
+
+        <div className="relative flex flex-1 items-center rounded-lg border border-rose-200 bg-rose-50/80 p-2 shadow-sm">
+          <div className="pointer-events-none absolute left-4 hidden text-rose-400 lg:block">
+            <FilterIcon />
+          </div>
+          <div className="flex w-full gap-2 overflow-x-auto pb-1 pl-0 lg:pb-0 lg:pl-8">
+            <input
+              type="text"
+              placeholder="Số QĐ Giao A..."
+              value={filterQdGiaoA}
+              onChange={(e) => setFilterQdGiaoA(e.target.value)}
+              className="min-w-[120px] flex-1 rounded border border-rose-200 bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+            />
+            <input
+              type="text"
+              placeholder="Địa điểm..."
+              value={filterDiaDiem}
+              onChange={(e) => setFilterDiaDiem(e.target.value)}
+              className="min-w-[140px] flex-1 rounded border border-rose-200 bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+            />
+            <select
+              value={filterCapDienAp}
+              onChange={(e) => setFilterCapDienAp(e.target.value)}
+              className="min-w-[140px] cursor-pointer rounded border border-rose-200 bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+            >
+              <option value="">Cấp điện áp</option>
+              {CAP_DIEN_AP_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filterLoaiXn}
+              onChange={(e) => setFilterLoaiXn(e.target.value)}
+              className="min-w-[160px] cursor-pointer rounded border border-rose-200 bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+            >
+              <option value="">Trạng thái giao XN</option>
+              <option value="chua">Chưa giao XN</option>
+              <option value="tvtk">Đã có TVTK</option>
+              <option value="thi_nghiem">Đã có Thí nghiệm</option>
+            </select>
+            {hasAdv ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-red-200 bg-red-50 px-3 text-red-500 transition hover:bg-red-100 hover:text-red-700"
+                title="Xóa lọc nâng cao"
+              >
+                <XIcon />
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="h-[58vh] overflow-auto">
+          <table className="relative min-w-full border-collapse text-left">
+            <thead className="sticky top-0 z-10 bg-teal-700 text-center text-xs font-semibold text-white uppercase shadow-md">
+              <tr>
+                <th className="w-12 border-r border-teal-800 px-3 py-3.5">STT</th>
+                <th className="border-r border-teal-800 px-4 py-3.5 text-left">
+                  Tên dự án
+                </th>
+                <th className="w-28 border-r border-teal-800 px-3 py-3.5">
+                  Cấp ĐA
+                </th>
+                <th className="w-40 border-r border-teal-800 px-3 py-3.5">
+                  Địa điểm
+                </th>
+                <th className="w-44 border-r border-teal-800 px-3 py-3.5">
+                  Giao A
+                </th>
+                <th className="w-40 border-r border-teal-800 px-3 py-3.5">
+                  Giao XN
+                </th>
+                <th className="w-44 px-3 py-3.5">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm">
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-12 text-center font-medium text-gray-500"
+                  >
+                    Đang tải dữ liệu dự án...
+                  </td>
+                </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center">
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-red-600">
+                        <p className="mb-1 font-bold">
+                          Không tải được dữ liệu — kiểm tra Supabase
+                        </p>
+                        <p className="font-mono text-xs text-red-500">
+                          {loadError}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void fetchProjects()}
+                        className="rounded bg-teal-600 px-4 py-1.5 font-medium text-white shadow-sm transition hover:bg-teal-700"
+                      >
+                        Thử lại
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : current.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="px-4 py-12 text-center font-medium text-gray-500"
+                  >
+                    {rows.length === 0 ? (
+                      <>
+                        Chưa có dự án.{" "}
+                        <Link
+                          href="/nhap-du-an"
+                          className="font-bold text-teal-700 hover:underline"
+                        >
+                          Nhập Dự án (Giao A)
+                        </Link>
+                      </>
+                    ) : (
+                      "Không tìm thấy dự án phù hợp bộ lọc."
+                    )}
+                  </td>
+                </tr>
+              ) : (
+                current.map((r, idx) => {
+                  const giaoA = one(r.qd_giao_a);
+                  const xns = r.qd_giao_xn ?? [];
+                  const stt = (page - 1) * pageSize + idx + 1;
+                  return (
+                    <tr
+                      key={r.id}
+                      className="border-b border-teal-50 transition-colors odd:bg-white even:bg-[#eef8f5] hover:bg-[#dcefea]"
+                    >
+                      <td className="px-3 py-3 text-center text-gray-500">
+                        {stt}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/du-an/${r.id}/giao-xn`}
+                          className="font-bold text-teal-800 hover:underline"
+                        >
+                          {r.ten_du_an}
+                        </Link>
+                        <p className="mt-0.5 font-mono text-[11px] font-medium text-gray-500">
+                          {r.ma_du_an || "—"}
+                        </p>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        {r.cap_dien_ap ? (
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              r.cap_dien_ap === "110kv"
+                                ? "bg-teal-50 text-teal-800"
+                                : "bg-rose-50 text-rose-700"
+                            }`}
+                          >
+                            {labelCapDienAp(r.cap_dien_ap)}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-600">
+                        {r.dia_diem || "—"}
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        {giaoA ? (
+                          <Link
+                            href={`/giao-a/${giaoA.id}`}
+                            className="inline-flex flex-col items-center"
+                          >
+                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-bold text-teal-800">
+                              {giaoA.so_qd || "Xem Giao A"}
+                            </span>
+                            <span className="mt-0.5 text-[10px] text-gray-400">
+                              {giaoA.ngay_qd || ""}
+                            </span>
+                          </Link>
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <div className="flex flex-wrap justify-center gap-1">
+                          {xns.length === 0 ? (
+                            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                              Chưa giao
+                            </span>
+                          ) : (
+                            xns.map((x) => (
+                              <span
+                                key={x.id}
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                  x.loai === "tvtk"
+                                    ? "bg-cyan-50 text-cyan-800"
+                                    : "bg-rose-50 text-rose-700"
+                                }`}
+                              >
+                                {x.loai === "tvtk" ? "TVTK" : "TN"}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-center">
+                        <div className="flex flex-wrap justify-center gap-1.5">
+                          <Link
+                            href={`/du-an/${r.id}/giao-xn`}
+                            className="rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1 text-[11px] font-bold text-teal-800 hover:bg-teal-100"
+                          >
+                            Soạn QĐ
+                          </Link>
+                          {giaoA ? (
+                            <Link
+                              href={`/giao-a/${giaoA.id}`}
+                              className="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100"
+                            >
+                              Review
+                            </Link>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-teal-50 bg-[#ecfdf5] px-4 py-2.5 text-xs text-teal-800/70">
+          <span>
+            Hiển thị {current.length}/{filtered.length} · Tổng danh mục{" "}
+            {rows.length}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1 font-semibold disabled:opacity-40"
+            >
+              Trước
+            </button>
+            <span className="font-bold text-slate-700">
+              {page}/{totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1 font-semibold disabled:opacity-40"
+            >
+              Sau
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({
+  title,
+  subtitle,
+  value,
+  tone,
+}: {
+  title: string;
+  subtitle: string;
+  value: number;
+  tone: "navy" | "sky" | "orange" | "purple";
+}) {
+  const styles = {
+    navy: {
+      box: "from-[#f0fdfa] to-[#ccfbf1]/60 border-teal-200/50",
+      title: "text-teal-800",
+      sub: "text-teal-700/60",
+      val: "text-teal-700",
+    },
+    sky: {
+      box: "from-[#ecfeff] to-[#cffafe]/70 border-cyan-200/50",
+      title: "text-cyan-800",
+      sub: "text-cyan-700/70",
+      val: "text-cyan-600",
+    },
+    orange: {
+      box: "from-[#fff1f2] to-[#ffe4e6]/80 border-rose-200/50",
+      title: "text-rose-700",
+      sub: "text-rose-600/70",
+      val: "text-rose-500",
+    },
+    purple: {
+      box: "from-[#f5f3ff] to-[#ede9fe]/70 border-violet-200/50",
+      title: "text-violet-700",
+      sub: "text-violet-600/70",
+      val: "text-violet-500",
+    },
+  }[tone];
+
+  return (
+    <div
+      className={`group relative flex items-center justify-between overflow-hidden rounded-xl border bg-gradient-to-br p-4 transition-all duration-300 hover:shadow-md ${styles.box}`}
+    >
+      <div className="space-y-1">
+        <span
+          className={`text-xs font-bold tracking-widest uppercase ${styles.title}`}
+        >
+          {title}
+        </span>
+        <p className={`text-[11px] font-semibold ${styles.sub}`}>{subtitle}</p>
+      </div>
+      <span className={`text-3xl font-black ${styles.val}`}>{value}</span>
+    </div>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+      />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+      />
+    </svg>
+  );
+}
+
+function XIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+  );
+}

@@ -1,0 +1,31 @@
+---
+description: Luôn dẫn file bằng link/citation có thể nhấn mở trong Cursor
+alwaysApply: true
+---
+
+# Link file có thể nhấn mở
+
+Khi nhắc tới file trong dự án (SQL, script, source…), người dùng muốn **nhấn vào là mở được** — không chỉ đường dẫn dạng backtick.
+
+## Cách làm (ưu tiên lần lượt)
+
+1. **Citation code** (tốt nhất để mở trong editor):
+
+```startLine:endLine:đường/dẫn/file.ext
+// ... nội dung hoặc đoạn liên quan ...
+```
+
+2. **Markdown link đường dẫn tuyệt đối** (Windows):
+
+`[tên-file.sql](d:\AIProject\gnvnpsc\scripts\sql\tên-file.sql)`
+
+3. Với script cần **chạy tay** (SQL Supabase…): vừa dẫn citation/link, vừa **dán đầy đủ nội dung** trong chat để copy nhanh — không bắt người dùng tự tìm file.
+
+## Không dùng một mình
+
+- Chỉ `` `scripts/foo.sql` `` (inline code) — thường **không** mở file khi nhấn.
+- Chỉ tên file không có path.
+
+## Agent mode
+
+Nếu người dùng nhờ mở file: dùng tool Read trên file đó để editor/ngữ cảnh hiển thị nội dung, đồng thời vẫn đưa citation/link trong câu trả lời.
