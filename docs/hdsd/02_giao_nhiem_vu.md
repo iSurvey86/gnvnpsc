@@ -31,4 +31,12 @@ Có hai thẻ màu:
 
 ### Xuất Word
 
-Chưa dùng được — chờ mẫu template TVTK / Thí nghiệm.
+**Chưa bật trên giao diện.** Đã có 3 mẫu trong hệ thống (chọn theo loại giao và cấp điện áp):
+
+| Loại | Cấp điện áp | Mẫu |
+|------|-------------|-----|
+| Tư vấn thiết kế | 110 kV | QĐ giao NV TVTK 110 |
+| Tư vấn thiết kế | Trung hạ áp | QĐ giao NV TVTK THA |
+| Thí nghiệm | — | QĐ giao NV thí nghiệm hiệu chỉnh |
+
+Bước tiếp theo kỹ thuật: chuẩn hóa chỗ điền trên mẫu → gắn nút **Xuất Word** sau khi lưu dự thảo.

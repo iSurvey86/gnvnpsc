@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-07-25 — Vercel ổn định + mẫu Word vào repo
+
+### Đã làm
+
+- Sửa lỗi deploy: project Vercel cũ 404 (`NOT_FOUND` / `DEPLOYMENT_NOT_FOUND`) sau khi xóa trùng → Import lại repo GitHub, rename project, domain production **`https://gnvnpsc.vercel.app`**.
+- Local: `git remote` → `https://github.com/iSurvey86/gnvnpsc.git`, nhánh **`main`** track `origin/main`.
+- Cài lại `node_modules` (thiếu `next` binary) → `npm run dev` chạy được.
+- Đưa 3 mẫu Word vào [`public/templates/`](d:\AIProject\gnvnpsc\public\templates) — **chưa** gắn xuất file (placeholder dạng `[…]`, form còn thiếu field tiền/KHV/phụ lục).
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [public/templates/qd-giao-nhiem-vu-tvtk_110.docx](d:\AIProject\gnvnpsc\public\templates\qd-giao-nhiem-vu-tvtk_110.docx) | TVTK + cấp chi phí — 110 kV |
+| [public/templates/qd-giao-nhiem-vu-tvtk_tha.docx](d:\AIProject\gnvnpsc\public\templates\qd-giao-nhiem-vu-tvtk_tha.docx) | TVTK + cấp chi phí — trung hạ áp |
+| [public/templates/qd-giao-nhiem-vu-tnhc.docx](d:\AIProject\gnvnpsc\public\templates\qd-giao-nhiem-vu-tnhc.docx) | Thí nghiệm hiệu chỉnh |
+| [workflows/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) | Workflow — ghi nhận mẫu đã có |
+| [docs/hdsd/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\docs\hdsd\02_giao_nhiem_vu.md) | HDSD — trạng thái xuất Word |
+
+### Việc tiếp
+
+- [ ] Chuẩn hóa placeholder Word → tag `{{…}}`; lập map field form / DB / nhập thêm.
+- [ ] Thêm lib xuất Word + API + nút Xuất (chọn mẫu theo loại giao + cấp điện áp).
+- [ ] Chạy SQL `002` / `003` / `004` trên Supabase nếu chưa.
+- [ ] CRUD Xí nghiệp trong Quản lý hệ thống.
+- [ ] Auth + storage policies khi đưa production.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất. Mở https://gnvnpsc.vercel.app — F5 danh mục DA. Tiếp: chuẩn hóa 3 mẫu Word rồi gắn xuất file.
+
+Chi tiết ngày: [2026-07-25-vercel-templates.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-07-25-vercel-templates.md)
+
+---
+
 ## 2026-07-23 — UI khuông màu + trang Giao nhiệm vụ (I/II)
 
 ### Đã làm

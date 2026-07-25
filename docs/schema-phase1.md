@@ -23,8 +23,15 @@ QĐ Giao A (PDF) → ScanAI → `qd_giao_a` + `du_an` → soạn `qd_giao_xn` (T
   - `so_qd`, `ngay_qd`, `trich_yeu`
   - `du_an[]`: `ma_du_an`, `ten_du_an`, `dia_diem`, `quy_mo`, `goi_cong_viec`
 
-## Chưa có (cần user bổ sung)
+## Mẫu Word (đã có file — chưa gắn xuất)
 
-- [ ] Mẫu Word QĐ TVTK
-- [ ] Mẫu Word QĐ Thí nghiệm
-- [ ] Danh sách Xí nghiệp (mã + tên + loại phù hợp)
+| File | Khi dùng |
+|------|----------|
+| `public/templates/qd-giao-nhiem-vu-tvtk_110.docx` | TVTK · 110 kV |
+| `public/templates/qd-giao-nhiem-vu-tvtk_tha.docx` | TVTK · trung hạ áp |
+| `public/templates/qd-giao-nhiem-vu-tnhc.docx` | Thí nghiệm hiệu chỉnh |
+
+## Chưa có (cần bổ sung)
+
+- [ ] Chuẩn hóa placeholder + API/nút xuất Word
+- [ ] Auth + storage policies production

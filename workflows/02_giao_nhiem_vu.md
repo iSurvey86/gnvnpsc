@@ -23,7 +23,8 @@ flowchart TD
   Form["Điền đơn vị · thời hạn · phạm vi · căn cứ"]
   Valid{"Đủ đơn vị nhận?"}
   Save["Lưu dự thảo QĐ giao Xí nghiệp"]
-  Word["Xuất Word — chờ mẫu template"]
+  Pick["Chọn mẫu theo loại giao và cấp điện áp"]
+  Word["Xuất Word — mẫu đã có, chưa gắn nút"]
   End(["Thẻ cập nhật trạng thái dự thảo"])
 
   Open --> Info
@@ -33,10 +34,10 @@ flowchart TD
   Allow -->|Có| Lap --> Form --> Valid
   Valid -->|Thiếu| Form
   Valid -->|Đủ| Save --> End
-  Save -.-> Word
+  Save -.-> Pick --> Word
 
   class Open,Info,LinkA,Sec2,Lap,Form userClass
-  class Allow,Valid processClass
+  class Allow,Valid,Pick processClass
   class Save,End dbClass
   class Block,Word exportClass
 ```
@@ -55,4 +56,4 @@ flowchart TD
 | UI | `GiaoNhiemVuSection.tsx` + `SoanQdGiaoXnForm.tsx` |
 | API lưu | `POST /api/qd-giao-xn` |
 | Danh mục XN | bảng Xí nghiệp · seed `004_seed_xi_nghiep.sql` |
-| Word | chưa gắn — chờ mẫu TVTK / TN |
+| Word | 3 mẫu trong `public/templates/` (TVTK 110 / TVTK THA / TN hiệu chỉnh); chưa API/nút xuất |

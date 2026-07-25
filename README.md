@@ -24,10 +24,14 @@ Mở [http://localhost:3000](http://localhost:3000).
 - Doc: [docs/schema-phase1.md](docs/schema-phase1.md)
 - SQL: [scripts/sql/001_phase1_schema.sql](scripts/sql/001_phase1_schema.sql) — chạy trên Supabase SQL Editor
 
+## Deploy
+
+- Production: [https://gnvnpsc.vercel.app](https://gnvnpsc.vercel.app)
+- Repo: [iSurvey86/gnvnpsc](https://github.com/iSurvey86/gnvnpsc)
+
 ## Việc còn thiếu (nghiệp vụ)
 
-- Mẫu Word QĐ TVTK / Thí nghiệm
-- Git remote GitHub (+ Vercel nếu cần deploy)
+- Xuất Word từ mẫu (`public/templates/` — TVTK 110 / TVTK THA / TN hiệu chỉnh; chưa gắn nút)
 - Auth + storage policies production
 
 ## Tài liệu
