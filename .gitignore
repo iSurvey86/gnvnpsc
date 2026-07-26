@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# temp extract/tag Word
+/tmp-templates-*/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

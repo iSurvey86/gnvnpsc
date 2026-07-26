@@ -31,12 +31,14 @@ Mở [http://localhost:3000](http://localhost:3000).
 
 ## Việc còn thiếu (nghiệp vụ)
 
-- Xuất Word từ mẫu (`public/templates/` — TVTK 110 / TVTK THA / TN hiệu chỉnh; chưa gắn nút)
+- Lưu field Word bổ sung vào DB; loop phụ lục công trình trên mẫu
+- PDF chính thức từ Word (hiện: bản in tóm tắt)
 - Auth + storage policies production
 
 ## Tài liệu
 
 - Handoff: [docs/phien-lam-viec/HANDOFF.md](docs/phien-lam-viec/HANDOFF.md)
+- Map tag Word: [docs/templates/TAG_MAP.md](docs/templates/TAG_MAP.md)
 - Workflow: [workflows/](workflows/)
 - HDSD: [docs/hdsd/](docs/hdsd/)
 - Schema: [docs/schema-phase1.md](docs/schema-phase1.md)

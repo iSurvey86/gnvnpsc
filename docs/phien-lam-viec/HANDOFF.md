@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-07-26 — Tag Word + 3 thẻ theo cấp ĐA + trang soạn / xuất file
+
+### Đã làm
+
+- Gán tag **`{ten_bien}`** (chuẩn docxtemplater — một cặp ngoặc) vào 3 mẫu trong `public/templates/`; map tại [docs/templates/TAG_MAP.md](d:\AIProject\gnvnpsc\docs\templates\TAG_MAP.md).
+- UI phần II: **3 loại thẻ** (TVTK 110 / TVTK THA / TN hiệu chỉnh); chỉ hiện thẻ TVTK khớp `cap_dien_ap` dự án (đã xác nhận khi nhập Giao A). DB vẫn `loai = tvtk | thi_nghiem`.
+- **+ Lập / Mở soạn** → trang riêng `/du-an/[id]/giao-xn/soan` (không form trôi dưới thẻ). Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Xuất PDF**.
+- Xuất Word: `docxtemplater` + `pizzip`; API `POST /api/qd-giao-xn/[id]/export/word`; chọn file mẫu theo loại + cấp ĐA.
+- Xuất PDF: mở `/soan/in` (bản tóm tắt) → in / Save as PDF trình duyệt.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [docs/templates/TAG_MAP.md](d:\AIProject\gnvnpsc\docs\templates\TAG_MAP.md) | Bảng map tag |
+| [scripts/tag-word-templates.mjs](d:\AIProject\gnvnpsc\scripts\tag-word-templates.mjs) | Script gắn tag |
+| [src/components/GiaoNhiemVuSection.tsx](d:\AIProject\gnvnpsc\src\components\GiaoNhiemVuSection.tsx) | Thẻ theo cấp ĐA → link soạn |
+| [src/components/SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) | Trang soạn + 4 nút |
+| [src/lib/word/fill-qd-giao-xn.ts](d:\AIProject\gnvnpsc\src\lib\word\fill-qd-giao-xn.ts) | Điền tag → buffer docx |
+| [src/app/api/qd-giao-xn/[id]/export/word/route.ts](d:\AIProject\gnvnpsc\src\app\api\qd-giao-xn\[id]\export\word\route.ts) | API xuất Word |
+| [workflows/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) / [docs/hdsd/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\docs\hdsd\02_giao_nhiem_vu.md) | Workflow / HDSD |
+
+### Việc tiếp
+
+- [ ] Cột DB / JSON cho field Word bổ sung (tiền tạm ứng, QĐ thành lập XN, KHV, PC tỉnh…).
+- [ ] Bọc dòng phụ lục bằng `{#cong_trinh}` … `{/cong_trinh}` trên mẫu.
+- [ ] PDF chính thức từ file Word (nếu nghiệp vụ yêu cầu, không chỉ bản in).
+- [ ] Chạy SQL `002` / `003` / `004` nếu chưa; CRUD Xí nghiệp; Auth + storage production.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất. F5 DA có cấp điện áp → Lập → Lưu / Xuất Word kiểm tra tag. Tiếp: lưu field Word vào DB hoặc loop phụ lục.
+
+Chi tiết ngày: [2026-07-26-tag-soan-xuat-word.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-07-26-tag-soan-xuat-word.md)
+
+---
+
 ## 2026-07-25 — Vercel ổn định + mẫu Word vào repo
 
 ### Đã làm

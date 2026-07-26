@@ -137,6 +137,11 @@ export function SoanQdGiaoXnForm({
                 onChange={() => setLoai("tvtk")}
               />
               Tư vấn thiết kế
+              {duAn.cap_dien_ap === "110kv"
+                ? " 110kV"
+                : duAn.cap_dien_ap === "trung_ha_ap"
+                  ? " trung, hạ áp"
+                  : ""}
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -145,7 +150,7 @@ export function SoanQdGiaoXnForm({
                 checked={loai === "thi_nghiem"}
                 onChange={() => setLoai("thi_nghiem")}
               />
-              Thí nghiệm
+              Thí nghiệm, hiệu chỉnh
             </label>
           </div>
           {duAn.huong_giao === "tvtk_tn" ? (
@@ -158,7 +163,13 @@ export function SoanQdGiaoXnForm({
         <p className="text-xs text-slate-500">
           Loại hình:{" "}
           <strong className="text-slate-800">
-            {loai === "tvtk" ? "Tư vấn thiết kế" : "Thí nghiệm"}
+            {loai === "tvtk"
+              ? duAn.cap_dien_ap === "110kv"
+                ? "Tư vấn thiết kế 110kV"
+                : duAn.cap_dien_ap === "trung_ha_ap"
+                  ? "Tư vấn thiết kế trung, hạ áp"
+                  : "Tư vấn thiết kế"
+              : "Thí nghiệm, hiệu chỉnh"}
           </strong>
         </p>
       )}

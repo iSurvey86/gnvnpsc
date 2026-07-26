@@ -16,30 +16,37 @@ flowchart TD
   Open(["👤 Mở một dự án từ danh mục"])
   Info["I. Xem thông tin chung"]
   LinkA["Bấm số Giao A — mở Review"]
-  Sec2["II. Chọn thẻ loại giao"]
+  Sec2["II. Hiện thẻ theo cấp điện áp và hướng giao"]
+  Cap{"Đã có cấp điện áp?"}
+  NoCap["Cảnh báo — chưa hiện thẻ TVTK"]
+  PickCard["Thẻ TVTK 110 hoặc THA + thẻ Thí nghiệm hiệu chỉnh"]
   Allow{"Thuộc hướng giao của dự án?"}
   Block["Thẻ khóa — không thuộc hướng"]
-  Lap["Bấm Lập trên thẻ TVTK hoặc TN"]
-  Form["Điền đơn vị · thời hạn · phạm vi · căn cứ"]
+  Lap["Bấm Lập — mở trang soạn QĐ"]
+  Form["Trang soạn: đơn vị · thời hạn · phạm vi"]
   Valid{"Đủ đơn vị nhận?"}
-  Save["Lưu dự thảo QĐ giao Xí nghiệp"]
-  Pick["Chọn mẫu theo loại giao và cấp điện áp"]
-  Word["Xuất Word — mẫu đã có, chưa gắn nút"]
-  End(["Thẻ cập nhật trạng thái dự thảo"])
+  Save["Lưu hoặc Lưu và đóng"]
+  Pick["Chọn mẫu Word theo loại và cấp điện áp"]
+  Word["Xuất Word từ template"]
+  Pdf["Xuất PDF — bản in trình duyệt"]
+  End(["Quay lại thẻ giao nhiệm vụ"])
 
   Open --> Info
   Info --> LinkA
-  Info --> Sec2 --> Allow
+  Info --> Sec2 --> Cap
+  Cap -->|Chưa| NoCap
+  Cap -->|Có| PickCard --> Allow
   Allow -->|Không| Block
   Allow -->|Có| Lap --> Form --> Valid
   Valid -->|Thiếu| Form
   Valid -->|Đủ| Save --> End
-  Save -.-> Pick --> Word
+  Form -.-> Pick --> Word
+  Form -.-> Pdf
 
-  class Open,Info,LinkA,Sec2,Lap,Form userClass
-  class Allow,Valid,Pick processClass
+  class Open,Info,LinkA,Sec2,PickCard,Lap,Form userClass
+  class Cap,Allow,Valid,Pick processClass
   class Save,End dbClass
-  class Block,Word exportClass
+  class Block,Word,Pdf,NoCap exportClass
 ```
 
 ## Nội dung màn hình
@@ -47,13 +54,16 @@ flowchart TD
 | Phần | Nội dung |
 |------|----------|
 | I. Thông tin chung | Mã/tên DA, địa điểm, cấp ĐA, hướng giao; Giao A + trích yếu; quy mô |
-| II. Giao nhiệm vụ | Thẻ TVTK (xanh) · Thẻ Thí nghiệm (tím); hiện đơn vị / thời hạn nếu đã lập |
+| II. Giao nhiệm vụ | Thẻ TVTK theo cấp · Thẻ TN — bấm Lập mở trang soạn |
+| Trang soạn | Lưu · Lưu & đóng · Xuất Word · Xuất PDF |
 
 ## Phụ lục kỹ thuật
 
 | Mục | Chi tiết |
 |-----|----------|
-| UI | `GiaoNhiemVuSection.tsx` + `SoanQdGiaoXnForm.tsx` |
-| API lưu | `POST /api/qd-giao-xn` |
-| Danh mục XN | bảng Xí nghiệp · seed `004_seed_xi_nghiep.sql` |
-| Word | 3 mẫu trong `public/templates/` (TVTK 110 / TVTK THA / TN hiệu chỉnh); chưa API/nút xuất |
+| UI thẻ | `GiaoNhiemVuSection.tsx` |
+| UI soạn | `SoanQdGiaoXnEditor.tsx` · route `/du-an/[id]/giao-xn/soan` |
+| Lọc thẻ | TVTK theo `du_an.cap_dien_ap`; DB `loai` vẫn `tvtk` \| `thi_nghiem` |
+| API | `POST/PATCH /api/qd-giao-xn` · `POST .../export/word` |
+| Word | `docxtemplater` + 3 mẫu `public/templates/` |
+| PDF | trang in `/soan/in` (Save as PDF trình duyệt) |

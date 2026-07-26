@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { labelCapDienAp } from "@/lib/cap-dien-ap";
 import { labelHuongGiao } from "@/lib/huong-giao";
-import { SoanQdGiaoXnForm } from "@/components/SoanQdGiaoXnForm";
 import type {
+  CapDienAp,
   DuAn,
   LoaiGiaoXn,
   QdGiaoA,
@@ -24,10 +24,12 @@ type Props = {
   existingQds: QdGiaoXnWithXn[];
 };
 
-type CardTone = "emerald" | "violet";
+type CardTone = "sky" | "emerald" | "violet";
 
 type TaskCardDef = {
+  id: string;
   loai: LoaiGiaoXn;
+  cap?: CapDienAp;
   step: number;
   tag: string;
   title: string;
@@ -37,21 +39,35 @@ type TaskCardDef = {
 
 const CARDS: TaskCardDef[] = [
   {
+    id: "tvtk_110",
     loai: "tvtk",
+    cap: "110kv",
     step: 1,
-    tag: "TVTK",
-    title: "Giao Tư vấn thiết kế",
+    tag: "TVTK 110",
+    title: "Giao tư vấn thiết kế 110kV",
     description:
-      "Soạn QĐ trình GĐ giao Xí nghiệp thực hiện TVTK. Xuất Word khi có mẫu.",
+      "Soạn QĐ trình GĐ giao XN thực hiện TVTK lưới 110 kV. Xuất Word theo mẫu 110.",
+    tone: "sky",
+  },
+  {
+    id: "tvtk_tha",
+    loai: "tvtk",
+    cap: "trung_ha_ap",
+    step: 2,
+    tag: "TVTK THA",
+    title: "Giao Tư vấn thiết kế trung, hạ áp",
+    description:
+      "Soạn QĐ trình GĐ giao XN thực hiện TVTK trung / hạ áp. Xuất Word theo mẫu THA.",
     tone: "emerald",
   },
   {
+    id: "thi_nghiem",
     loai: "thi_nghiem",
-    step: 2,
+    step: 3,
     tag: "TN",
-    title: "Giao Thí nghiệm",
+    title: "Giao Thí nghiệm, hiệu chỉnh",
     description:
-      "Soạn QĐ trình GĐ giao Xí nghiệp thực hiện thí nghiệm. Xuất Word khi có mẫu.",
+      "Soạn QĐ trình GĐ giao XN thực hiện thí nghiệm hiệu chỉnh. Xuất Word theo mẫu TN.",
     tone: "violet",
   },
 ];
@@ -67,6 +83,14 @@ const TONE: Record<
     btnDisabled: string;
   }
 > = {
+  sky: {
+    wrap: "border-sky-200 bg-gradient-to-b from-sky-50 to-white",
+    badge: "bg-sky-500 text-white",
+    icon: "text-sky-600 bg-sky-100",
+    title: "text-sky-950",
+    btn: "bg-sky-600 text-white hover:bg-sky-700",
+    btnDisabled: "bg-sky-100 text-sky-700/60",
+  },
   emerald: {
     wrap: "border-emerald-200 bg-gradient-to-b from-emerald-50 to-white",
     badge: "bg-emerald-500 text-white",
@@ -93,6 +117,21 @@ function loaiAllowed(huong: DuAn["huong_giao"], loai: LoaiGiaoXn): boolean {
   return true;
 }
 
+function cardVisible(card: TaskCardDef, cap: DuAn["cap_dien_ap"]): boolean {
+  if (!card.cap) return true;
+  return cap === card.cap;
+}
+
+function labelLoaiGiao(
+  loai: LoaiGiaoXn,
+  cap: DuAn["cap_dien_ap"],
+): string {
+  if (loai === "thi_nghiem") return "Thí nghiệm, hiệu chỉnh";
+  if (cap === "110kv") return "Tư vấn thiết kế 110kV";
+  if (cap === "trung_ha_ap") return "Tư vấn thiết kế trung, hạ áp";
+  return "Tư vấn thiết kế";
+}
+
 function statusLabel(tt: QdGiaoXn["trang_thai"]): string {
   if (tt === "nhap") return "Dự thảo";
   if (tt === "trinh_gd") return "Trình GĐ";
@@ -100,25 +139,31 @@ function statusLabel(tt: QdGiaoXn["trang_thai"]): string {
   return tt;
 }
 
-export function GiaoNhiemVuSection({
-  duAn,
-  qd,
-  xiNghiep,
-  existingQds,
-}: Props) {
-  const [draftLoai, setDraftLoai] = useState<LoaiGiaoXn | null>(null);
+function soanHref(duAnId: string, loai: LoaiGiaoXn, qdId?: string) {
+  const q = new URLSearchParams({ loai });
+  if (qdId) q.set("qdId", qdId);
+  return `/du-an/${duAnId}/giao-xn/soan?${q.toString()}`;
+}
 
+export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
   const byLoai = useMemo(() => {
     const map = new Map<LoaiGiaoXn, QdGiaoXnWithXn>();
-    for (const q of existingQds) {
-      if (!map.has(q.loai)) map.set(q.loai, q);
+    for (const row of existingQds) {
+      if (!map.has(row.loai)) map.set(row.loai, row);
     }
     return map;
   }, [existingQds]);
 
+  const visibleCards = useMemo(
+    () => CARDS.filter((c) => cardVisible(c, duAn.cap_dien_ap)),
+    [duAn.cap_dien_ap],
+  );
+
+  const needCapForTvtk =
+    loaiAllowed(duAn.huong_giao, "tvtk") && !duAn.cap_dien_ap;
+
   return (
     <div className="space-y-5">
-      {/* I. Thông tin chung */}
       <section className="rounded-2xl border border-emerald-200/80 bg-white p-5 shadow-sm md:p-6">
         <h2 className="mb-4 text-[13px] font-black tracking-wider text-emerald-800 uppercase">
           I. Thông tin chung
@@ -182,29 +227,33 @@ export function GiaoNhiemVuSection({
         </div>
       </section>
 
-      {/* II. Phần giao nhiệm vụ */}
       <section className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/90 to-orange-50/40 p-5 shadow-sm md:p-6">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 className="text-[13px] font-black tracking-wider text-amber-900 uppercase">
-              II. Phần giao nhiệm vụ
-            </h2>
-            <p className="mt-1 text-xs text-amber-800/70">
-              Chọn loại hình → lập dự thảo QĐ (đơn vị, thời hạn…). Xuất Word khi
-              có mẫu template.
-            </p>
-          </div>
+        <div className="mb-4">
+          <h2 className="text-[13px] font-black tracking-wider text-amber-900 uppercase">
+            II. Phần giao nhiệm vụ
+          </h2>
+          <p className="mt-1 text-xs text-amber-800/70">
+            Bấm <strong>Lập</strong> / <strong>Mở soạn</strong> để vào trang soạn
+            QĐ (Lưu, Xuất Word, Xuất PDF) — không trôi form dưới thẻ.
+          </p>
         </div>
 
+        {needCapForTvtk ? (
+          <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            Dự án chưa có <strong>cấp điện áp</strong> — chưa hiện thẻ TVTK. Mở
+            Giao A (Review) để chọn 110 kV hoặc trung hạ áp.
+          </div>
+        ) : null}
+
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-          {CARDS.map((card, i) => {
+          {visibleCards.map((card, i) => {
             const allowed = loaiAllowed(duAn.huong_giao, card.loai);
             const existing = byLoai.get(card.loai);
             const tone = TONE[card.tone];
-            const drafting = draftLoai === card.loai;
+            const href = soanHref(duAn.id, card.loai, existing?.id);
 
             return (
-              <div key={card.loai} className="flex flex-1 items-stretch gap-3">
+              <div key={card.id} className="flex flex-1 items-stretch gap-3">
                 {i > 0 ? (
                   <div
                     className="hidden shrink-0 items-center self-center text-2xl font-black text-amber-400 lg:flex"
@@ -236,9 +285,7 @@ export function GiaoNhiemVuSection({
                       {card.loai === "tvtk" ? <DesignIcon /> : <LabIcon />}
                     </div>
                     <div className="min-w-0">
-                      <h3
-                        className={`text-sm font-extrabold ${tone.title}`}
-                      >
+                      <h3 className={`text-sm font-extrabold ${tone.title}`}>
                         {card.title}
                       </h3>
                       <p className="mt-0.5 line-clamp-2 text-[12px] leading-snug text-slate-500">
@@ -251,14 +298,11 @@ export function GiaoNhiemVuSection({
                     <div className="mb-3 space-y-1 rounded-xl border border-white/80 bg-white/70 px-3 py-2 text-[12px]">
                       <Row
                         k="Đơn vị"
-                        v={
-                          existing.xi_nghiep?.ten ||
-                          "Chưa chọn Xí nghiệp"
-                        }
+                        v={existing.xi_nghiep?.ten || "Chưa chọn Xí nghiệp"}
                       />
                       <Row
                         k="Loại hình"
-                        v={card.loai === "tvtk" ? "TVTK" : "Thí nghiệm"}
+                        v={labelLoaiGiao(card.loai, duAn.cap_dien_ap)}
                       />
                       <Row k="Thời hạn" v={existing.thoi_han || "—"} />
                       <Row
@@ -271,7 +315,7 @@ export function GiaoNhiemVuSection({
                     </div>
                   ) : (
                     <div className="mb-3 rounded-xl border border-dashed border-slate-200/80 bg-white/40 px-3 py-2 text-[12px] text-slate-400">
-                      Chưa lập — chọn đơn vị, thời hạn khi bấm Lập
+                      Chưa lập — mở trang soạn để chọn đơn vị, thời hạn
                     </div>
                   )}
 
@@ -284,34 +328,13 @@ export function GiaoNhiemVuSection({
                       >
                         Không thuộc hướng giao
                       </button>
-                    ) : existing ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDraftLoai(drafting ? null : card.loai)
-                        }
-                        className={`w-full rounded-xl px-3 py-2.5 text-xs font-bold transition ${
-                          drafting
-                            ? "bg-slate-200 text-slate-700"
-                            : tone.btn
-                        }`}
-                      >
-                        {drafting ? "Đóng form" : "Lập thêm / xem form"}
-                      </button>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDraftLoai(drafting ? null : card.loai)
-                        }
-                        className={`w-full rounded-xl px-3 py-2.5 text-xs font-bold transition ${
-                          drafting
-                            ? "bg-slate-200 text-slate-700"
-                            : tone.btn
-                        }`}
+                      <Link
+                        href={href}
+                        className={`block w-full rounded-xl px-3 py-2.5 text-center text-xs font-bold transition ${tone.btn}`}
                       >
-                        {drafting ? "Đóng form" : "+ Lập"}
-                      </button>
+                        {existing ? "Mở soạn" : "+ Lập"}
+                      </Link>
                     )}
                   </div>
                 </article>
@@ -319,25 +342,6 @@ export function GiaoNhiemVuSection({
             );
           })}
         </div>
-
-        {draftLoai ? (
-          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5">
-            <h3 className="mb-3 text-sm font-bold text-slate-800">
-              Soạn dự thảo —{" "}
-              {draftLoai === "tvtk" ? "Tư vấn thiết kế" : "Thí nghiệm"}
-            </h3>
-            <SoanQdGiaoXnForm
-              key={draftLoai}
-              duAn={duAn}
-              qd={qd}
-              xiNghiep={xiNghiep}
-              initialLoai={draftLoai}
-              lockLoai
-              embedded
-              onSaved={() => setDraftLoai(null)}
-            />
-          </div>
-        ) : null}
       </section>
     </div>
   );
