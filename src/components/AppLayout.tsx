@@ -7,6 +7,7 @@ import {
   APP_FULL_NAME,
   APP_SYSTEM_LABEL,
 } from "@/lib/brand";
+import { SidebarUserFooter } from "@/components/SidebarUserFooter";
 
 const PIN_KEY = "gnvnpsc_sidebar_pinned";
 
@@ -34,6 +35,7 @@ const nav = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const [pinned, setPinned] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     try {
@@ -42,6 +44,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       // ignore
     }
   }, []);
+
+  useEffect(() => {
+    void fetch("/api/me")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json?.ok) setIsAdmin(Boolean(json.data?.is_admin));
+      })
+      .catch(() => setIsAdmin(false));
+  }, [pathname]);
 
   const togglePin = () => {
     setPinned((prev) => {
@@ -56,7 +67,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   };
 
   const hideChrome =
-    pathname.startsWith("/nhap-du-an") || pathname.startsWith("/giao-a/");
+    pathname.startsWith("/nhap-du-an") ||
+    pathname.startsWith("/giao-a/") ||
+    pathname === "/login" ||
+    pathname.startsWith("/auth/");
 
   if (hideChrome) {
     return <>{children}</>;
@@ -66,6 +80,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ? "ml-2.5 opacity-100 whitespace-nowrap"
     : "ml-2.5 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200";
 
+  const visibleNav = nav.filter(
+    (item) => item.href !== "/he-thong" || isAdmin,
+  );
+
   return (
     <div className="flex h-screen overflow-hidden bg-[#f7fbfa]">
       <aside
@@ -73,7 +91,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           pinned ? "w-52" : "group w-14 hover:w-52"
         } z-30 flex shrink-0 flex-col overflow-visible border-r border-teal-100/60 bg-[#f0fdf9] transition-all duration-300`}
       >
-        {/* Brand header */}
         <div className="relative flex h-[4.5rem] shrink-0 items-center justify-center border-b border-teal-100/50 bg-[#e8f6f3] px-2">
           <button
             type="button"
@@ -94,10 +111,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <PinIcon filled={pinned} />
           </button>
 
-          {/* Thu gọn: chữ tắt */}
           <div
             className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
-              pinned ? "pointer-events-none opacity-0" : "opacity-100 group-hover:opacity-0"
+              pinned
+                ? "pointer-events-none opacity-0"
+                : "opacity-100 group-hover:opacity-0"
             }`}
           >
             <span className="text-sm font-black tracking-tight text-teal-800">
@@ -105,7 +123,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </span>
           </div>
 
-          {/* Mở rộng */}
           <div
             className={`flex w-full flex-col items-center justify-center gap-1.5 px-3 text-center transition-opacity duration-300 ${
               pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -121,7 +138,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-1.5 overflow-y-auto px-1.5 py-5">
-          {nav.map((item) => {
+          {visibleNav.map((item) => {
             const active = item.match(pathname);
             return (
               <Link key={item.href} href={item.href}>
@@ -142,8 +159,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Footer — dành chỗ tài khoản user (làm sau) */}
-        <div className="min-h-[3rem] shrink-0 border-t border-teal-100/50" />
+        <SidebarUserFooter
+          pinned={pinned}
+          labelClass={labelClass}
+          isAdmin={isAdmin}
+        />
       </aside>
 
       <main className="min-w-0 flex-1 overflow-auto bg-[#f7fbfa]">{children}</main>

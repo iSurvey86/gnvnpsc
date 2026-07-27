@@ -33,3 +33,48 @@ export async function GET(_request: Request, ctx: Ctx) {
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
+
+/**
+ * DELETE hồ sơ Giao A + dự án thuộc hồ sơ (khi user Hủy sau cảnh báo trùng).
+ * Không xóa nếu đã có QĐ giao XN gắn dự án.
+ */
+export async function DELETE(_request: Request, ctx: Ctx) {
+  try {
+    const { id } = await ctx.params;
+    const supabase = createAdminClient();
+
+    const { data: duAns } = await supabase
+      .from("du_an")
+      .select("id")
+      .eq("qd_giao_a_id", id);
+
+    const ids = (duAns ?? []).map((d) => d.id as string);
+    if (ids.length) {
+      const { count } = await supabase
+        .from("qd_giao_xn")
+        .select("id", { count: "exact", head: true })
+        .in("du_an_id", ids);
+      if ((count ?? 0) > 0) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Hồ sơ đã có QĐ giao XN — không hủy được",
+          },
+          { status: 400 },
+        );
+      }
+      const { error: delDa } = await supabase
+        .from("du_an")
+        .delete()
+        .eq("qd_giao_a_id", id);
+      if (delDa) throw new Error(delDa.message);
+    }
+
+    const { error } = await supabase.from("qd_giao_a").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Lỗi hủy hồ sơ Giao A";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}

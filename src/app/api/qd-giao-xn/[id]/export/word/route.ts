@@ -25,6 +25,7 @@ type ExportBody = Partial<{
   so_tien_tam_ung_chu: string | null;
   so_luong_cong_trinh: string | null;
   ghi_chu_bo_sung: string | null;
+  tmdt_overrides: Array<string | null | undefined>;
 }>;
 
 async function exportWord(id: string, extras: ExportBody = {}) {

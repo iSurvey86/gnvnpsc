@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeDiaDiem } from "@/lib/dia-diem";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -18,6 +19,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
       ghi_chu?: string | null;
       cap_dien_ap?: string | null;
       huong_giao?: string | null;
+      qd_giao_a_id?: string | null;
     };
 
     if (body.ten_du_an !== undefined && !body.ten_du_an.trim()) {
@@ -35,7 +37,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
         ...(body.ten_du_an !== undefined
           ? { ten_du_an: body.ten_du_an.trim() }
           : {}),
-        ...(body.dia_diem !== undefined ? { dia_diem: body.dia_diem } : {}),
+        ...(body.dia_diem !== undefined
+          ? { dia_diem: normalizeDiaDiem(body.dia_diem) }
+          : {}),
         ...(body.quy_mo !== undefined ? { quy_mo: body.quy_mo } : {}),
         ...(body.goi_cong_viec !== undefined
           ? { goi_cong_viec: body.goi_cong_viec }
@@ -59,6 +63,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
                   ? body.huong_giao
                   : null,
             }
+          : {}),
+        ...(body.qd_giao_a_id !== undefined
+          ? { qd_giao_a_id: body.qd_giao_a_id }
           : {}),
         updated_at: new Date().toISOString(),
       })

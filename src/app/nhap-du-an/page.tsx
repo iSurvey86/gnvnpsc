@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAppDialog } from "@/components/AppDialog";
 
 export default function NhapDuAnPage() {
   const router = useRouter();
+  const { showConfirm, showAlert } = useAppDialog();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,13 +35,37 @@ export default function NhapDuAnPage() {
       const json = (await res.json()) as {
         ok: boolean;
         error?: string;
-        data?: { qd_giao_a_id: string };
+        data?: {
+          qd_giao_a_id: string;
+          warnings?: string[];
+          trung_ten_count?: number;
+        };
       };
       setPercent(100);
       if (!json.ok || !json.data?.qd_giao_a_id) {
         throw new Error(json.error ?? "Scan thất bại");
       }
-      router.push(`/giao-a/${json.data.qd_giao_a_id}`);
+
+      const qdId = json.data.qd_giao_a_id;
+      const warns = json.data.warnings?.filter(Boolean) ?? [];
+      if (warns.length) {
+        const ok = await showConfirm(`• ${warns.join("\n• ")}`, {
+          title: "Cảnh báo khi nhập",
+          variant: "warning",
+          confirmLabel: "Tiếp tục Review",
+          cancelLabel: "Hủy",
+        });
+        if (!ok) {
+          await fetch(`/api/giao-a/${qdId}`, { method: "DELETE" });
+          setPercent(0);
+          await showAlert(
+            "Đã hủy hồ sơ vừa quét — không lưu dự án trùng vào hệ thống.",
+            { title: "Đã hủy", variant: "info" },
+          );
+          return;
+        }
+      }
+      router.push(`/giao-a/${qdId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Lỗi không xác định");
       setPercent(0);
@@ -177,10 +203,10 @@ export default function NhapDuAnPage() {
                   </th>
                   <th className="bg-violet-100 px-3 py-3 text-center">Quy mô</th>
                   <th className="w-[110px] bg-violet-100 px-2 py-3 text-center">
-                    Cấp ĐA
+                    Cấp điện áp
                   </th>
-                  <th className="w-[148px] bg-violet-100 px-2 py-3 text-center">
-                    Ghi chú
+                  <th className="w-[168px] bg-violet-100 px-2 py-3 text-center leading-tight">
+                    Định hướng giao
                   </th>
                   <th className="w-14 bg-violet-100 px-1 py-3 text-center">Xóa</th>
                 </tr>

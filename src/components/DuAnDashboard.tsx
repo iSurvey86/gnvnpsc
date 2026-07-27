@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CAP_DIEN_AP_OPTIONS, labelCapDienAp } from "@/lib/cap-dien-ap";
-import type { CapDienAp } from "@/lib/types";
+import { useAppDialog } from "@/components/AppDialog";
+import { normalizeDiaDiem } from "@/lib/dia-diem";
+import {
+  badgeClassLoaiHinh,
+  labelLoaiHinhTuVan,
+  LOAI_HINH_TU_VAN_OPTIONS,
+  resolveLoaiHinhTuVan,
+  type LoaiHinhTuVan,
+} from "@/lib/loai-hinh-tu-van";
+import type { CapDienAp, HuongGiao } from "@/lib/types";
 
 type QdGiaoARef = {
   id: string;
@@ -17,6 +25,10 @@ type QdXnRef = {
   loai: string;
   trang_thai: string;
   so_qd_du_thao: string | null;
+  xi_nghiep:
+    | { id: string; ten: string; ma: string | null }
+    | { id: string; ten: string; ma: string | null }[]
+    | null;
 };
 
 export type DuAnRow = {
@@ -27,6 +39,7 @@ export type DuAnRow = {
   quy_mo: string | null;
   goi_cong_viec: string | null;
   cap_dien_ap: CapDienAp | null;
+  huong_giao: HuongGiao | null;
   qd_giao_a_id: string | null;
   created_at: string;
   qd_giao_a: QdGiaoARef | QdGiaoARef[];
@@ -39,6 +52,7 @@ function one<T>(v: T | T[] | null | undefined): T | null {
 }
 
 export function DuAnDashboard() {
+  const { showAlert, showConfirm } = useAppDialog();
   const [rows, setRows] = useState<DuAnRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -46,8 +60,9 @@ export function DuAnDashboard() {
   const [filterQdGiaoA, setFilterQdGiaoA] = useState("");
   const [filterDiaDiem, setFilterDiaDiem] = useState("");
   const [filterLoaiXn, setFilterLoaiXn] = useState("");
-  const [filterCapDienAp, setFilterCapDienAp] = useState("");
+  const [filterLoaiHinh, setFilterLoaiHinh] = useState("");
   const [page, setPage] = useState(1);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const pageSize = 20;
 
   const fetchProjects = useCallback(async () => {
@@ -92,14 +107,17 @@ export function DuAnDashboard() {
       if (filterLoaiXn === "thi_nghiem" && !xns.some((x) => x.loai === "thi_nghiem"))
         return false;
       if (filterLoaiXn === "chua" && xns.length > 0) return false;
-      if (filterCapDienAp && r.cap_dien_ap !== filterCapDienAp) return false;
+      if (filterLoaiHinh) {
+        const tags = resolveLoaiHinhTuVan(r.huong_giao, r.cap_dien_ap);
+        if (!tags.includes(filterLoaiHinh as LoaiHinhTuVan)) return false;
+      }
       return true;
     });
-  }, [rows, searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterCapDienAp]);
+  }, [rows, searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterLoaiHinh]);
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterCapDienAp]);
+  }, [searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterLoaiHinh]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const current = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -123,14 +141,41 @@ export function DuAnDashboard() {
     setFilterQdGiaoA("");
     setFilterDiaDiem("");
     setFilterLoaiXn("");
-    setFilterCapDienAp("");
+    setFilterLoaiHinh("");
   };
+
+  async function deleteDuAn(id: string, ten: string) {
+    const ok = await showConfirm(
+      `Xóa dự án «${ten}»?\nChỉ xóa được khi chưa có QĐ giao Xí nghiệp.`,
+      {
+        title: "Xác nhận xóa",
+        variant: "warning",
+        confirmLabel: "Xóa",
+        cancelLabel: "Hủy",
+      },
+    );
+    if (!ok) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/du-an/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error ?? "Xóa thất bại");
+      await fetchProjects();
+    } catch (err) {
+      await showAlert(err instanceof Error ? err.message : "Xóa thất bại", {
+        title: "Lỗi",
+        variant: "error",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   const hasAdv =
     Boolean(filterQdGiaoA) ||
     Boolean(filterDiaDiem) ||
     Boolean(filterLoaiXn) ||
-    Boolean(filterCapDienAp);
+    Boolean(filterLoaiHinh);
 
   return (
     <div className="relative z-0 mx-auto flex min-h-full w-full max-w-[1600px] flex-1 flex-col space-y-4 p-6 antialiased">
@@ -227,12 +272,12 @@ export function DuAnDashboard() {
               className="min-w-[140px] flex-1 rounded border border-rose-200 bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
             />
             <select
-              value={filterCapDienAp}
-              onChange={(e) => setFilterCapDienAp(e.target.value)}
-              className="min-w-[140px] cursor-pointer rounded border border-rose-200 bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+              value={filterLoaiHinh}
+              onChange={(e) => setFilterLoaiHinh(e.target.value)}
+              className="min-w-[150px] cursor-pointer rounded border border-rose-200 bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
             >
-              <option value="">Cấp điện áp</option>
-              {CAP_DIEN_AP_OPTIONS.map((o) => (
+              <option value="">Loại hình tư vấn</option>
+              {LOAI_HINH_TU_VAN_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
                 </option>
@@ -269,11 +314,11 @@ export function DuAnDashboard() {
             <thead className="sticky top-0 z-10 bg-teal-700 text-center text-xs font-semibold text-white uppercase shadow-md">
               <tr>
                 <th className="w-12 border-r border-teal-800 px-3 py-3.5">STT</th>
-                <th className="border-r border-teal-800 px-4 py-3.5 text-left">
+                <th className="border-r border-teal-800 px-4 py-3.5">
                   Tên dự án
                 </th>
-                <th className="w-28 border-r border-teal-800 px-3 py-3.5">
-                  Cấp ĐA
+                <th className="w-32 border-r border-teal-800 px-3 py-3.5">
+                  Loại hình tư vấn
                 </th>
                 <th className="w-40 border-r border-teal-800 px-3 py-3.5">
                   Địa điểm
@@ -281,8 +326,8 @@ export function DuAnDashboard() {
                 <th className="w-44 border-r border-teal-800 px-3 py-3.5">
                   Giao A
                 </th>
-                <th className="w-40 border-r border-teal-800 px-3 py-3.5">
-                  Giao XN
+                <th className="w-48 border-r border-teal-800 px-3 py-3.5">
+                  Giao Xí nghiệp
                 </th>
                 <th className="w-44 px-3 py-3.5">Thao tác</th>
               </tr>
@@ -344,6 +389,10 @@ export function DuAnDashboard() {
                 current.map((r, idx) => {
                   const giaoA = one(r.qd_giao_a);
                   const xns = r.qd_giao_xn ?? [];
+                  const loaiHinh = resolveLoaiHinhTuVan(
+                    r.huong_giao,
+                    r.cap_dien_ap,
+                  );
                   const stt = (page - 1) * pageSize + idx + 1;
                   return (
                     <tr
@@ -353,7 +402,7 @@ export function DuAnDashboard() {
                       <td className="px-3 py-3 text-center text-gray-500">
                         {stt}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 text-left">
                         <Link
                           href={`/du-an/${r.id}/giao-xn`}
                           className="font-bold text-teal-800 hover:underline"
@@ -365,78 +414,85 @@ export function DuAnDashboard() {
                         </p>
                       </td>
                       <td className="px-3 py-3 text-center">
-                        {r.cap_dien_ap ? (
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                              r.cap_dien_ap === "110kv"
-                                ? "bg-teal-50 text-teal-800"
-                                : "bg-rose-50 text-rose-700"
-                            }`}
-                          >
-                            {labelCapDienAp(r.cap_dien_ap)}
-                          </span>
+                        {loaiHinh.length ? (
+                          <div className="flex flex-col items-center gap-1">
+                            {loaiHinh.map((tag) => (
+                              <span
+                                key={tag}
+                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeClassLoaiHinh(tag)}`}
+                              >
+                                {labelLoaiHinhTuVan(tag)}
+                              </span>
+                            ))}
+                          </div>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
                       </td>
                       <td className="px-3 py-3 text-center text-gray-600">
-                        {r.dia_diem || "—"}
+                        {normalizeDiaDiem(r.dia_diem) || "—"}
                       </td>
                       <td className="px-3 py-3 text-center">
                         {giaoA ? (
-                          <Link
-                            href={`/giao-a/${giaoA.id}`}
+                          <a
+                            href={`/api/giao-a/${giaoA.id}/pdf`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="inline-flex flex-col items-center"
+                            title="Xem PDF Giao A"
                           >
-                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-bold text-teal-800">
+                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-bold text-teal-800 hover:underline">
                               {giaoA.so_qd || "Xem Giao A"}
                             </span>
                             <span className="mt-0.5 text-[10px] text-gray-400">
                               {giaoA.ngay_qd || ""}
                             </span>
-                          </Link>
+                          </a>
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <div className="flex flex-wrap justify-center gap-1">
+                        <div className="flex flex-col items-center gap-1">
                           {xns.length === 0 ? (
                             <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
                               Chưa giao
                             </span>
                           ) : (
-                            xns.map((x) => (
-                              <span
-                                key={x.id}
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                  x.loai === "tvtk"
-                                    ? "bg-cyan-50 text-cyan-800"
-                                    : "bg-rose-50 text-rose-700"
-                                }`}
-                              >
-                                {x.loai === "tvtk" ? "TVTK" : "TN"}
-                              </span>
-                            ))
+                            xns.map((x) => {
+                              const xn = one(x.xi_nghiep);
+                              const tenXn = xn?.ten?.trim() || "Chưa chọn XN";
+                              return (
+                                <span
+                                  key={x.id}
+                                  className="max-w-[11rem] text-[12px] leading-snug font-semibold text-teal-900"
+                                  title={`${tenXn} · ${x.loai === "tvtk" ? "TVTK" : "Thí nghiệm"}`}
+                                >
+                                  {tenXn}
+                                </span>
+                              );
+                            })
                           )}
                         </div>
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <div className="flex flex-wrap justify-center gap-1.5">
+                        <div className="flex flex-wrap justify-center gap-1">
                           <Link
                             href={`/du-an/${r.id}/giao-xn`}
-                            className="rounded-lg border border-teal-200 bg-teal-50 px-2.5 py-1 text-[11px] font-bold text-teal-800 hover:bg-teal-100"
+                            className="inline-flex rounded-lg p-1.5 text-teal-700 transition hover:bg-teal-50"
+                            title="Sửa / giao nhiệm vụ"
                           >
-                            Soạn QĐ
+                            <PencilIcon />
                           </Link>
-                          {giaoA ? (
-                            <Link
-                              href={`/giao-a/${giaoA.id}`}
-                              className="rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100"
-                            >
-                              Review
-                            </Link>
-                          ) : null}
+                          <button
+                            type="button"
+                            disabled={deletingId === r.id}
+                            onClick={() => void deleteDuAn(r.id, r.ten_du_an)}
+                            className="inline-flex rounded-lg p-1.5 text-rose-500 transition hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"
+                            title="Xóa dự án"
+                          >
+                            <TrashIcon />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -568,6 +624,32 @@ function XIcon() {
         strokeLinejoin="round"
         strokeWidth="2"
         d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+      />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
       />
     </svg>
   );

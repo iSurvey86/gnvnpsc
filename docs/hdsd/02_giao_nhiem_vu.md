@@ -2,37 +2,44 @@
 
 ## Mở màn hình
 
-Từ **Quản lý dự án**, mở một dòng dự án (nút / liên kết giao Xí nghiệp) → vào trang **Giao nhiệm vụ**.
+Từ **Quản lý dự án**, mở một dòng dự án → trang **Giao nhiệm vụ**.
 
 ## I. Thông tin chung
 
 - Xem mã, tên, địa điểm, cấp điện áp, **hướng giao**.
-- **Giao A số**: bấm để mở màn Review của Quyết định Giao A.
-- Đọc trích yếu và quy mô (căn đều) để đối chiếu khi soạn giao.
+- **Giao A số**: bấm để mở **file PDF** Quyết định giao danh mục (tab mới).
+- Đọc trích yếu và quy mô để đối chiếu khi soạn.
 
 ## II. Phần giao nhiệm vụ
 
-Hệ thống có **3 loại thẻ**; mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** (đã chọn khi nhập / Review Giao A) cùng thẻ Thí nghiệm (nếu thuộc hướng giao):
+Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ Thí nghiệm (nếu thuộc hướng giao):
 
 | # | Thẻ | Khi hiện |
 |---|-----|----------|
-| 1 | Giao tư vấn thiết kế **110kV** | `cap_dien_ap` = 110 kV |
-| 2 | Giao Tư vấn thiết kế **trung, hạ áp** | `cap_dien_ap` = trung hạ áp |
-| 3 | Giao Thí nghiệm, **hiệu chỉnh** | Luôn liệt kê; khóa nếu hướng giao không có TN |
+| 1 | Giao tư vấn thiết kế **110kV** | Cấp điện áp = 110 kV |
+| 2 | Giao Tư vấn thiết kế **trung, hạ áp** | Cấp điện áp = trung hạ áp |
+| 3 | Giao Thí nghiệm, **hiệu chỉnh** | Theo hướng giao |
 
-- Nếu dự án chỉ đánh dấu một hướng (TVTK hoặc TN), thẻ không thuộc hướng sẽ **khóa**.
-- Chưa có cấp điện áp: **không hiện** thẻ TVTK — cần cập nhật ở Review Giao A.
-- Đã có dự thảo: thẻ hiện **đơn vị**, **thời hạn**, **trạng thái**.
+- Thẻ không thuộc hướng giao sẽ **khóa**.
+- Chưa có cấp điện áp: cảnh báo — cần cập nhật ở Review Giao A.
+- Đã có dự thảo: thẻ hiện đơn vị, thời hạn, trạng thái.
 
-### Lập dự thảo mới
+### Lập / soạn quyết định
 
-1. Bấm **+ Lập** (hoặc **Mở soạn** nếu đã có dự thảo) → mở **trang soạn riêng** (không trôi form dưới thẻ).
-2. Điền đơn vị, số/ngày, phạm vi, thời hạn, căn cứ (+ ô Word nếu cần).
-3. Dùng thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Xuất PDF**.
+1. Bấm **+ Lập** hoặc **Mở soạn** → trang soạn dạng giấy QĐ (màu pastel khác nhau theo loại).
+2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
+3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
+4. **Trung hạ áp:** bảng chi phí lần 01 (L1) và tạm ứng (số + bằng chữ) tự tính từ phụ lục — có thể sửa tay.
+5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Xuất PDF**.
 
 ### Xuất Word / PDF
 
 | Nút | Kết quả |
 |-----|---------|
-| Xuất Word | Điền 1 trong 3 mẫu `public/templates/` (theo loại + cấp ĐA) rồi tải `.docx` |
-| Xuất PDF | Mở bản in tóm tắt → Ctrl+P → Save as PDF (văn bản đầy đủ vẫn lấy từ Word) |
+| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Số QĐ để trống sẽ thành khoảng trắng để điền tay sau. |
+| Xuất PDF | Mở bản in tóm tắt → Ctrl+P → Save as PDF (văn bản đầy đủ lấy từ Word). |
+
+### Gợi ý thao tác
+
+- Chủ đầu tư chỉ giữ tên «Công ty Điện lực …» (không kèm đoạn «để thực hiện…»).
+- Địa điểm trống trên danh mục: mở lại danh mục dự án để hệ thống bổ sung từ tên / PC tỉnh (cần đã chạy SQL cột PC tỉnh nếu dùng).

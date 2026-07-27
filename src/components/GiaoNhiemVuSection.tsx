@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { labelCapDienAp } from "@/lib/cap-dien-ap";
+import { normalizeDiaDiem } from "@/lib/dia-diem";
 import { labelHuongGiao } from "@/lib/huong-giao";
 import type {
   CapDienAp,
@@ -117,18 +118,25 @@ function loaiAllowed(huong: DuAn["huong_giao"], loai: LoaiGiaoXn): boolean {
   return true;
 }
 
-function cardVisible(card: TaskCardDef, cap: DuAn["cap_dien_ap"]): boolean {
+/** Ẩn thẻ TVTK không khớp cấp điện áp dự án. */
+function cardMatchesCap(
+  card: TaskCardDef,
+  cap: DuAn["cap_dien_ap"],
+): boolean {
   if (!card.cap) return true;
-  return cap === card.cap;
+  if (!cap) return true;
+  return card.cap === cap;
 }
 
 function labelLoaiGiao(
   loai: LoaiGiaoXn,
   cap: DuAn["cap_dien_ap"],
+  cardCap?: CapDienAp,
 ): string {
   if (loai === "thi_nghiem") return "Thí nghiệm, hiệu chỉnh";
-  if (cap === "110kv") return "Tư vấn thiết kế 110kV";
-  if (cap === "trung_ha_ap") return "Tư vấn thiết kế trung, hạ áp";
+  const c = cardCap ?? cap;
+  if (c === "110kv") return "Tư vấn thiết kế 110kV";
+  if (c === "trung_ha_ap") return "Tư vấn thiết kế trung, hạ áp";
   return "Tư vấn thiết kế";
 }
 
@@ -155,7 +163,10 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
   }, [existingQds]);
 
   const visibleCards = useMemo(
-    () => CARDS.filter((c) => cardVisible(c, duAn.cap_dien_ap)),
+    () =>
+      CARDS.filter((c) => cardMatchesCap(c, duAn.cap_dien_ap)).map(
+        (c, idx) => ({ ...c, step: idx + 1 }),
+      ),
     [duAn.cap_dien_ap],
   );
 
@@ -172,7 +183,10 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
           <div className="space-y-4 lg:col-span-4">
             <InfoField label="Mã dự án" value={duAn.ma_du_an || "—"} mono />
             <InfoField label="Tên dự án" value={duAn.ten_du_an} justify />
-            <InfoField label="Địa điểm" value={duAn.dia_diem || "—"} />
+            <InfoField
+              label="Địa điểm"
+              value={normalizeDiaDiem(duAn.dia_diem) || "—"}
+            />
             <InfoField
               label="Cấp điện áp"
               value={labelCapDienAp(duAn.cap_dien_ap)}
@@ -185,28 +199,27 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
             />
           </div>
           <div className="space-y-4 border-t border-emerald-100 pt-4 lg:col-span-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
-            <InfoField
-              label="Giao A số"
-              value={
-                qd ? (
-                  <Link
-                    href={`/giao-a/${qd.id}`}
-                    className="inline-flex flex-wrap items-baseline gap-x-1.5 text-sky-700 underline-offset-2 hover:text-sky-900 hover:underline"
-                    title="Xem / chỉnh danh mục từ Giao A"
-                  >
-                    <span>
-                      {qd.so_qd || "Xem Giao A"}
-                      {qd.ngay_qd ? ` · ${qd.ngay_qd}` : ""}
-                    </span>
-                    <span className="text-[11px] font-semibold no-underline">
-                      → Mở
-                    </span>
-                  </Link>
-                ) : (
-                  "—"
-                )
-              }
-            />
+            <div className="text-[13px] font-bold text-slate-900">
+              {qd ? (
+                <a
+                  href={`/api/giao-a/${qd.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap text-[#7c3aed] italic outline-none hover:underline focus-visible:underline"
+                  title="Xem file PDF Giao A"
+                >
+                  <span>
+                    Giao A số {qd.so_qd || "—"}
+                    {qd.ngay_qd
+                      ? ` ngày ${formatNgayGiaoANgan(qd.ngay_qd)}`
+                      : ""}
+                  </span>
+                  <EyeIcon />
+                </a>
+              ) : (
+                <span>Giao A số —</span>
+              )}
+            </div>
             <InfoField
               label="Trích yếu Giao A"
               value={qd?.trich_yeu || "—"}
@@ -217,10 +230,10 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
             ) : null}
           </div>
           <div className="border-t border-emerald-100 pt-4 lg:col-span-4 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6">
-            <p className="mb-2 text-[11px] font-bold tracking-wider text-sky-700 uppercase">
+            <p className="mb-1.5 text-[11px] font-bold tracking-wider text-sky-700 uppercase">
               Quy mô
             </p>
-            <div className="rounded-xl border border-sky-100 bg-sky-50/60 px-3 py-3 text-sm leading-relaxed font-medium text-justify whitespace-pre-wrap text-slate-800">
+            <div className="text-[13px] leading-snug font-medium text-justify whitespace-pre-wrap text-slate-800">
               {duAn.quy_mo?.trim() || "—"}
             </div>
           </div>
@@ -240,8 +253,8 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
 
         {needCapForTvtk ? (
           <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-            Dự án chưa có <strong>cấp điện áp</strong> — chưa hiện thẻ TVTK. Mở
-            Giao A (Review) để chọn 110 kV hoặc trung hạ áp.
+            Dự án chưa có <strong>cấp điện áp</strong> — chọn 110 kV hoặc trung
+            hạ áp trên Review Giao A trước khi xuất Word TVTK.
           </div>
         ) : null}
 
@@ -302,7 +315,11 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
                       />
                       <Row
                         k="Loại hình"
-                        v={labelLoaiGiao(card.loai, duAn.cap_dien_ap)}
+                        v={labelLoaiGiao(
+                          card.loai,
+                          duAn.cap_dien_ap,
+                          card.cap,
+                        )}
                       />
                       <Row k="Thời hạn" v={existing.thoi_han || "—"} />
                       <Row
@@ -366,10 +383,10 @@ function InfoField({
         {label}
       </p>
       <div
-        className={`text-sm font-bold ${
+        className={`text-[13px] font-bold ${
           accent ? "text-sky-800" : "text-slate-900"
-        } ${mono ? "font-mono text-[13px]" : ""} ${
-          justify ? "text-justify leading-relaxed" : ""
+        } ${mono ? "font-mono text-[12px]" : ""} ${
+          justify ? "text-justify leading-snug" : ""
         }`}
       >
         {value}
@@ -384,6 +401,38 @@ function Row({ k, v }: { k: string; v: string }) {
       <span className="shrink-0 text-slate-400">{k}</span>
       <span className="text-right font-semibold text-slate-700">{v}</span>
     </div>
+  );
+}
+
+/** `2026-03-30` → `30/03/2026` */
+function formatNgayGiaoANgan(isoDate: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate.trim());
+  if (!m) return isoDate;
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
+function EyeIcon() {
+  return (
+    <svg
+      className="h-3.5 w-3.5 shrink-0 text-[#7c3aed]"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+      />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+      />
+    </svg>
   );
 }
 

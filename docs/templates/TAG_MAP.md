@@ -2,6 +2,8 @@
 
 > Nguồn mẫu: [`public/templates/`](d:\AIProject\gnvnpsc\public\templates)  
 > Script gắn tag: [`scripts/tag-word-templates.mjs`](d:\AIProject\gnvnpsc\scripts\tag-word-templates.mjs)  
+> Sửa phụ lục 110: [`scripts/fix-tvtk-110-phu-luc.mjs`](d:\AIProject\gnvnpsc\scripts\fix-tvtk-110-phu-luc.mjs)  
+> Sửa phụ lục THA + TN: [`scripts/fix-phu-luc-tha-tnhc.mjs`](d:\AIProject\gnvnpsc\scripts\fix-phu-luc-tha-tnhc.mjs)  
 > **Delimiter:** `{` … `}` — chuẩn mặc định [docxtemplater](https://docxtemplater.com/docs/tag-types/) (không dùng `{{ }}`)
 
 ## Chọn file mẫu
@@ -17,60 +19,72 @@
 | Tag | Ý nghĩa | Nguồn dự kiến |
 |-----|---------|---------------|
 | `{so_qd}` | Số QĐ dự thảo (trước `/QĐ-NPSC`) | `qd_giao_xn.so_qd_du_thao` |
-| `{ngay_ban_hanh_chu}` | Dòng ngày văn bản (vd: `ngày 26 tháng 7 năm 2026`) | từ `ngay_du_thao` |
+| `{ngay_ban_hanh_chu}` | Dòng ngày văn bản | từ `ngay_du_thao` |
 | `{ten_xi_nghiep}` | Tên Xí nghiệp nhận | `xi_nghiep.ten` |
-| `{ten_pc_tinh}` | Công ty Điện lực / PC tỉnh | form bổ sung / suy từ địa điểm |
-| `{ten_tinh}` | Tên tỉnh (nơi nhận) | form / địa điểm |
-| `{nam_ke_hoach}` | Năm ĐTXD / kế hoạch | form (vd 2027) |
-| `{so_qd_thanh_lap_xn}` | Số QĐ thành lập XN | danh mục XN bổ sung / form |
-| `{ngay_qd_thanh_lap_xn}` | Ngày QĐ thành lập XN | danh mục XN / form |
-| `{so_qd_tam_giao_khv}` | Số QĐ tạm giao KHV / duyệt DM | form / căn cứ Giao A |
-| `{ngay_qd_tam_giao_khv}` | Ngày QĐ tạm giao KHV | form |
+| `{ten_pc_tinh}` | Công ty Điện lực / PC tỉnh | form / địa điểm |
+| `{ten_tinh}` | Tên tỉnh | form / địa điểm |
+| `{ten_du_an}` | Tên dự án (Điều 1) — mẫu 110 | `du_an.ten_du_an` |
+| `{nam_ke_hoach}` | Năm ĐTXD / kế hoạch | form / ngày QĐ Giao A |
+| `{so_qd_thanh_lap_xn}` / `{ngay_qd_thanh_lap_xn}` | QĐ thành lập XN | form |
+| `{so_qd_tam_giao_khv}` / `{ngay_qd_tam_giao_khv}` | QĐ tạm giao KHV | form / Giao A |
 
-## Chỉ mẫu TVTK (110 + THA)
+## Phụ lục — loop chung (3 mẫu)
 
-| Tag | Ý nghĩa |
-|-----|---------|
-| `{ten_goi_thau}` | Khảo sát, TVTK / Tư vấn giám sát |
-| `{so_tien_tam_ung}` | Tạm ứng lần 1 — bằng số |
-| `{so_tien_tam_ung_chu}` | Tạm ứng lần 1 — bằng chữ |
-| `{tong_tmdt}` | Tổng TMĐT phụ lục |
+Nguồn: `qd_giao_a.phu_luc` (ScanAI khi ingest). SQL: [`008_phu_luc_giao_a.sql`](d:\AIProject\gnvnpsc\scripts\sql\008_phu_luc_giao_a.sql).
 
-### Dòng công trình mẫu (phụ lục — sẽ loop sau)
+Trên mẫu: `{#cong_trinh}` … `{/cong_trinh}`.
 
-| Tag | Ý nghĩa |
-|-----|---------|
-| `{ct_khu_vuc}` | Khu vực / huyện |
-| `{ct_quy_mo_dz_trung}` | Quy mô ĐZ trung thế |
-| `{ct_quy_mo_tba}` | Quy mô TBA |
-| `{ct_quy_mo_dz_ha}` | Quy mô ĐZ hạ thế |
-| `{ct_tmdt}` | TMĐT công trình |
-| `{ct_tien_do}` | Tiến độ HT / đóng điện |
+| Tag | Ý nghĩa | 110 | THA | TN |
+|-----|---------|:---:|:---:|:--:|
+| `{stt}` | Số thứ tự | ✓ | ✓ | ✓ |
+| `{ct_ten}` | Tên công trình / danh mục | ✓ | ✓ | ✓ |
+| `{ct_quy_mo}` | Quy mô (nhiều dòng) | ✓ | ✓ | ✓ |
+| `{ct_tmdt}` | TMĐT dòng | ✓ | ✓ | ✓ |
+| `{ct_tien_do}` | Tiến độ / thời gian HT | ✓ | ✓ | ✓ |
 
-### Thêm ở mẫu THA
+### Chỉ THA
 
 | Tag | Ý nghĩa |
 |-----|---------|
-| `{tong_gia_tri_hd}` | Tổng giá trị HĐ phụ lục |
-| `{tong_chi_phi_l1}` | Tổng chi phí lần 1 |
-| `{ct_danh_dau_goi}` | Đánh dấu cột TVTK/TVGS (vd `X`) |
-| `{ct_gia_tri_hd}` | Giá trị HĐ dòng CT |
-| `{ct_chi_phi_l1}` | Chi phí L1 dòng CT |
+| `{ct_danh_dau_tvtk}` | Đánh dấu cột gói TVTK (vd `X`) |
+| `{ct_danh_dau_tvgs}` | Đánh dấu cột gói TVGS |
+| `{ct_gia_tri_hd}` | Giá trị HĐ tạm tính (= L1) |
+| `{ct_chi_phi_l1}` | Chi phí lần 01 = TMĐT × **3,3%** (triệu đồng) |
+| `{tong_gia_tri_hd}` | Tổng giá trị HĐ (= tổng L1) |
+| `{tong_chi_phi_l1}` | Tổng chi phí L1 |
+| `{ten_goi_thau}` | Tên gói thầu (thân QĐ) |
+| `{so_tien_tam_ung}` / `{so_tien_tam_ung_chu}` | Tạm ứng (nhập tay) |
 
-## Chỉ mẫu Thí nghiệm (TNHC)
+**Quy tắc tính (pha 1):**
+
+| Loại | Tiền |
+|------|------|
+| TVTK 110kV | Không tính — để trống L1 / HĐ |
+| TVTK trung hạ áp | `L1 = TMĐT × 3,3%` (đơn vị triệu đồng) |
+| Thí nghiệm | Chưa áp dụng (pha sau) |
+
+Code: [`src/lib/tinh-tien-giao-xn.ts`](d:\AIProject\gnvnpsc\src\lib\tinh-tien-giao-xn.ts) · điền Word: [`fill-qd-giao-xn.ts`](d:\AIProject\gnvnpsc\src\lib\word\fill-qd-giao-xn.ts).
+
+### Chỉ Thí nghiệm (TNHC)
 
 | Tag | Ý nghĩa |
 |-----|---------|
-| `{so_luong_cong_trinh}` | Số lượng công trình |
-| `{ghi_chu_bo_sung}` | Chữ “bổ sung” (hoặc để trống) |
-| `{ghi_chu_bo_sung_dieu1}` | Cụm Điều 1 (vd `hoặc ĐTXD bổ sung năm …`) |
-| `{tong_tmdt}` | Tổng TMĐT |
-| `{tong_khv}` | Tổng cột KHV |
-| `{tong_tdtm}` | Tổng TDTM |
-| `{tong_khcb}` | Tổng KHCB |
+| `{ct_khv}` | Giá trị KHV dòng |
+| `{ct_tdtm}` | TDTM dòng |
+| `{ct_khcb}` | KHCB dòng |
+| `{tong_tmdt}` / `{tong_khv}` / `{tong_tdtm}` / `{tong_khcb}` | Hàng tổng |
+| `{so_luong_cong_trinh}` | Số CT (Điều 1) — auto từ `cong_trinh.length` nếu trống |
+| `{ghi_chu_bo_sung}` / `{ghi_chu_bo_sung_dieu1}` | Cụm “bổ sung” |
 
-## Việc tiếp (xuất Word)
+### Tổng dùng chung
 
-1. Bổ sung field form / DB cho các tag chưa có trong `qd_giao_xn` (tiền, KHV, PC tỉnh…).
-2. Bọc dòng phụ lục bằng `{#cong_trinh}` … `{/cong_trinh}` (docxtemplater).
-3. API xuất: chọn file theo bảng trên → điền tag → tải `.docx`.
+| Tag | Nguồn |
+|-----|--------|
+| `{tong_tmdt}` | `phu_luc.tong_tmdt` |
+
+## Việc tiếp
+
+1. Form / DB lưu field Word bổ sung (tiền tạm ứng, QĐ thành lập XN…).
+2. PDF chính thức từ Word (nếu cần).
+3. UI Review Giao A: xem / sửa `phu_luc` trước khi xuất.
+4. Thí nghiệm: công thức ×1,5% (khi chốt).

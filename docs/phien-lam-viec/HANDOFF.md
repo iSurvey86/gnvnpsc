@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-07-27 — Soạn QĐ form + L1/tạm ứng + PC tỉnh + theme pastel
+
+### Đã làm
+
+- Trang soạn QĐ dạng giấy (banner chung, bố cục Điều 2 hai cột, Năm ĐTXD cạnh Số/Ngày).
+- PC tỉnh sạch (chỉ «Công ty Điện lực [tỉnh]»); địa điểm suy từ tên/PC; thẻ TVTK lọc đúng cấp.
+- THA: tính L1 3,3% → tạm ứng (đồng + bằng chữ); số QĐ trống = 10 khoảng trắng trên Word.
+- Theme pastel: 110 xanh dương · THA xanh ngọc · TN hồng đào.
+- Cập nhật workflow / HDSD giao NV; SQL `009_ten_pc_tinh`.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) | Form soạn |
+| [soan-qd-theme.ts](d:\AIProject\gnvnpsc\src\lib\soan-qd-theme.ts) | Màu pastel |
+| [soan-qd-defaults.ts](d:\AIProject\gnvnpsc\src\lib\soan-qd-defaults.ts) | Căn cứ / PC / XN |
+| [tinh-tien-giao-xn.ts](d:\AIProject\gnvnpsc\src\lib\tinh-tien-giao-xn.ts) · [so-tien-bang-chu.ts](d:\AIProject\gnvnpsc\src\lib\so-tien-bang-chu.ts) | L1 + chữ |
+| [009_ten_pc_tinh.sql](d:\AIProject\gnvnpsc\scripts\sql\009_ten_pc_tinh.sql) | Cột PC tỉnh |
+| [workflows/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) | Workflow |
+
+### Việc tiếp
+
+- [ ] Chạy SQL `009` (và 005–008 nếu môi trường mới) trên Supabase.
+- [ ] Lưu field Word bổ sung (tạm ứng…) vào DB.
+- [ ] TN × 1,5% (pha sau); PDF chính thức từ Word nếu cần.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất. Chạy SQL 009 nếu chưa. F5 soạn 110 / THA / TN — kiểm tra màu pastel, L1/tạm ứng THA, chủ đầu tư sạch. Tiếp: lưu field Word vào DB hoặc tiền TN.
+
+Chi tiết ngày: [2026-07-27-soan-qd-form-l1-theme.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-07-27-soan-qd-form-l1-theme.md)
+
+---
+
 ## 2026-07-26 — Tag Word + 3 thẻ theo cấp ĐA + trang soạn / xuất file
 
 ### Đã làm

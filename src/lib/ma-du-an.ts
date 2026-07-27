@@ -59,6 +59,61 @@ export function getProvinceCode(diaDiem: string, tenDuAn: string): string {
   return "DA";
 }
 
+/** Viết hoa tên tỉnh từ key map (vd «hưng yên» → «Hưng Yên»). */
+export function titleCaseTinhName(key: string): string {
+  return key
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+/**
+ * Nếu chuỗi bắt đầu bằng tên tỉnh (đã biết trong map) → trả tên chuẩn.
+ * `text` là phần sau «Công ty Điện lực» hoặc cả câu.
+ */
+export function matchProvinceAtStart(
+  text: string | null | undefined,
+): string | null {
+  if (!text?.trim()) return null;
+  let s = text.trim().toLowerCase().replace(/\s+/g, " ");
+  s = s.replace(/^(tỉnh|thành\s*phố|tp\.?)\s+/i, "");
+  const keys = Object.keys(PROVINCE_MAP).sort((a, b) => b.length - a.length);
+  for (const key of keys) {
+    if (
+      s === key ||
+      s.startsWith(`${key} `) ||
+      s.startsWith(`${key},`) ||
+      s.startsWith(`${key};`) ||
+      s.startsWith(`${key}.`) ||
+      s.startsWith(`${key}(`) ||
+      s.startsWith(`${key}để`) ||
+      s.startsWith(`${key} để`)
+    ) {
+      return titleCaseTinhName(key);
+    }
+  }
+  return null;
+}
+
+/** Suy tên tỉnh (1 khớp) từ chuỗi — dùng khi thiếu cột địa điểm. */
+export function guessTinhNameFromText(
+  ...parts: Array<string | null | undefined>
+): string | null {
+  const searchString = parts
+    .filter((s): s is string => Boolean(s?.trim()))
+    .join(" ")
+    .toLowerCase();
+  if (!searchString) return null;
+
+  const hits: string[] = [];
+  for (const key of Object.keys(PROVINCE_MAP)) {
+    if (searchString.includes(key)) {
+      hits.push(titleCaseTinhName(key));
+    }
+  }
+  return hits.length === 1 ? hits[0] : null;
+}
+
 export function getNameAcronym(tenDuAn: string): string {
   const cleanStr = removeVietnameseTones(tenDuAn).replace(/[^a-zA-Z0-9 ]/g, "");
   return cleanStr
