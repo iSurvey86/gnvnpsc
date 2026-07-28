@@ -311,16 +311,16 @@ export function DuAnDashboard() {
       <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="h-[58vh] overflow-auto">
           <table className="relative min-w-full border-collapse text-left">
-            <thead className="sticky top-0 z-10 bg-teal-700 text-center text-xs font-semibold text-white uppercase shadow-md">
+            <thead className="sticky top-0 z-10 bg-teal-700 text-center text-xs font-semibold tracking-wide text-white uppercase shadow-md">
               <tr>
                 <th className="w-12 border-r border-teal-800 px-3 py-3.5">STT</th>
                 <th className="border-r border-teal-800 px-4 py-3.5">
                   Tên dự án
                 </th>
-                <th className="w-32 border-r border-teal-800 px-3 py-3.5">
+                <th className="w-44 whitespace-nowrap border-r border-teal-800 px-3 py-3.5">
                   Loại hình tư vấn
                 </th>
-                <th className="w-40 border-r border-teal-800 px-3 py-3.5">
+                <th className="w-24 border-r border-teal-800 px-2 py-3.5">
                   Địa điểm
                 </th>
                 <th className="w-44 border-r border-teal-800 px-3 py-3.5">
@@ -332,7 +332,7 @@ export function DuAnDashboard() {
                 <th className="w-44 px-3 py-3.5">Thao tác</th>
               </tr>
             </thead>
-            <tbody className="text-sm">
+            <tbody className="text-sm font-medium text-gray-700">
               {loading ? (
                 <tr>
                   <td
@@ -399,17 +399,17 @@ export function DuAnDashboard() {
                       key={r.id}
                       className="border-b border-teal-50 transition-colors odd:bg-white even:bg-[#eef8f5] hover:bg-[#dcefea]"
                     >
-                      <td className="px-3 py-3 text-center text-gray-500">
+                      <td className="px-3 py-3 text-center text-gray-600">
                         {stt}
                       </td>
                       <td className="px-4 py-3 text-left">
                         <Link
                           href={`/du-an/${r.id}/giao-xn`}
-                          className="font-bold text-teal-800 hover:underline"
+                          className="font-semibold text-teal-800 hover:underline"
                         >
                           {r.ten_du_an}
                         </Link>
-                        <p className="mt-0.5 font-mono text-[11px] font-medium text-gray-500">
+                        <p className="mt-0.5 text-xs font-medium text-gray-500">
                           {r.ma_du_an || "—"}
                         </p>
                       </td>
@@ -419,7 +419,7 @@ export function DuAnDashboard() {
                             {loaiHinh.map((tag) => (
                               <span
                                 key={tag}
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badgeClassLoaiHinh(tag)}`}
+                                className={`rounded-full px-2 py-0.5 text-xs font-semibold ${badgeClassLoaiHinh(tag)}`}
                               >
                                 {labelLoaiHinhTuVan(tag)}
                               </span>
@@ -429,7 +429,7 @@ export function DuAnDashboard() {
                           <span className="text-gray-400">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-3 text-center text-gray-600">
+                      <td className="px-2 py-3 text-center text-gray-700">
                         {normalizeDiaDiem(r.dia_diem) || "—"}
                       </td>
                       <td className="px-3 py-3 text-center">
@@ -441,10 +441,10 @@ export function DuAnDashboard() {
                             className="inline-flex flex-col items-center"
                             title="Xem PDF Giao A"
                           >
-                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[11px] font-bold text-teal-800 hover:underline">
+                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-800 hover:underline">
                               {giaoA.so_qd || "Xem Giao A"}
                             </span>
-                            <span className="mt-0.5 text-[10px] text-gray-400">
+                            <span className="mt-0.5 text-xs font-medium text-gray-400">
                               {giaoA.ngay_qd || ""}
                             </span>
                           </a>
@@ -455,7 +455,7 @@ export function DuAnDashboard() {
                       <td className="px-3 py-3 text-center">
                         <div className="flex flex-col items-center gap-1">
                           {xns.length === 0 ? (
-                            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-700">
+                            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
                               Chưa giao
                             </span>
                           ) : (
@@ -465,7 +465,7 @@ export function DuAnDashboard() {
                               return (
                                 <span
                                   key={x.id}
-                                  className="max-w-[11rem] text-[12px] leading-snug font-semibold text-teal-900"
+                                  className="max-w-[11rem] text-sm leading-snug font-medium text-teal-900"
                                   title={`${tenXn} · ${x.loai === "tvtk" ? "TVTK" : "Thí nghiệm"}`}
                                 >
                                   {tenXn}

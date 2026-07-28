@@ -6,14 +6,27 @@
 2. Nhập **email** và **mật khẩu** (mặc định khi được cấp login).
 3. Sau khi đăng nhập thành công vào **Quản lý dự án**.
 
-### Đăng xuất
+### Đăng xuất / Tài khoản (sidebar)
 
-- Sidebar (cuối menu) → **Đăng xuất**, hoặc
-- **Quản lý hệ thống** → **Tài khoản** → Đăng xuất.
+- Bấm **avatar** (cuối sidebar) → hiện **họ tên**.
+- Menu: **Tài khoản** · **Đăng xuất**.
+- Trang **Tài khoản**: họ và tên · email · đổi mật khẩu (tùy chọn) · đăng xuất.
 
 ### Đổi mật khẩu
 
-Vào **Tài khoản** → form đổi mật khẩu. **Đề nghị** đổi nếu đang dùng mật khẩu mặc định — **không bắt buộc** lần đầu.
+Vào **Tài khoản** (từ avatar) → form đổi mật khẩu. **Đề nghị** đổi nếu đang dùng mật khẩu mặc định — **không bắt buộc** lần đầu.
+
+## Danh sách tài khoản
+
+- **User thường:** sidebar → **Danh sách tài khoản** (mã NV · họ tên · email · SĐT; sắp theo mã NV tăng dần).
+- **Admin:** **Quản lý hệ thống → Giám sát hoạt động** → tab **Danh sách tài khoản**; có thêm nút **Cấp đăng nhập / Đặt lại MK**.
+
+## Nhật ký hoạt động (chỉ Admin)
+
+1. Chạy SQL [010_nhat_ky_hoat_dong.sql](d:\AIProject\gnvnpsc\scripts\sql\010_nhat_ky_hoat_dong.sql) trên Supabase.
+2. **Quản lý hệ thống → Giám sát hoạt động → Nhật ký hoạt động**.
+3. Lọc theo phân hệ / hành động · làm mới · xuất CSV.
+4. Hệ thống ghi tự động: đăng nhập thành công/thất bại, đăng xuất, cấp / đặt lại đăng nhập.
 
 ## Nhân sự & cấp login
 
@@ -26,9 +39,10 @@ Vào **Tài khoản** → form đổi mật khẩu. **Đề nghị** đổi nế
 
 | Mục | Việc làm được |
 |-----|----------------|
+| Giám sát hoạt động | Nhật ký (Admin) · danh sách tài khoản · cấp / đặt lại MK |
 | Nhân sự | Thêm/sửa/ẩn · cấp / reset đăng nhập |
 | Danh mục Xí nghiệp | Thêm / sửa / ẩn–hiện; TVTK / TN |
-| Tài khoản | Xem phiên · đổi MK (tùy chọn) · đăng xuất |
+| Tài khoản | Họ tên · email · đổi MK (tùy chọn) · đăng xuất |
 | Mẫu Word | Tải 3 mẫu QĐ giao XN |
 
 Ẩn Xí nghiệp / Nhân sự = không dùng cho giao dịch mới (không xóa lịch sử).

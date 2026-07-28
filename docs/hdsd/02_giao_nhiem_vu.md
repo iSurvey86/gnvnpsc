@@ -1,5 +1,9 @@
 # HDSD — Giao nhiệm vụ theo dự án
 
+## Mở danh sách QĐ giao Xí nghiệp
+
+Sidebar → **QĐ giao Xí nghiệp**: bảng **STT · Mã dự án · Tên dự án · Loại · Số/Ngày · Xí nghiệp · Trạng thái** (tiêu đề cột căn giữa).
+
 ## Mở màn hình
 
 Từ **Quản lý dự án**, mở một dòng dự án → trang **Giao nhiệm vụ**.

@@ -6,6 +6,13 @@ import { getSessionProfile } from "@/lib/session";
 
 const cards = [
   {
+    href: "/he-thong/giam-sat",
+    title: "Giám sát hoạt động",
+    desc: "Nhật ký (Admin) · Danh sách tài khoản non-admin.",
+    tone: "border-teal-200 bg-gradient-to-br from-teal-50 to-white",
+    badge: "bg-teal-500",
+  },
+  {
     href: "/he-thong/nhan-su",
     title: "Nhân sự",
     desc: "Danh mục email · cấp login · vai trò Admin/User.",
@@ -30,8 +37,8 @@ const cards = [
     href: "/he-thong/mau-word",
     title: "Mẫu Word",
     desc: "Xem 3 mẫu QĐ giao XN đã gắn tag trong hệ thống.",
-    tone: "border-violet-200 bg-gradient-to-br from-violet-50 to-white",
-    badge: "bg-violet-500",
+    tone: "border-rose-200 bg-gradient-to-br from-rose-50 to-white",
+    badge: "bg-rose-400",
   },
 ];
 

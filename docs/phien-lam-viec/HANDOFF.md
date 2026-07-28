@@ -5,6 +5,41 @@
 
 ---
 
+## 2026-07-28 — Giám sát hoạt động · tài khoản · chỉnh bảng UX
+
+### Đã làm
+
+- Giám sát: nhật ký (Admin) + danh sách TK non-admin; SQL `010`; log login/logout/cấp TK.
+- UX TK: bỏ cột Đơn vị/Đăng nhập; bỏ ghi chú phụ; sắp mã NV tăng dần; header căn giữa; bỏ footer đếm TK.
+- Sidebar avatar → họ tên + menu Tài khoản/Đăng xuất; trang Tài khoản chỉ họ tên + email.
+- Bảng danh mục DA / danh sách QĐ giao XN: font đồng bộ; QĐ: STT · Mã · Tên · Loại · Số/ngày · XN · TT.
+- Meta web: «Giao nhiệm vụ cho các Xí nghiệp».
+- Workflow `03` + HDSD đăng nhập/hệ thống.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [010_nhat_ky_hoat_dong.sql](d:\AIProject\gnvnpsc\scripts\sql\010_nhat_ky_hoat_dong.sql) | Bảng nhật ký |
+| [activity-log.ts](d:\AIProject\gnvnpsc\src\lib\activity-log.ts) | Logger |
+| [GiamSatHeThongClient.tsx](d:\AIProject\gnvnpsc\src\components\GiamSatHeThongClient.tsx) | UI giám sát |
+| [SidebarUserFooter.tsx](d:\AIProject\gnvnpsc\src\components\SidebarUserFooter.tsx) | Avatar menu |
+| [workflows/03_giam_sat_he_thong.md](d:\AIProject\gnvnpsc\workflows\03_giam_sat_he_thong.md) | Workflow |
+| [docs/hdsd/03_dang_nhap_he_thong.md](d:\AIProject\gnvnpsc\docs\hdsd\03_dang_nhap_he_thong.md) | HDSD |
+
+### Việc tiếp
+
+- [ ] Chạy SQL `010` (và `009` nếu chưa) trên Supabase.
+- [ ] Lưu field Word bổ sung vào DB; TN × 1,5% (pha sau).
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất. Chạy SQL 010 nếu nhật ký trống. F5 Giám sát / Danh sách TK / avatar sidebar. Tiếp: field Word vào DB hoặc tiền TN.
+
+Chi tiết ngày: [2026-07-28-giam-sat-tai-khoan-ux.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-07-28-giam-sat-tai-khoan-ux.md)
+
+---
+
 ## 2026-07-27 — Soạn QĐ form + L1/tạm ứng + PC tỉnh + theme pastel
 
 ### Đã làm

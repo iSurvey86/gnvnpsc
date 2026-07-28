@@ -17,18 +17,30 @@ const nav = [
     label: "Quản lý Dự án",
     icon: "📁",
     match: (p: string) => p === "/" || p.startsWith("/du-an"),
+    adminOnly: false,
   },
   {
     href: "/qd-giao-xn",
     label: "QĐ giao Xí nghiệp",
     icon: "📄",
     match: (p: string) => p.startsWith("/qd-giao-xn"),
+    adminOnly: false,
+  },
+  {
+    href: "/he-thong/giam-sat",
+    label: "Danh sách tài khoản",
+    icon: "👥",
+    match: (p: string) => p.startsWith("/he-thong/giam-sat"),
+    /** Non-admin: vào thẳng danh sách TK; Admin dùng hub hệ thống */
+    adminOnly: false,
+    hideIfAdmin: true,
   },
   {
     href: "/he-thong",
     label: "Quản lý hệ thống",
     icon: "⚙️",
     match: (p: string) => p.startsWith("/he-thong"),
+    adminOnly: true,
   },
 ];
 
@@ -80,9 +92,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ? "ml-2.5 opacity-100 whitespace-nowrap"
     : "ml-2.5 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200";
 
-  const visibleNav = nav.filter(
-    (item) => item.href !== "/he-thong" || isAdmin,
-  );
+  const visibleNav = nav.filter((item) => {
+    if (item.adminOnly && !isAdmin) return false;
+    if ("hideIfAdmin" in item && item.hideIfAdmin && isAdmin) return false;
+    return true;
+  });
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#f7fbfa]">

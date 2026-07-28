@@ -57,8 +57,8 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const email = resolveLoginIdentifier(identifier);
     try {
-      const email = resolveLoginIdentifier(identifier);
       const supabase = createClient();
       const { error: err } = await supabase.auth.signInWithPassword({
         email,
@@ -78,12 +78,34 @@ function LoginForm() {
         // ignore
       }
 
+      void fetch("/api/nhat-ky", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phan_he: "XAC_THUC",
+          hanh_dong: "LOGIN",
+          chi_tiet_ngan: "Đăng nhập hệ thống",
+          email,
+        }),
+      }).catch(() => null);
+
       router.replace(next.startsWith("/") ? next : "/");
       router.refresh();
     } catch (err) {
       const raw =
         err instanceof Error ? err.message : "Đăng nhập thất bại";
       setError(mapLoginError(raw));
+      void fetch("/api/nhat-ky", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phan_he: "XAC_THUC",
+          hanh_dong: "LOGIN_FAIL",
+          chi_tiet_ngan: "Đăng nhập thất bại",
+          trang_thai: "Thất bại",
+          email,
+        }),
+      }).catch(() => null);
     } finally {
       setLoading(false);
     }

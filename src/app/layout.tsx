@@ -20,8 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: APP_TITLE,
-  description:
-    "Giao nhiệm vụ Phòng chuyên môn: QĐ Giao A → danh mục dự án → QĐ giao Xí nghiệp",
+  description: "Giao nhiệm vụ cho các Xí nghiệp",
 };
 
 export default function RootLayout({

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
 import { passwordForRole } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionProfile } from "@/lib/session";
@@ -106,6 +107,18 @@ export async function POST(_request: Request, { params }: Props) {
       .single();
 
     if (linkErr) throw new Error(linkErr.message);
+
+    await logHoatDong({
+      phanHe: "HE_THONG",
+      hanhDong: "CAP_DANG_NHAP",
+      chiTietNgan: `Cấp / đặt lại đăng nhập cho ${ns.ho_ten}`,
+      doiTuongId: id,
+      duLieuDong: {
+        target_email: email,
+        target_ma_nv: ns.ma_nv,
+        vai_tro: vaiTro,
+      },
+    });
 
     return NextResponse.json({
       ok: true,
