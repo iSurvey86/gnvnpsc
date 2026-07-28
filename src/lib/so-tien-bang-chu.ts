@@ -86,14 +86,15 @@ export function soTienBangChu(
     n = BigInt(Math.trunc(raw));
   } else n = parseSoTienVnd(raw);
 
-  if (n == null || n < 0n) return "";
-  if (n === 0n) return "Không đồng";
+  if (n == null || n < BigInt(0)) return "";
+  if (n === BigInt(0)) return "Không đồng";
 
   const groups: number[] = [];
   let rest = n;
-  while (rest > 0n) {
-    groups.push(Number(rest % 1000n));
-    rest = rest / 1000n;
+  const thousand = BigInt(1000);
+  while (rest > BigInt(0)) {
+    groups.push(Number(rest % thousand));
+    rest = rest / thousand;
   }
 
   const parts: string[] = [];

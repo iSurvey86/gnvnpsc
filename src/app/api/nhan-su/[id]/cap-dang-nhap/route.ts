@@ -71,10 +71,7 @@ export async function POST(_request: Request, { params }: Props) {
       if (updErr) throw new Error(updErr.message);
     } else {
       const { data: created, error: createErr } =
-        await supabase.auth.admin.createUser({
-          email,
-          ...authPayload,
-        });
+        await supabase.auth.admin.createUser(authPayload);
 
       if (createErr) {
         const { data: listed } = await supabase.auth.admin.listUsers({
