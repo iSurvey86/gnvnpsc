@@ -121,10 +121,23 @@ export function SoanQdGiaoXnEditor({
 
   const defaultXiId = useMemo(() => {
     if (initial?.xi_nghiep_id) return initial.xi_nghiep_id;
+    // Xí nghiệp đã chọn trên bảng danh mục dự án
+    if (
+      duAn.xi_nghiep_id &&
+      filteredXn.some((x) => x.id === duAn.xi_nghiep_id)
+    ) {
+      return duAn.xi_nghiep_id;
+    }
     return (
       matchXiNghiepByTinh(filteredXn, duAn.dia_diem, tenPcMacDinh)?.id ?? ""
     );
-  }, [initial?.xi_nghiep_id, filteredXn, duAn.dia_diem, tenPcMacDinh]);
+  }, [
+    initial?.xi_nghiep_id,
+    duAn.xi_nghiep_id,
+    filteredXn,
+    duAn.dia_diem,
+    tenPcMacDinh,
+  ]);
 
   const [qdId, setQdId] = useState<string | null>(initial?.id ?? null);
   const [soQd, setSoQd] = useState(initial?.so_qd_du_thao ?? "");

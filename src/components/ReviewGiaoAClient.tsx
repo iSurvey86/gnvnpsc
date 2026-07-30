@@ -14,13 +14,13 @@ import {
   findTrungTenTrongBang,
   type DuAnTrungRef,
 } from "@/lib/du-an-trung";
-import { HUONG_GIAO_OPTIONS } from "@/lib/huong-giao";
 import {
   assignMaDuAnList,
   extractNamFromQd,
   generateMaDuAn,
 } from "@/lib/ma-du-an";
-import type { CapDienAp, DuAn, HuongGiao, QdGiaoA } from "@/lib/types";
+import { XiNghiepPicker } from "@/components/XiNghiepPicker";
+import type { CapDienAp, DuAn, QdGiaoA, XiNghiep } from "@/lib/types";
 
 type Props = {
   qd: QdGiaoA;
@@ -52,6 +52,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
     })),
   );
   const [pool, setPool] = useState<DuAnTrungRef[]>([]);
+  const [xiNghiep, setXiNghiep] = useState<XiNghiep[]>([]);
   const [savingAll, setSavingAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -112,6 +113,27 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
         }
       } catch {
         /* cảnh báo trùng chỉ hỗ trợ */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/xi-nghiep");
+        const json = (await res.json()) as {
+          ok: boolean;
+          data?: XiNghiep[];
+        };
+        if (!cancelled && json.ok && Array.isArray(json.data)) {
+          setXiNghiep(json.data);
+        }
+      } catch {
+        /* không chọn được Xí nghiệp thì vẫn lưu được danh mục */
       }
     })();
     return () => {
@@ -272,6 +294,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
               ghi_chu: row.ghi_chu,
               cap_dien_ap: row.cap_dien_ap,
               huong_giao: row.huong_giao,
+              xi_nghiep_id: row.xi_nghiep_id ?? null,
               qd_giao_a_id: qd.id,
             }),
           });
@@ -303,6 +326,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
               ghi_chu: row.ghi_chu,
               cap_dien_ap: row.cap_dien_ap,
               huong_giao: row.huong_giao,
+              xi_nghiep_id: row.xi_nghiep_id ?? null,
             }),
           });
           const saveJson = await saveRes.json();
@@ -358,7 +382,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
 
   async function saveAndClose() {
     const ok = await saveAll({ showSuccessAlert: false });
-    if (ok) router.push("/");
+    if (ok) router.push("/tvtk");
   }
 
   async function addDuAn() {
@@ -510,22 +534,26 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
           <table className="relative w-full min-w-[1100px] border-collapse text-left text-[13px] [&_td]:border-r [&_td]:border-b [&_td]:border-violet-100/80 [&_td:last-child]:border-r-0 [&_th]:border-r [&_th]:border-b [&_th]:border-violet-200 [&_th:last-child]:border-r-0 [&_tbody_tr:last-child_td]:border-b-0">
             <colgroup>
               <col className="w-11" />
-              <col className="w-[200px]" />
-              <col className="w-[96px]" />
+              <col className="w-[148px]" />
+              <col className="w-[300px]" />
+              <col className="w-[100px]" />
               <col />
-              <col className="w-[92px]" />
+              <col className="w-[116px]" />
               <col className="w-[132px]" />
               <col className="w-14" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-violet-100 text-[12px] font-extrabold tracking-wide text-violet-900 uppercase shadow-sm">
               <tr>
                 <th className="bg-violet-100 px-2 py-3 text-center">STT</th>
+                <th className="bg-violet-100 px-2 py-3 text-center">Mã dự án</th>
                 <th className="bg-violet-100 px-3 py-3 text-center">Tên dự án</th>
                 <th className="bg-violet-100 px-2 py-3 text-center">Địa điểm</th>
                 <th className="bg-violet-100 px-3 py-3 text-center">Quy mô</th>
-                <th className="bg-violet-100 px-2 py-3 text-center">Cấp điện áp</th>
-                <th className="bg-violet-100 px-2 py-3 text-center leading-tight">
-                  Định hướng giao
+                <th className="bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
+                  Cấp điện áp
+                </th>
+                <th className="bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
+                  Giao nhiệm vụ
                 </th>
                 <th className="bg-violet-100 px-1 py-3 text-center">Xóa</th>
               </tr>
@@ -533,7 +561,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
             <tbody>
               {rows.length === 0 ? (
                 <tr className="bg-[#faf8ff]">
-                  <td colSpan={7} className="px-4 py-20 text-center">
+                  <td colSpan={8} className="px-4 py-20 text-center">
                     <p className="text-sm font-bold text-violet-800/70">
                       Chưa có dữ liệu dự án
                     </p>
@@ -551,6 +579,18 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
                     >
                       <td className="px-2 py-3 text-center align-middle font-bold text-gray-500">
                         {index + 1}
+                      </td>
+                      <td className="px-2 py-2 align-middle">
+                        <input
+                          type="text"
+                          className={`${cellInput} font-mono text-[11px] font-medium text-gray-600`}
+                          value={row.ma_du_an ?? ""}
+                          onChange={(e) =>
+                            updateLocal(row.id, { ma_du_an: e.target.value })
+                          }
+                          title="TỈNH-NĂM-110|THA|PCM-VIẾTTẮT"
+                          placeholder="Mã dự án"
+                        />
                       </td>
                       <td className="px-2 py-2 align-middle">
                         <div className="flex items-start gap-1">
@@ -577,16 +617,6 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
                             rows={1}
                           />
                         </div>
-                        <input
-                          type="text"
-                          className={`${cellInput} mt-0.5 font-mono text-[11px] font-medium text-gray-500`}
-                          value={row.ma_du_an ?? ""}
-                          onChange={(e) =>
-                            updateLocal(row.id, { ma_du_an: e.target.value })
-                          }
-                          title="TỈNH-NĂM-110|THA|PCM-VIẾTTẮT"
-                          placeholder="Mã dự án"
-                        />
                         {isTrung ? (
                           <p className="mt-1 text-[11px] font-bold text-red-600">
                             Trùng
@@ -642,29 +672,13 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
                         </select>
                       </td>
                       <td className="px-2 py-2 align-middle">
-                        <div className="flex flex-col gap-1 py-0.5">
-                          {HUONG_GIAO_OPTIONS.map((o) => (
-                            <label
-                              key={o.value}
-                              className="flex cursor-pointer items-center gap-1.5 text-[12px] font-semibold text-violet-950"
-                            >
-                              <input
-                                type="checkbox"
-                                className="rounded border-violet-300 text-violet-600 focus:ring-violet-400"
-                                checked={row.huong_giao === o.value}
-                                onChange={() =>
-                                  updateLocal(row.id, {
-                                    huong_giao:
-                                      row.huong_giao === o.value
-                                        ? null
-                                        : (o.value as HuongGiao),
-                                  })
-                                }
-                              />
-                              {o.label}
-                            </label>
-                          ))}
-                        </div>
+                        <XiNghiepPicker
+                          options={xiNghiep}
+                          value={row.xi_nghiep_id ?? null}
+                          onChange={(id) =>
+                            updateLocal(row.id, { xi_nghiep_id: id })
+                          }
+                        />
                       </td>
                       <td className="px-1 py-2 text-center align-middle">
                         <button

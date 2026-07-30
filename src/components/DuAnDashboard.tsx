@@ -40,9 +40,15 @@ export type DuAnRow = {
   goi_cong_viec: string | null;
   cap_dien_ap: CapDienAp | null;
   huong_giao: HuongGiao | null;
+  xi_nghiep_id: string | null;
   qd_giao_a_id: string | null;
   created_at: string;
   qd_giao_a: QdGiaoARef | QdGiaoARef[];
+  /** Xí nghiệp chọn trên danh mục (chưa chắc đã lập QĐ) */
+  xi_nghiep:
+    | { id: string; ten: string; ma: string | null }
+    | { id: string; ten: string; ma: string | null }[]
+    | null;
   qd_giao_xn: QdXnRef[] | null;
 };
 
@@ -122,21 +128,6 @@ export function DuAnDashboard() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const current = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const kpi = useMemo(() => {
-    let tvtk = 0;
-    let tn = 0;
-    let chua = 0;
-    for (const r of rows) {
-      const xns = r.qd_giao_xn ?? [];
-      const hasTvtk = xns.some((x) => x.loai === "tvtk");
-      const hasTn = xns.some((x) => x.loai === "thi_nghiem");
-      if (hasTvtk) tvtk += 1;
-      if (hasTn) tn += 1;
-      if (!xns.length) chua += 1;
-    }
-    return { total: rows.length, tvtk, tn, chua };
-  }, [rows]);
-
   const clearFilters = () => {
     setFilterQdGiaoA("");
     setFilterDiaDiem("");
@@ -181,50 +172,28 @@ export function DuAnDashboard() {
     <div className="relative z-0 mx-auto flex min-h-full w-full max-w-[1600px] flex-1 flex-col space-y-4 p-6 antialiased">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-teal-900">
-            QUẢN LÝ DỰ ÁN
+          <p className="text-sm font-bold text-teal-600 uppercase">Phân hệ</p>
+          <h2 className="mt-0.5 text-lg font-bold text-sky-800 uppercase">
+            Giao nhiệm vụ tư vấn thiết kế
           </h2>
-          <p className="mt-0.5 text-xs text-teal-700/60">
-            Danh mục dự án · Giao A → giao Xí nghiệp (TVTK / Thí nghiệm)
-          </p>
         </div>
-        <Link href="/nhap-du-an">
-          <button
-            type="button"
-            className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-teal-500 bg-teal-50 px-8 py-3 text-sm font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-100 hover:shadow-md"
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/"
+            className="rounded-xl border border-teal-200 bg-white px-4 py-2.5 text-xs font-bold text-teal-800 shadow-sm hover:bg-teal-50"
           >
-            <span className="text-base leading-none">🆕</span>
-            Nhập Dự án (Giao A)
-          </button>
-        </Link>
-      </div>
-
-      {/* KPI pastel */}
-      <div className="grid w-full grid-cols-1 gap-3 rounded-2xl border border-gray-100 bg-white p-2 shadow-sm sm:grid-cols-2 xl:grid-cols-4">
-        <KpiCard
-          title="Tổng dự án"
-          subtitle="Số công trình trong danh mục"
-          value={kpi.total}
-          tone="navy"
-        />
-        <KpiCard
-          title="TVTK"
-          subtitle="Đã có dự thảo Tư vấn thiết kế"
-          value={kpi.tvtk}
-          tone="sky"
-        />
-        <KpiCard
-          title="Thí nghiệm"
-          subtitle="Đã có dự thảo Thí nghiệm"
-          value={kpi.tn}
-          tone="orange"
-        />
-        <KpiCard
-          title="Chưa giao XN"
-          subtitle="Chưa có QĐ giao Xí nghiệp"
-          value={kpi.chua}
-          tone="purple"
-        />
+            ← Chọn phân hệ
+          </Link>
+          <Link href="/nhap-du-an">
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-teal-500 bg-teal-50 px-6 py-2.5 text-sm font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-100 hover:shadow-md"
+            >
+              <span className="text-base leading-none">🆕</span>
+              Nhập Dự án (Giao A)
+            </button>
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
@@ -308,8 +277,8 @@ export function DuAnDashboard() {
       </div>
 
       {/* Table */}
-      <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="h-[58vh] overflow-auto">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="min-h-[58vh] flex-1 overflow-auto">
           <table className="relative min-w-full border-collapse text-left">
             <thead className="sticky top-0 z-10 bg-teal-700 text-center text-xs font-semibold tracking-wide text-white uppercase shadow-md">
               <tr>
@@ -455,9 +424,21 @@ export function DuAnDashboard() {
                       <td className="px-3 py-3 text-center">
                         <div className="flex flex-col items-center gap-1">
                           {xns.length === 0 ? (
-                            <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
-                              Chưa giao
-                            </span>
+                            one(r.xi_nghiep) ? (
+                              <span
+                                className="max-w-[11rem] text-sm leading-snug font-medium text-violet-800"
+                                title="Xí nghiệp chọn trên danh mục — chưa lập QĐ"
+                              >
+                                {one(r.xi_nghiep)?.ten}
+                                <span className="mt-0.5 block text-[11px] font-semibold text-violet-500">
+                                  Chưa lập QĐ
+                                </span>
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs font-semibold text-violet-700">
+                                Chưa giao
+                              </span>
+                            )
                           ) : (
                             xns.map((x) => {
                               const xn = one(x.xi_nghiep);
@@ -478,9 +459,9 @@ export function DuAnDashboard() {
                       <td className="px-3 py-3 text-center">
                         <div className="flex flex-wrap justify-center gap-1">
                           <Link
-                            href={`/du-an/${r.id}/giao-xn`}
+                            href={`/du-an/${r.id}/sua`}
                             className="inline-flex rounded-lg p-1.5 text-teal-700 transition hover:bg-teal-50"
-                            title="Sửa / giao nhiệm vụ"
+                            title="Sửa thông tin chung"
                           >
                             <PencilIcon />
                           </Link>
@@ -503,7 +484,7 @@ export function DuAnDashboard() {
           </table>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-teal-50 bg-[#ecfdf5] px-4 py-2.5 text-xs text-teal-800/70">
+        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-teal-50 bg-[#ecfdf5] px-4 py-2.5 text-xs text-teal-800/70">
           <span>
             Hiển thị {current.length}/{filtered.length} · Tổng danh mục{" "}
             {rows.length}
@@ -531,61 +512,6 @@ export function DuAnDashboard() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function KpiCard({
-  title,
-  subtitle,
-  value,
-  tone,
-}: {
-  title: string;
-  subtitle: string;
-  value: number;
-  tone: "navy" | "sky" | "orange" | "purple";
-}) {
-  const styles = {
-    navy: {
-      box: "from-[#f0fdfa] to-[#ccfbf1]/60 border-teal-200/50",
-      title: "text-teal-800",
-      sub: "text-teal-700/60",
-      val: "text-teal-700",
-    },
-    sky: {
-      box: "from-[#ecfeff] to-[#cffafe]/70 border-cyan-200/50",
-      title: "text-cyan-800",
-      sub: "text-cyan-700/70",
-      val: "text-cyan-600",
-    },
-    orange: {
-      box: "from-[#fff1f2] to-[#ffe4e6]/80 border-rose-200/50",
-      title: "text-rose-700",
-      sub: "text-rose-600/70",
-      val: "text-rose-500",
-    },
-    purple: {
-      box: "from-[#f5f3ff] to-[#ede9fe]/70 border-violet-200/50",
-      title: "text-violet-700",
-      sub: "text-violet-600/70",
-      val: "text-violet-500",
-    },
-  }[tone];
-
-  return (
-    <div
-      className={`group relative flex items-center justify-between overflow-hidden rounded-xl border bg-gradient-to-br p-4 transition-all duration-300 hover:shadow-md ${styles.box}`}
-    >
-      <div className="space-y-1">
-        <span
-          className={`text-xs font-bold tracking-widest uppercase ${styles.title}`}
-        >
-          {title}
-        </span>
-        <p className={`text-[11px] font-semibold ${styles.sub}`}>{subtitle}</p>
-      </div>
-      <span className={`text-3xl font-black ${styles.val}`}>{value}</span>
     </div>
   );
 }

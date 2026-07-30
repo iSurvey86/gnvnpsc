@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Danh mục dự án = trang chủ Quản lý dự án */
+/** Danh mục dự án nằm trong phân hệ TVTK */
 export default function DuAnIndexRedirect() {
-  redirect("/");
+  redirect("/tvtk");
 }

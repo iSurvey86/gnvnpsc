@@ -29,7 +29,7 @@ export default async function GiamSatHeThongPage() {
           href={profile.isAdmin ? "/he-thong" : "/"}
           className="rounded-xl border border-teal-200 bg-white px-3 py-1.5 text-xs font-bold text-teal-800 hover:bg-teal-50"
         >
-          {profile.isAdmin ? "← Quản lý hệ thống" : "← Quản lý dự án"}
+          {profile.isAdmin ? "← Quản lý hệ thống" : "← Chọn phân hệ"}
         </Link>
       </div>
 

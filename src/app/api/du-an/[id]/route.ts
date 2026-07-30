@@ -19,6 +19,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
       ghi_chu?: string | null;
       cap_dien_ap?: string | null;
       huong_giao?: string | null;
+      xi_nghiep_id?: string | null;
       qd_giao_a_id?: string | null;
     };
 
@@ -63,6 +64,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
                   ? body.huong_giao
                   : null,
             }
+          : {}),
+        ...(body.xi_nghiep_id !== undefined
+          ? { xi_nghiep_id: body.xi_nghiep_id || null }
           : {}),
         ...(body.qd_giao_a_id !== undefined
           ? { qd_giao_a_id: body.qd_giao_a_id }

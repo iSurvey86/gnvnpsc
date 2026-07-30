@@ -84,7 +84,7 @@ export default async function HeThongPage() {
         href="/"
         className="inline-flex rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
       >
-        ← Quản lý dự án
+        ← Chọn phân hệ
       </Link>
     </div>
   );

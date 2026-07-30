@@ -66,6 +66,8 @@ export type DuAn = {
   ghi_chu: string | null;
   cap_dien_ap: CapDienAp | null;
   huong_giao: HuongGiao | null;
+  /** Xí nghiệp được giao nhiệm vụ — chọn trên bảng danh mục dự án */
+  xi_nghiep_id: string | null;
   created_at: string;
   updated_at: string;
 };

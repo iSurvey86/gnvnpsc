@@ -93,7 +93,7 @@ export default function NhapDuAnPage() {
           </div>
         </div>
         <Link
-          href="/"
+          href="/tvtk"
           className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-200"
         >
           ← Về Quản lý dự án
@@ -197,23 +197,28 @@ export default function NhapDuAnPage() {
               <thead className="sticky top-0 z-10 bg-violet-100 text-[12px] font-extrabold tracking-wide text-violet-900 uppercase shadow-sm">
                 <tr>
                   <th className="w-11 bg-violet-100 px-2 py-3 text-center">STT</th>
-                  <th className="bg-violet-100 px-3 py-3 text-center">Tên dự án</th>
-                  <th className="w-[120px] bg-violet-100 px-2 py-3 text-center">
+                  <th className="w-[148px] bg-violet-100 px-2 py-3 text-center">
+                    Mã dự án
+                  </th>
+                  <th className="w-[300px] bg-violet-100 px-3 py-3 text-center">
+                    Tên dự án
+                  </th>
+                  <th className="w-[100px] bg-violet-100 px-2 py-3 text-center">
                     Địa điểm
                   </th>
                   <th className="bg-violet-100 px-3 py-3 text-center">Quy mô</th>
-                  <th className="w-[110px] bg-violet-100 px-2 py-3 text-center">
+                  <th className="w-[116px] bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
                     Cấp điện áp
                   </th>
-                  <th className="w-[168px] bg-violet-100 px-2 py-3 text-center leading-tight">
-                    Định hướng giao
+                  <th className="w-[132px] bg-violet-100 px-2 py-3 text-center leading-tight">
+                    Giao nhiệm vụ
                   </th>
                   <th className="w-14 bg-violet-100 px-1 py-3 text-center">Xóa</th>
                 </tr>
               </thead>
               <tbody>
                 <tr className="bg-[#faf8ff]">
-                  <td colSpan={7} className="px-4 py-16 text-center">
+                  <td colSpan={8} className="px-4 py-16 text-center">
                     <p className="text-sm font-bold text-violet-800/70">
                       {loading
                         ? "Đang quét PDF — bảng sẽ cập nhật sau khi xong…"

@@ -79,7 +79,7 @@ export default async function QdGiaoXnListPage() {
           </p>
         </div>
         <Link
-          href="/"
+          href="/tvtk"
           className="rounded-xl border-2 border-teal-500 bg-teal-50 px-5 py-2.5 text-sm font-bold text-teal-800 shadow-sm hover:bg-teal-100"
         >
           ← Quản lý dự án
@@ -93,7 +93,7 @@ export default async function QdGiaoXnListPage() {
       ) : rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-rose-200 bg-gradient-to-br from-[#fff1f2] to-[#ffe4e6]/70 p-10 text-center text-sm text-rose-900/80">
           Chưa có dự thảo. Mở{" "}
-          <Link href="/" className="font-bold text-teal-700 hover:underline">
+          <Link href="/tvtk" className="font-bold text-teal-700 hover:underline">
             Quản lý dự án
           </Link>{" "}
           → Soạn QĐ.

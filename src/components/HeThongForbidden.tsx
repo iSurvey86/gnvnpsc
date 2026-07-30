@@ -11,7 +11,7 @@ export function HeThongForbidden() {
         href="/"
         className="inline-flex rounded-xl bg-teal-700 px-4 py-2 text-sm font-bold text-white"
       >
-        Về Quản lý dự án
+        Về chọn phân hệ
       </Link>
     </div>
   );

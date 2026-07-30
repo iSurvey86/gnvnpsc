@@ -22,7 +22,7 @@ export default async function TaiKhoanPage() {
           href={profile.isAdmin ? "/he-thong" : "/"}
           className="rounded-xl border border-sky-200 bg-white px-3 py-1.5 text-xs font-bold text-sky-800 hover:bg-sky-50"
         >
-          {profile.isAdmin ? "← Quản lý hệ thống" : "← Quản lý dự án"}
+          {profile.isAdmin ? "← Quản lý hệ thống" : "← Chọn phân hệ"}
         </Link>
       </div>
 

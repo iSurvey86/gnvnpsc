@@ -7,31 +7,51 @@ import {
   APP_FULL_NAME,
   APP_SYSTEM_LABEL,
 } from "@/lib/brand";
+import { isHubPath, isTvtkPath } from "@/lib/phan-he";
 import { SidebarUserFooter } from "@/components/SidebarUserFooter";
 
 const PIN_KEY = "gnvnpsc_sidebar_pinned";
 
-const nav = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  match: (p: string) => boolean;
+  adminOnly?: boolean;
+  hideIfAdmin?: boolean;
+  hubOnly?: boolean;
+  tvtkOnly?: boolean;
+};
+
+const nav: NavItem[] = [
   {
     href: "/",
+    label: "Chọn phân hệ",
+    icon: "⌂",
+    match: (p) => isHubPath(p),
+    adminOnly: false,
+  },
+  {
+    href: "/tvtk",
     label: "Quản lý Dự án",
     icon: "📁",
-    match: (p: string) => p === "/" || p.startsWith("/du-an"),
+    match: (p) => p === "/tvtk" || p.startsWith("/du-an"),
     adminOnly: false,
+    tvtkOnly: true,
   },
   {
     href: "/qd-giao-xn",
     label: "QĐ giao Xí nghiệp",
     icon: "📄",
-    match: (p: string) => p.startsWith("/qd-giao-xn"),
+    match: (p) => p.startsWith("/qd-giao-xn"),
     adminOnly: false,
+    tvtkOnly: true,
   },
   {
     href: "/he-thong/giam-sat",
     label: "Danh sách tài khoản",
     icon: "👥",
-    match: (p: string) => p.startsWith("/he-thong/giam-sat"),
-    /** Non-admin: vào thẳng danh sách TK; Admin dùng hub hệ thống */
+    match: (p) => p.startsWith("/he-thong/giam-sat"),
     adminOnly: false,
     hideIfAdmin: true,
   },
@@ -39,7 +59,7 @@ const nav = [
     href: "/he-thong",
     label: "Quản lý hệ thống",
     icon: "⚙️",
-    match: (p: string) => p.startsWith("/he-thong"),
+    match: (p) => p.startsWith("/he-thong"),
     adminOnly: true,
   },
 ];
@@ -92,9 +112,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ? "ml-2.5 opacity-100 whitespace-nowrap"
     : "ml-2.5 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200";
 
+  const inTvtk = isTvtkPath(pathname);
+  const onHub = isHubPath(pathname);
+
   const visibleNav = nav.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
-    if ("hideIfAdmin" in item && item.hideIfAdmin && isAdmin) return false;
+    if (item.hideIfAdmin && isAdmin) return false;
+    if (item.tvtkOnly && !inTvtk) return false;
+    if (onHub && item.tvtkOnly) return false;
     return true;
   });
 

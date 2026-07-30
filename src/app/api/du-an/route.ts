@@ -11,8 +11,9 @@ export async function GET() {
     const { data, error } = await supabase
       .from("du_an")
       .select(
-        `id, ma_du_an, ten_du_an, dia_diem, quy_mo, goi_cong_viec, ghi_chu, cap_dien_ap, huong_giao, qd_giao_a_id, created_at,
+        `id, ma_du_an, ten_du_an, dia_diem, quy_mo, goi_cong_viec, ghi_chu, cap_dien_ap, huong_giao, xi_nghiep_id, qd_giao_a_id, created_at,
          qd_giao_a:qd_giao_a_id ( id, so_qd, ngay_qd, scan_status ),
+         xi_nghiep:xi_nghiep_id ( id, ten, ma ),
          qd_giao_xn ( id, loai, trang_thai, so_qd_du_thao, xi_nghiep:xi_nghiep_id ( id, ten, ma ) )`,
       )
       .order("created_at", { ascending: false })
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       ghi_chu?: string | null;
       cap_dien_ap?: string | null;
       huong_giao?: string | null;
+      xi_nghiep_id?: string | null;
     };
 
     if (!body.ten_du_an?.trim()) {
@@ -87,6 +89,7 @@ export async function POST(request: Request) {
           body.huong_giao === "tvtk_tn"
             ? body.huong_giao
             : null,
+        xi_nghiep_id: body.xi_nghiep_id || null,
       })
       .select("*")
       .single();
