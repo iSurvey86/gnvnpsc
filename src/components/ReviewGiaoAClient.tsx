@@ -20,11 +20,13 @@ import {
   generateMaDuAn,
 } from "@/lib/ma-du-an";
 import { XiNghiepPicker } from "@/components/XiNghiepPicker";
+import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 import type { CapDienAp, DuAn, QdGiaoA, XiNghiep } from "@/lib/types";
 
 type Props = {
   qd: QdGiaoA;
   initialDuAn: DuAn[];
+  phanHe?: PhanHeCode;
 };
 
 type RowResolution =
@@ -37,7 +39,12 @@ const cellInput =
 const cellTextarea =
   "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none leading-relaxed text-[13px] text-gray-800 font-semibold outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors resize-none overflow-hidden [field-sizing:content] min-h-[2.5rem]";
 
-export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
+export function ReviewGiaoAClient({
+  qd,
+  initialDuAn,
+  phanHe = "tvtk",
+}: Props) {
+  const cfg = PHAN_HE[phanHe];
   const router = useRouter();
   const { showConfirm, showAlert } = useAppDialog();
   const nam = useMemo(
@@ -46,9 +53,10 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
   );
 
   const [rows, setRows] = useState<DuAn[]>(() =>
-    (assignMaDuAnList(initialDuAn, nam) as DuAn[]).map((r) => ({
+    (assignMaDuAnList(initialDuAn, nam, [], phanHe) as DuAn[]).map((r) => ({
       ...r,
       dia_diem: normalizeDiaDiem(r.dia_diem),
+      phan_he: r.phan_he ?? phanHe,
     })),
   );
   const [pool, setPool] = useState<DuAnTrungRef[]>([]);
@@ -68,20 +76,21 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
   >(null);
 
   useEffect(() => {
-    const normalized = (assignMaDuAnList(initialDuAn, nam) as DuAn[]).map(
-      (r) => ({
-        ...r,
-        dia_diem: normalizeDiaDiem(r.dia_diem),
-      }),
-    );
+    const normalized = (
+      assignMaDuAnList(initialDuAn, nam, [], phanHe) as DuAn[]
+    ).map((r) => ({
+      ...r,
+      dia_diem: normalizeDiaDiem(r.dia_diem),
+      phan_he: r.phan_he ?? phanHe,
+    }));
     setRows(normalized);
-  }, [initialDuAn, nam]);
+  }, [initialDuAn, nam, phanHe]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch("/api/du-an");
+        const res = await fetch(`/api/du-an?phan_he=${phanHe}`);
         const json = (await res.json()) as {
           ok: boolean;
           data?: Array<{
@@ -89,6 +98,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
             ten_du_an: string;
             ma_du_an?: string | null;
             qd_giao_a_id?: string | null;
+            phan_he?: string;
             qd_giao_a?:
               | { so_qd?: string | null }
               | { so_qd?: string | null }[]
@@ -118,7 +128,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [phanHe]);
 
   useEffect(() => {
     let cancelled = false;
@@ -176,6 +186,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
               dia_diem: next.dia_diem,
               cap_dien_ap: next.cap_dien_ap,
               nam,
+              phan_he: phanHe,
             },
             taken,
           );
@@ -260,7 +271,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
     setError(null);
     setMessage(null);
     try {
-      const withMa = assignMaDuAnList(rows, nam) as DuAn[];
+      const withMa = assignMaDuAnList(rows, nam, [], phanHe) as DuAn[];
       setRows(withMa);
 
       const resolutions =
@@ -377,12 +388,12 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
 
   async function saveAndScanNext() {
     const ok = await saveAll({ showSuccessAlert: false });
-    if (ok) router.push("/nhap-du-an");
+    if (ok) router.push(cfg.nhapDuAnHref);
   }
 
   async function saveAndClose() {
     const ok = await saveAll({ showSuccessAlert: false });
-    if (ok) router.push("/tvtk");
+    if (ok) router.push(cfg.homeAfterSave);
   }
 
   async function addDuAn() {
@@ -391,7 +402,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
     try {
       const taken = rows.map((r) => r.ma_du_an).filter(Boolean) as string[];
       const ten = "Dự án mới";
-      const ma = generateMaDuAn({ ten_du_an: ten, nam }, taken);
+      const ma = generateMaDuAn({ ten_du_an: ten, nam, phan_he: phanHe }, taken);
       const res = await fetch("/api/du-an", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -399,6 +410,7 @@ export function ReviewGiaoAClient({ qd, initialDuAn }: Props) {
           qd_giao_a_id: qd.id,
           ten_du_an: ten,
           ma_du_an: ma,
+          phan_he: phanHe,
         }),
       });
       const json = await res.json();

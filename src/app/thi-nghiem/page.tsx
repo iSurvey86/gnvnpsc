@@ -1,5 +1,5 @@
-import { PhanHePlaceholder } from "@/components/PhanHePlaceholder";
+import { DuAnDashboard } from "@/components/DuAnDashboard";
 
-export default function ThiNghiemHubPage() {
-  return <PhanHePlaceholder code="thi_nghiem" />;
+export default function ThiNghiemPage() {
+  return <DuAnDashboard phanHe="thi_nghiem" />;
 }

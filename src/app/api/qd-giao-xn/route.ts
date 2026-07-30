@@ -46,9 +46,9 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if (body.loai !== "tvtk" && body.loai !== "thi_nghiem") {
+    if (body.loai !== "tvtk" && body.loai !== "thi_nghiem" && body.loai !== "tvgs") {
       return NextResponse.json(
-        { ok: false, error: "Loại phải là tvtk hoặc thi_nghiem" },
+        { ok: false, error: "Loại phải là tvtk, thi_nghiem hoặc tvgs" },
         { status: 400 },
       );
     }
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
           ten: body.xi_nghiep_ten.trim(),
           phu_hop_tvtk: body.loai === "tvtk",
           phu_hop_thi_nghiem: body.loai === "thi_nghiem",
+          phu_hop_tvgs: body.loai === "tvgs",
         })
         .select("id")
         .single();
@@ -70,11 +71,19 @@ export async function POST(request: Request) {
       xiNghiepId = xn.id;
     }
 
+    const phanHe =
+      body.loai === "thi_nghiem"
+        ? "thi_nghiem"
+        : body.loai === "tvgs"
+          ? "tvgs"
+          : "tvtk";
+
     const { data, error } = await supabase
       .from("qd_giao_xn")
       .insert({
         du_an_id: body.du_an_id,
         loai: body.loai,
+        phan_he: phanHe,
         so_qd_du_thao: body.so_qd_du_thao ?? null,
         ngay_du_thao: body.ngay_du_thao ?? null,
         xi_nghiep_id: xiNghiepId,

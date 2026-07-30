@@ -1,9 +1,12 @@
+import type { PhanHeCode } from "@/lib/phan-he";
+
 export type ScanStatus = "pending" | "processing" | "done" | "error";
-export type LoaiGiaoXn = "tvtk" | "thi_nghiem";
+export type LoaiGiaoXn = "tvtk" | "thi_nghiem" | "tvgs";
 export type TrangThaiQdXn = "nhap" | "trinh_gd" | "da_ban_hanh";
 export type CapDienAp = "110kv" | "trung_ha_ap";
 /** Hướng giao PCM: TVTK / Thí nghiệm / cả hai */
 export type HuongGiao = "tvtk" | "tn" | "tvtk_tn";
+export type { PhanHeCode };
 
 /** Một dòng phụ lục Giao A (xuất Word 110 / THA / TN) */
 export type PhuLucCongTrinh = {
@@ -51,6 +54,11 @@ export type QdGiaoA = {
   scan_error: string | null;
   /** Phụ lục CT từ ScanAI — dùng loop Word 110kV */
   phu_luc: PhuLucGiaoA | null;
+  scanned_by?: string | null;
+  scanned_by_email?: string | null;
+  scanned_by_ho_ten?: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -68,6 +76,12 @@ export type DuAn = {
   huong_giao: HuongGiao | null;
   /** Xí nghiệp được giao nhiệm vụ — chọn trên bảng danh mục dự án */
   xi_nghiep_id: string | null;
+  /** Phân hệ sở hữu bản ghi dự án */
+  phan_he: PhanHeCode;
+  created_by?: string | null;
+  updated_by?: string | null;
+  assigned_by?: string | null;
+  assigned_at?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -78,6 +92,7 @@ export type XiNghiep = {
   ten: string;
   phu_hop_tvtk: boolean;
   phu_hop_thi_nghiem: boolean;
+  phu_hop_tvgs: boolean;
   active: boolean;
 };
 
@@ -85,6 +100,7 @@ export type QdGiaoXn = {
   id: string;
   du_an_id: string;
   loai: LoaiGiaoXn;
+  phan_he?: PhanHeCode;
   so_qd_du_thao: string | null;
   ngay_du_thao: string | null;
   xi_nghiep_id: string | null;
@@ -93,11 +109,21 @@ export type QdGiaoXn = {
   can_cu: string | null;
   trang_thai: TrangThaiQdXn;
   word_storage_path: string | null;
+  created_by?: string | null;
+  updated_by?: string | null;
+  exported_by?: string | null;
+  exported_at?: string | null;
   created_at: string;
 };
 
 /** Nhân sự nội bộ (sau đồng bộ HRMS) */
 export type VaiTro = "admin" | "user";
+
+export type NhanSuPhanHe = {
+  phan_he: PhanHeCode;
+  vai_tro_phan_he: "viewer" | "scanner" | "assigner" | "manager";
+  active: boolean;
+};
 
 export type NhanSu = {
   id: string;
@@ -112,6 +138,7 @@ export type NhanSu = {
   da_cap_dang_nhap: boolean;
   goi_y_doi_mk: boolean;
   vai_tro: VaiTro;
+  nhan_su_phan_he?: NhanSuPhanHe[];
   created_at: string;
   updated_at: string;
 };

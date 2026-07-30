@@ -1,28 +1,41 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
+import {
+  AuthError,
+  parsePhanHeParam,
+  requireSession,
+  requireWritePhanHe,
+} from "@/lib/phan-he-auth";
 import { resolveDiaDiem } from "@/lib/soan-qd-defaults";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-/** GET danh sách dự án + QĐ Giao A + QĐ giao XN */
-export async function GET() {
+/** GET danh sách dự án + QĐ Giao A + QĐ giao XN (?phan_he=) */
+export async function GET(request: Request) {
   try {
+    await requireSession();
+    const phanHeParam = new URL(request.url).searchParams.get("phan_he");
+    const phanHe = phanHeParam ? parsePhanHeParam(phanHeParam) : null;
+
     const supabase = createAdminClient();
-    const { data, error } = await supabase
+    let q = supabase
       .from("du_an")
       .select(
-        `id, ma_du_an, ten_du_an, dia_diem, quy_mo, goi_cong_viec, ghi_chu, cap_dien_ap, huong_giao, xi_nghiep_id, qd_giao_a_id, created_at,
-         qd_giao_a:qd_giao_a_id ( id, so_qd, ngay_qd, scan_status ),
+        `id, ma_du_an, ten_du_an, dia_diem, quy_mo, goi_cong_viec, ghi_chu, cap_dien_ap, huong_giao, xi_nghiep_id, phan_he, qd_giao_a_id, created_at, created_by, updated_by, assigned_by, assigned_at,
+         qd_giao_a:qd_giao_a_id ( id, so_qd, ngay_qd, scan_status, scanned_by_ho_ten ),
          xi_nghiep:xi_nghiep_id ( id, ten, ma ),
-         qd_giao_xn ( id, loai, trang_thai, so_qd_du_thao, xi_nghiep:xi_nghiep_id ( id, ten, ma ) )`,
+         qd_giao_xn ( id, loai, trang_thai, so_qd_du_thao, phan_he, xi_nghiep:xi_nghiep_id ( id, ten, ma ) )`,
       )
       .order("created_at", { ascending: false })
       .limit(500);
 
+    if (phanHe) q = q.eq("phan_he", phanHe);
+
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
 
     const rows = data ?? [];
-    // Bổ sung địa điểm còn trống (vd TNHC chỉ ghi tỉnh trong tên / PC tỉnh)
     await Promise.all(
       rows.map(async (r) => {
         if (r.dia_diem) return;
@@ -38,6 +51,12 @@ export async function GET() {
 
     return NextResponse.json({ ok: true, data: rows });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { ok: false, error: err.message },
+        { status: err.status },
+      );
+    }
     const message = err instanceof Error ? err.message : "Lỗi tải dự án";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
@@ -57,7 +76,11 @@ export async function POST(request: Request) {
       cap_dien_ap?: string | null;
       huong_giao?: string | null;
       xi_nghiep_id?: string | null;
+      phan_he?: string | null;
     };
+
+    const phanHe = parsePhanHeParam(body.phan_he);
+    const { actor } = await requireWritePhanHe(phanHe);
 
     if (!body.ten_du_an?.trim()) {
       return NextResponse.json(
@@ -90,13 +113,36 @@ export async function POST(request: Request) {
             ? body.huong_giao
             : null,
         xi_nghiep_id: body.xi_nghiep_id || null,
+        phan_he: phanHe,
+        created_by: actor.userId,
+        updated_by: actor.userId,
+        assigned_by: body.xi_nghiep_id ? actor.userId : null,
+        assigned_at: body.xi_nghiep_id ? new Date().toISOString() : null,
       })
       .select("*")
       .single();
 
     if (error) throw new Error(error.message);
+
+    await logHoatDong({
+      phanHe: "DA",
+      hanhDong: "CREATE",
+      chiTietNgan: `Tạo DA ${data.ma_du_an || data.ten_du_an}`,
+      doiTuongId: data.id,
+      duLieuDong: { phan_he: phanHe },
+      email: actor.email,
+      hoTen: actor.hoTen,
+      authUserId: actor.userId,
+    });
+
     return NextResponse.json({ ok: true, data });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { ok: false, error: err.message },
+        { status: err.status },
+      );
+    }
     const message = err instanceof Error ? err.message : "Lỗi thêm dự án";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }

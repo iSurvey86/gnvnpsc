@@ -7,7 +7,13 @@ import {
   APP_FULL_NAME,
   APP_SYSTEM_LABEL,
 } from "@/lib/brand";
-import { isHubPath, isTvtkPath } from "@/lib/phan-he";
+import {
+  isHubPath,
+  isThiNghiemPath,
+  isTvgsPath,
+  isTvtkPath,
+  resolvePhanHeFromPath,
+} from "@/lib/phan-he";
 import { SidebarUserFooter } from "@/components/SidebarUserFooter";
 
 const PIN_KEY = "gnvnpsc_sidebar_pinned";
@@ -19,8 +25,8 @@ type NavItem = {
   match: (p: string) => boolean;
   adminOnly?: boolean;
   hideIfAdmin?: boolean;
-  hubOnly?: boolean;
-  tvtkOnly?: boolean;
+  /** Chỉ hiện khi đang trong phân hệ tương ứng */
+  phanHeOnly?: "tvtk" | "thi_nghiem" | "tvgs";
 };
 
 const nav: NavItem[] = [
@@ -35,9 +41,25 @@ const nav: NavItem[] = [
     href: "/tvtk",
     label: "Quản lý Dự án",
     icon: "📁",
-    match: (p) => p === "/tvtk" || p.startsWith("/du-an"),
+    match: (p) => p === "/tvtk" || p.startsWith("/tvtk/") || p.startsWith("/du-an"),
     adminOnly: false,
-    tvtkOnly: true,
+    phanHeOnly: "tvtk",
+  },
+  {
+    href: "/thi-nghiem",
+    label: "Quản lý Dự án",
+    icon: "📁",
+    match: (p) => isThiNghiemPath(p),
+    adminOnly: false,
+    phanHeOnly: "thi_nghiem",
+  },
+  {
+    href: "/tvgs",
+    label: "Quản lý Dự án",
+    icon: "📁",
+    match: (p) => isTvgsPath(p),
+    adminOnly: false,
+    phanHeOnly: "tvgs",
   },
   {
     href: "/qd-giao-xn",
@@ -45,7 +67,7 @@ const nav: NavItem[] = [
     icon: "📄",
     match: (p) => p.startsWith("/qd-giao-xn"),
     adminOnly: false,
-    tvtkOnly: true,
+    phanHeOnly: "tvtk",
   },
   {
     href: "/he-thong/giam-sat",
@@ -56,7 +78,7 @@ const nav: NavItem[] = [
     hideIfAdmin: true,
   },
   {
-    href: "/he-thong",
+    href: "/he-thong/giam-sat",
     label: "Quản lý hệ thống",
     icon: "⚙️",
     match: (p) => p.startsWith("/he-thong"),
@@ -100,6 +122,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const hideChrome =
     pathname.startsWith("/nhap-du-an") ||
+    pathname.includes("/nhap-du-an") ||
     pathname.startsWith("/giao-a/") ||
     pathname === "/login" ||
     pathname.startsWith("/auth/");
@@ -112,14 +135,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ? "ml-2.5 opacity-100 whitespace-nowrap"
     : "ml-2.5 opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity duration-200";
 
-  const inTvtk = isTvtkPath(pathname);
+  const activePhanHe = resolvePhanHeFromPath(pathname);
   const onHub = isHubPath(pathname);
 
   const visibleNav = nav.filter((item) => {
     if (item.adminOnly && !isAdmin) return false;
     if (item.hideIfAdmin && isAdmin) return false;
-    if (item.tvtkOnly && !inTvtk) return false;
-    if (onHub && item.tvtkOnly) return false;
+    if (item.phanHeOnly) {
+      if (onHub) return false;
+      if (activePhanHe !== item.phanHeOnly) return false;
+    }
     return true;
   });
 

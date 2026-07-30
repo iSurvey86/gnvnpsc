@@ -10,6 +10,7 @@ export function resolveSoanQdTone(
   cap: CapDienAp | null | undefined,
 ): SoanQdTone {
   if (loai === "thi_nghiem") return "amber";
+  if (loai === "tvgs") return "amber";
   if (cap === "110kv") return "sky";
   return "emerald";
 }

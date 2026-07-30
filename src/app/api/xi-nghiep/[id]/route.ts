@@ -13,6 +13,7 @@ export async function PATCH(request: Request, { params }: Props) {
       ten?: string;
       phu_hop_tvtk?: boolean;
       phu_hop_thi_nghiem?: boolean;
+      phu_hop_tvgs?: boolean;
       active?: boolean;
     };
 
@@ -30,6 +31,9 @@ export async function PATCH(request: Request, { params }: Props) {
     if (body.phu_hop_tvtk !== undefined) patch.phu_hop_tvtk = body.phu_hop_tvtk;
     if (body.phu_hop_thi_nghiem !== undefined) {
       patch.phu_hop_thi_nghiem = body.phu_hop_thi_nghiem;
+    }
+    if (body.phu_hop_tvgs !== undefined) {
+      patch.phu_hop_tvgs = body.phu_hop_tvgs;
     }
     if (body.active !== undefined) patch.active = body.active;
 

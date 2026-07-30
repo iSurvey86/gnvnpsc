@@ -86,7 +86,8 @@ function compareMaNv(
 }
 
 export function GiamSatHeThongClient({ isAdmin }: Props) {
-  const [tab, setTab] = useState<Tab>(isAdmin ? "logs" : "accounts");
+  // Admin xem nhật ký; non-admin chỉ xem danh sách tài khoản
+  const tab: Tab = isAdmin ? "logs" : "accounts";
   const [q, setQ] = useState("");
   const [phanHe, setPhanHe] = useState<string>("ALL");
   const [hanhDong, setHanhDong] = useState<string>("ALL");
@@ -144,8 +145,11 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
   }, [accQ, accDaCap]);
 
   useEffect(() => {
-    if (tab === "logs") void loadLogs();
-    else void loadAccounts();
+    const timer = window.setTimeout(() => {
+      if (tab === "logs") void loadLogs();
+      else void loadAccounts();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [tab, loadLogs, loadAccounts]);
 
   async function onCapDangNhap(id: string) {
@@ -218,33 +222,6 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
 
   return (
     <div className="space-y-4">
-      {isAdmin ? (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setTab("logs")}
-            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-              tab === "logs"
-                ? "bg-teal-500 text-white shadow-sm"
-                : "border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100"
-            }`}
-          >
-            Nhật ký hoạt động
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("accounts")}
-            className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
-              tab === "accounts"
-                ? "bg-sky-500 text-white shadow-sm"
-                : "border border-sky-200 bg-sky-50 text-sky-800 hover:bg-sky-100"
-            }`}
-          >
-            Danh sách tài khoản
-          </button>
-        </div>
-      ) : null}
-
       {error ? (
         <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
           {error}
@@ -490,13 +467,23 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
                               type="button"
                               disabled={!r.active || capBusyId === r.id}
                               onClick={() => void onCapDangNhap(r.id)}
-                              className="rounded-lg border border-sky-300 bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-900 hover:bg-sky-100 disabled:opacity-40"
+                              title={
+                                r.da_cap_dang_nhap
+                                  ? "Đặt lại mật khẩu"
+                                  : "Cấp đăng nhập"
+                              }
+                              aria-label={
+                                r.da_cap_dang_nhap
+                                  ? `Đặt lại mật khẩu cho ${r.ho_ten}`
+                                  : `Cấp đăng nhập cho ${r.ho_ten}`
+                              }
+                              className={`transition disabled:opacity-40 ${
+                                r.da_cap_dang_nhap
+                                  ? "text-sky-600 hover:text-sky-800"
+                                  : "text-slate-400 hover:text-sky-700"
+                              }`}
                             >
-                              {capBusyId === r.id
-                                ? "Đang cấp…"
-                                : r.da_cap_dang_nhap
-                                  ? "Đặt lại MK"
-                                  : "Cấp đăng nhập"}
+                              {capBusyId === r.id ? "…" : <KeyIcon />}
                             </button>
                           </td>
                         ) : null}
@@ -510,5 +497,21 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
         </>
       )}
     </div>
+  );
+}
+
+function KeyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      className="inline-block size-4"
+      aria-hidden="true"
+    >
+      <circle cx="8" cy="15" r="4" />
+      <path d="m11 12 8-8m-2 2 2 2m-5 1 2 2" />
+    </svg>
   );
 }

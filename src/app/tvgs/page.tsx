@@ -1,5 +1,5 @@
-import { PhanHePlaceholder } from "@/components/PhanHePlaceholder";
+import { DuAnDashboard } from "@/components/DuAnDashboard";
 
-export default function TvgsHubPage() {
-  return <PhanHePlaceholder code="tvgs" />;
+export default function TvgsPage() {
+  return <DuAnDashboard phanHe="tvgs" />;
 }

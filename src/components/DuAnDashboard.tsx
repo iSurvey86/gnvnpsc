@@ -12,12 +12,14 @@ import {
   type LoaiHinhTuVan,
 } from "@/lib/loai-hinh-tu-van";
 import type { CapDienAp, HuongGiao } from "@/lib/types";
+import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 
 type QdGiaoARef = {
   id: string;
   so_qd: string | null;
   ngay_qd: string | null;
   scan_status: string;
+  scanned_by_ho_ten?: string | null;
 } | null;
 
 type QdXnRef = {
@@ -41,6 +43,7 @@ export type DuAnRow = {
   cap_dien_ap: CapDienAp | null;
   huong_giao: HuongGiao | null;
   xi_nghiep_id: string | null;
+  phan_he?: PhanHeCode;
   qd_giao_a_id: string | null;
   created_at: string;
   qd_giao_a: QdGiaoARef | QdGiaoARef[];
@@ -57,7 +60,13 @@ function one<T>(v: T | T[] | null | undefined): T | null {
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
 
-export function DuAnDashboard() {
+export function DuAnDashboard({
+  phanHe = "tvtk",
+}: {
+  phanHe?: PhanHeCode;
+}) {
+  const cfg = PHAN_HE[phanHe];
+  const t = cfg.theme;
   const { showAlert, showConfirm } = useAppDialog();
   const [rows, setRows] = useState<DuAnRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +84,7 @@ export function DuAnDashboard() {
     setLoading(true);
     setLoadError(null);
     try {
-      const res = await fetch("/api/du-an");
+      const res = await fetch(`/api/du-an?phan_he=${phanHe}`);
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "Lỗi tải");
       setRows((json.data ?? []) as DuAnRow[]);
@@ -84,7 +93,7 @@ export function DuAnDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [phanHe]);
 
   useEffect(() => {
     void fetchProjects();
@@ -172,24 +181,24 @@ export function DuAnDashboard() {
     <div className="relative z-0 mx-auto flex min-h-full w-full max-w-[1600px] flex-1 flex-col space-y-4 p-6 antialiased">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-teal-600 uppercase">Phân hệ</p>
-          <h2 className="mt-0.5 text-lg font-bold text-sky-800 uppercase">
-            Giao nhiệm vụ tư vấn thiết kế
+          <p className={`text-sm font-bold uppercase ${t.softText}`}>Phân hệ</p>
+          <h2 className={`mt-0.5 text-lg font-bold uppercase ${t.primaryText}`}>
+            {cfg.titleFull}
           </h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/"
-            className="rounded-xl border border-teal-200 bg-white px-4 py-2.5 text-xs font-bold text-teal-800 shadow-sm hover:bg-teal-50"
+            className={`rounded-xl px-4 py-2.5 text-xs font-bold shadow-sm ${t.btnOutline}`}
           >
             ← Chọn phân hệ
           </Link>
-          <Link href="/nhap-du-an">
+          <Link href={cfg.nhapDuAnHref}>
             <button
               type="button"
-              className="flex cursor-pointer items-center gap-2 rounded-xl border-2 border-teal-500 bg-teal-50 px-6 py-2.5 text-sm font-bold text-teal-800 shadow-sm transition-all hover:bg-teal-100 hover:shadow-md"
+              className={`flex cursor-pointer items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold shadow-sm transition-all ${t.btnPrimary}`}
             >
-              <span className="text-base leading-none">🆕</span>
+              <span className="text-base leading-none">+</span>
               Nhập Dự án (Giao A)
             </button>
           </Link>
@@ -198,8 +207,8 @@ export function DuAnDashboard() {
 
       {/* Filters */}
       <div className="mb-1 flex flex-col gap-3 xl:flex-row">
-        <div className="relative flex w-full items-center rounded-lg border border-teal-200 bg-teal-50/80 p-2 shadow-sm xl:w-[28%]">
-          <div className="pointer-events-none absolute left-4 text-teal-500">
+        <div className={`relative flex w-full items-center rounded-lg border p-2 shadow-sm xl:w-[28%] ${t.searchBorder} ${t.searchBg}`}>
+          <div className={`pointer-events-none absolute left-4 ${t.softText}`}>
             <SearchIcon />
           </div>
           <input
@@ -207,7 +216,7 @@ export function DuAnDashboard() {
             placeholder="Tìm kiếm chung (tên, mã, địa điểm)..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full rounded border border-teal-200 bg-white py-2 pr-8 pl-8 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 transition-all focus:border-teal-400 focus:ring-2 focus:ring-teal-400 focus:outline-none"
+            className={`w-full rounded border bg-white py-2 pr-8 pl-8 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 transition-all focus:ring-2 focus:outline-none ${t.searchBorder}`}
           />
           {searchTerm ? (
             <button
@@ -221,8 +230,8 @@ export function DuAnDashboard() {
           ) : null}
         </div>
 
-        <div className="relative flex flex-1 items-center rounded-lg border border-rose-200 bg-rose-50/80 p-2 shadow-sm">
-          <div className="pointer-events-none absolute left-4 hidden text-rose-400 lg:block">
+        <div className={`relative flex flex-1 items-center rounded-lg border p-2 shadow-sm ${t.filterBorder} ${t.filterBg}`}>
+          <div className={`pointer-events-none absolute left-4 hidden lg:block ${t.softText}`}>
             <FilterIcon />
           </div>
           <div className="flex w-full gap-2 overflow-x-auto pb-1 pl-0 lg:pb-0 lg:pl-8">
@@ -231,19 +240,19 @@ export function DuAnDashboard() {
               placeholder="Số QĐ Giao A..."
               value={filterQdGiaoA}
               onChange={(e) => setFilterQdGiaoA(e.target.value)}
-              className="min-w-[120px] flex-1 rounded border border-rose-200 bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+              className={`min-w-[120px] flex-1 rounded border bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:outline-none ${t.filterBorder}`}
             />
             <input
               type="text"
               placeholder="Địa điểm..."
               value={filterDiaDiem}
               onChange={(e) => setFilterDiaDiem(e.target.value)}
-              className="min-w-[140px] flex-1 rounded border border-rose-200 bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+              className={`min-w-[140px] flex-1 rounded border bg-white px-3 py-2 text-[13px] font-medium text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:outline-none ${t.filterBorder}`}
             />
             <select
               value={filterLoaiHinh}
               onChange={(e) => setFilterLoaiHinh(e.target.value)}
-              className="min-w-[150px] cursor-pointer rounded border border-rose-200 bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+              className={`min-w-[150px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
             >
               <option value="">Loại hình tư vấn</option>
               {LOAI_HINH_TU_VAN_OPTIONS.map((o) => (
@@ -255,7 +264,7 @@ export function DuAnDashboard() {
             <select
               value={filterLoaiXn}
               onChange={(e) => setFilterLoaiXn(e.target.value)}
-              className="min-w-[160px] cursor-pointer rounded border border-rose-200 bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:border-rose-300 focus:ring-1 focus:ring-rose-300 focus:outline-none"
+              className={`min-w-[160px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
             >
               <option value="">Trạng thái giao XN</option>
               <option value="chua">Chưa giao XN</option>
@@ -278,24 +287,26 @@ export function DuAnDashboard() {
 
       {/* Table */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        <div className="min-h-[58vh] flex-1 overflow-auto">
+        <div className={`min-h-[58vh] flex-1 overflow-auto`}>
           <table className="relative min-w-full border-collapse text-left">
-            <thead className="sticky top-0 z-10 bg-teal-700 text-center text-xs font-semibold tracking-wide text-white uppercase shadow-md">
+            <thead
+              className={`sticky top-0 z-10 text-center text-xs font-semibold tracking-wide uppercase shadow-md ${t.headerBg} ${t.headerText}`}
+            >
               <tr>
-                <th className="w-12 border-r border-teal-800 px-3 py-3.5">STT</th>
-                <th className="border-r border-teal-800 px-4 py-3.5">
+                <th className="w-12 border-r border-black/10 px-3 py-3.5">STT</th>
+                <th className="border-r border-black/10 px-4 py-3.5">
                   Tên dự án
                 </th>
-                <th className="w-44 whitespace-nowrap border-r border-teal-800 px-3 py-3.5">
+                <th className="w-44 whitespace-nowrap border-r border-black/10 px-3 py-3.5">
                   Loại hình tư vấn
                 </th>
-                <th className="w-24 border-r border-teal-800 px-2 py-3.5">
+                <th className="w-24 border-r border-black/10 px-2 py-3.5">
                   Địa điểm
                 </th>
-                <th className="w-44 border-r border-teal-800 px-3 py-3.5">
+                <th className="w-44 border-r border-black/10 px-3 py-3.5">
                   Giao A
                 </th>
-                <th className="w-48 border-r border-teal-800 px-3 py-3.5">
+                <th className="w-48 border-r border-black/10 px-3 py-3.5">
                   Giao Xí nghiệp
                 </th>
                 <th className="w-44 px-3 py-3.5">Thao tác</th>
@@ -343,8 +354,8 @@ export function DuAnDashboard() {
                       <>
                         Chưa có dự án.{" "}
                         <Link
-                          href="/nhap-du-an"
-                          className="font-bold text-teal-700 hover:underline"
+                          href={cfg.nhapDuAnHref}
+                          className={`font-bold hover:underline ${t.primaryText}`}
                         >
                           Nhập Dự án (Giao A)
                         </Link>
@@ -366,15 +377,15 @@ export function DuAnDashboard() {
                   return (
                     <tr
                       key={r.id}
-                      className="border-b border-teal-50 transition-colors odd:bg-white even:bg-[#eef8f5] hover:bg-[#dcefea]"
+                      className={`border-b border-black/5 transition-colors ${t.rowOdd} ${t.rowEven} ${t.rowHover}`}
                     >
                       <td className="px-3 py-3 text-center text-gray-600">
                         {stt}
                       </td>
                       <td className="px-4 py-3 text-left">
                         <Link
-                          href={`/du-an/${r.id}/giao-xn`}
-                          className="font-semibold text-teal-800 hover:underline"
+                          href={`/du-an/${r.id}/giao-xn?phan_he=${phanHe}`}
+                          className={`font-semibold hover:underline ${t.primaryText}`}
                         >
                           {r.ten_du_an}
                         </Link>
@@ -410,7 +421,7 @@ export function DuAnDashboard() {
                             className="inline-flex flex-col items-center"
                             title="Xem PDF Giao A"
                           >
-                            <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-800 hover:underline">
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold hover:underline ${t.chip}`}>
                               {giaoA.so_qd || "Xem Giao A"}
                             </span>
                             <span className="mt-0.5 text-xs font-medium text-gray-400">
@@ -446,8 +457,8 @@ export function DuAnDashboard() {
                               return (
                                 <span
                                   key={x.id}
-                                  className="max-w-[11rem] text-sm leading-snug font-medium text-teal-900"
-                                  title={`${tenXn} · ${x.loai === "tvtk" ? "TVTK" : "Thí nghiệm"}`}
+                                  className={`max-w-[11rem] text-sm leading-snug font-medium ${t.primaryText}`}
+                                  title={`${tenXn} · ${x.loai === "tvtk" ? "TVTK" : x.loai === "tvgs" ? "TVGS" : "Thí nghiệm"}`}
                                 >
                                   {tenXn}
                                 </span>
@@ -460,7 +471,7 @@ export function DuAnDashboard() {
                         <div className="flex flex-wrap justify-center gap-1">
                           <Link
                             href={`/du-an/${r.id}/sua`}
-                            className="inline-flex rounded-lg p-1.5 text-teal-700 transition hover:bg-teal-50"
+                            className={`inline-flex rounded-lg p-1.5 transition ${t.softText} hover:bg-white/80`}
                             title="Sửa thông tin chung"
                           >
                             <PencilIcon />
@@ -484,7 +495,9 @@ export function DuAnDashboard() {
           </table>
         </div>
 
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-teal-50 bg-[#ecfdf5] px-4 py-2.5 text-xs text-teal-800/70">
+        <div
+          className={`flex shrink-0 flex-wrap items-center justify-between gap-2 border-t px-4 py-2.5 text-xs ${t.border} ${t.footerBg} ${t.footerText}`}
+        >
           <span>
             Hiển thị {current.length}/{filtered.length} · Tổng danh mục{" "}
             {rows.length}

@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       ten?: string;
       phu_hop_tvtk?: boolean;
       phu_hop_thi_nghiem?: boolean;
+      phu_hop_tvgs?: boolean;
       active?: boolean;
     };
 
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
         ten: body.ten.trim(),
         phu_hop_tvtk: body.phu_hop_tvtk ?? true,
         phu_hop_thi_nghiem: body.phu_hop_thi_nghiem ?? true,
+        phu_hop_tvgs: body.phu_hop_tvgs ?? true,
         active: body.active ?? true,
       })
       .select("*")

@@ -12,21 +12,18 @@ export default async function TaiKhoanPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-5 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-teal-900">Tài khoản</h1>
-          <p className="mt-0.5 text-xs text-teal-700/60">
-            Phiên đăng nhập hiện tại
-          </p>
-        </div>
+        <h1 className="text-xl font-bold text-teal-900 uppercase">
+          Tài khoản đăng nhập
+        </h1>
         <Link
-          href={profile.isAdmin ? "/he-thong" : "/"}
-          className="rounded-xl border border-sky-200 bg-white px-3 py-1.5 text-xs font-bold text-sky-800 hover:bg-sky-50"
+          href={profile.isAdmin ? "/he-thong/giam-sat" : "/"}
+          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
         >
           {profile.isAdmin ? "← Quản lý hệ thống" : "← Chọn phân hệ"}
         </Link>
       </div>
 
-      <section className="rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm">
+      <section className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 via-sky-50/70 to-cyan-50 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
         <dl className="space-y-4 text-sm">
           <div>
             <dt className="text-[11px] font-bold tracking-wider text-sky-700 uppercase">

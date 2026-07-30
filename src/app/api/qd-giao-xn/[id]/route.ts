@@ -57,7 +57,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
     if (body.pham_vi !== undefined) patch.pham_vi = body.pham_vi;
     if (body.thoi_han !== undefined) patch.thoi_han = body.thoi_han;
     if (body.can_cu !== undefined) patch.can_cu = body.can_cu;
-    if (body.loai === "tvtk" || body.loai === "thi_nghiem")
+    if (body.loai === "tvtk" || body.loai === "thi_nghiem" || body.loai === "tvgs")
       patch.loai = body.loai;
     if (
       body.trang_thai === "nhap" ||

@@ -1,4 +1,8 @@
 import type { CapDienAp } from "@/lib/types";
+import {
+  PHAN_HE_MA_SUFFIX,
+  type PhanHeCode,
+} from "@/lib/phan-he";
 
 /** Quy tắc mã dự án — cùng nguyên tắc ksnpsc: TỈNH-NĂM-PHÂNĐOẠN-VIẾTTẮT */
 
@@ -135,8 +139,11 @@ export function buildProjectCode(
   nam: string | number,
   segment: string,
   acronymSuffix: string,
+  phanHe?: PhanHeCode | null,
 ): string {
-  return `${pCode}-${nam}-${segment}-${acronymSuffix}`;
+  const base = `${pCode}-${nam}-${segment}-${acronymSuffix}`;
+  if (!phanHe) return base;
+  return `${base}-${PHAN_HE_MA_SUFFIX[phanHe]}`;
 }
 
 export function extractNamFromQd(
@@ -155,13 +162,14 @@ export function resolveAcronymSuffix(
   segment: string,
   tenDuAn: string,
   takenCodes: string[],
+  phanHe?: PhanHeCode | null,
 ): string {
   const acronym = getNameAcronym(tenDuAn) || "DA";
   for (let attempt = 0; attempt <= 99; attempt++) {
     const numSuffix = attempt > 0 ? String(attempt) : "";
     const acronymSuffix =
       acronym.substring(0, Math.max(1, 10 - numSuffix.length)) + numSuffix;
-    const code = buildProjectCode(pCode, nam, segment, acronymSuffix);
+    const code = buildProjectCode(pCode, nam, segment, acronymSuffix, phanHe);
     if (!takenCodes.includes(code)) return acronymSuffix;
   }
   return acronym.substring(0, 10);
@@ -172,9 +180,10 @@ export type MaDuAnInput = {
   dia_diem?: string | null;
   cap_dien_ap?: CapDienAp | null;
   nam?: string;
+  phan_he?: PhanHeCode | null;
 };
 
-/** Sinh mã mới, tránh trùng với takenCodes */
+/** Sinh mã mới, tránh trùng với takenCodes — có hậu tố TV|TN|GS theo phân hệ */
 export function generateMaDuAn(
   input: MaDuAnInput,
   takenCodes: string[] = [],
@@ -188,8 +197,9 @@ export function generateMaDuAn(
     segment,
     input.ten_du_an,
     takenCodes,
+    input.phan_he,
   );
-  return buildProjectCode(pCode, nam, segment, suffix);
+  return buildProjectCode(pCode, nam, segment, suffix, input.phan_he);
 }
 
 /** Gán mã cho danh sách (bỏ qua dòng đã có mã) */
@@ -199,8 +209,14 @@ export function assignMaDuAnList<
     ten_du_an: string;
     dia_diem?: string | null;
     cap_dien_ap?: CapDienAp | null;
+    phan_he?: PhanHeCode | null;
   },
->(rows: T[], nam: string, existingCodes: string[] = []): T[] {
+>(
+  rows: T[],
+  nam: string,
+  existingCodes: string[] = [],
+  phanHe?: PhanHeCode | null,
+): T[] {
   const taken = [...existingCodes];
   return rows.map((row) => {
     if (row.ma_du_an?.trim()) {
@@ -213,6 +229,7 @@ export function assignMaDuAnList<
         dia_diem: row.dia_diem,
         cap_dien_ap: row.cap_dien_ap,
         nam,
+        phan_he: row.phan_he ?? phanHe ?? null,
       },
       taken,
     );
