@@ -5,6 +5,35 @@
 
 ---
 
+## 2026-07-30 — Chuẩn hóa cuối phiên: bump version + bắt buộc workflow/HDSD
+
+**Version:** `0.1.1`
+
+### Đã làm
+
+- Bổ sung bước **(0) bump patch** vào rule «làm cuối phiên đầy đủ» (`npm version patch --no-git-tag-version`).
+- Làm rõ «đầy đủ» **bắt buộc** rà/cập nhật `workflows/` + `docs/hdsd/` liên quan phiên; lệnh «cập nhật HANDOFF → commit + push» vẫn nhẹ (không bắt buộc doc).
+- **Không đổi workflow/HDSD nghiệp vụ** — phiên này chỉ sửa rule agent.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [session-handoff.mdc](d:\AIProject\gnvnpsc\.cursor\rules\session-handoff.mdc) | Quy ước cuối phiên |
+| [package.json](d:\AIProject\gnvnpsc\package.json) | Version `0.1.1` |
+
+### Việc tiếp
+
+- [ ] Khi hoàn thiện luồng PDF, đổi `SHOW_EXPORT_PDF` thành `true`.
+- [ ] Chạy SQL `010` (và `009` nếu chưa) trên Supabase.
+- [ ] Lưu field Word bổ sung vào DB; TN × 1,5% (pha sau).
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất (v0.1.1). «làm cuối phiên đầy đủ» đã gồm bump version + workflow/HDSD. Tiếp: PDF / field Word / tiền TN hoặc chạy SQL 010.
+
+---
+
 ## 2026-07-30 — Tạm ẩn Xuất PDF · đổi màu trang Thí nghiệm
 
 ### Đã làm
