@@ -98,6 +98,20 @@ Quy tắc:
     extractTenPcTinh(parsed.trich_yeu, phuTen) ||
     null;
 
+  // PDF chỉ có bảng phụ lục (không có danh mục dự án riêng) → lấy từ phụ lục
+  if (!parsed.du_an.length && parsed.phu_luc?.cong_trinh?.length) {
+    parsed.du_an = parsed.phu_luc.cong_trinh
+      .filter((c) => {
+        const ten = (c.ct_ten ?? "").trim();
+        return ten !== "" && ten !== "—";
+      })
+      .map((c) => ({
+        ten_du_an: (c.ct_ten ?? "").trim(),
+        quy_mo: c.ct_quy_mo?.trim() || undefined,
+        dia_diem: c.ct_khu_vuc?.trim() || undefined,
+      }));
+  }
+
   parsed.du_an = parsed.du_an.map((d) => ({
     ...d,
     dia_diem:

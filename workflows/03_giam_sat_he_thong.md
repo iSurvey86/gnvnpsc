@@ -54,6 +54,24 @@ flowchart TD
 | Avatar sidebar | Hiện họ tên; menu: Tài khoản · Đăng xuất |
 | Tài khoản | Họ và tên · Email · đổi MK (tùy chọn) — không hiện User ID |
 
+## Cột bảng Nhật ký hoạt động
+
+| Cột | Nội dung |
+|-----|----------|
+| STT | Theo trang đang xem |
+| Người thực hiện | Họ tên và email người thao tác |
+| Phân hệ | Nhóm nghiệp vụ: Xác thực · Dự án · Quyết định Giao A · Giao Xí nghiệp · Hệ thống |
+| Hành động | Đăng nhập · Đăng xuất · Thêm mới · Cập nhật · Xóa · Quét tài liệu · Cấp đăng nhập… kèm thời điểm |
+| Chi tiết | Mô tả việc đã làm, mã đối tượng đầy đủ và các thông tin kèm theo |
+
+Quy ước trình bày nhật ký:
+
+- Toàn bộ nhãn và giá trị trong cột Chi tiết hiển thị **tiếng Việt đầy đủ**, không viết tắt kỹ thuật.
+- Tên tổ, trạng thái quyết định, loại hình dự án được dịch sang tên nghiệp vụ.
+- Mã đối tượng hiện đủ, dùng phông đơn cách để đối chiếu khi tra cứu.
+- Nội dung mọi ô căn giữa theo chiều dọc; tiêu đề cột căn giữa.
+- Bộ lọc Phân hệ và Hành động cũng dùng tên đầy đủ tiếng Việt.
+
 ## Cột danh sách tài khoản
 
 | Cột | Ghi chú |

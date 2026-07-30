@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDialog } from "@/components/AppDialog";
 import {
@@ -9,6 +9,12 @@ import {
 } from "@/components/DuAnTrungResolveModal";
 import { CAP_DIEN_AP_OPTIONS } from "@/lib/cap-dien-ap";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
+import {
+  LOAI_HINH_THA_OPTIONS,
+  isLoaiHinhDuAn,
+  laDuAn110kv,
+  resolveLoaiHinhDuAn,
+} from "@/lib/loai-hinh-du-an";
 import {
   findTrungTenByRow,
   findTrungTenTrongBang,
@@ -20,8 +26,15 @@ import {
   generateMaDuAn,
 } from "@/lib/ma-du-an";
 import { XiNghiepPicker } from "@/components/XiNghiepPicker";
+import { dangKyChanRoiTrang } from "@/lib/roi-trang-guard";
 import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
-import type { CapDienAp, DuAn, QdGiaoA, XiNghiep } from "@/lib/types";
+import type {
+  CapDienAp,
+  DuAn,
+  LoaiHinhDuAn,
+  QdGiaoA,
+  XiNghiep,
+} from "@/lib/types";
 
 type Props = {
   qd: QdGiaoA;
@@ -33,11 +46,13 @@ type RowResolution =
   | { action: "create" }
   | { action: "update"; targetId: string; keepMa: string | null };
 
+type ExitChoice = "o_lai" | "luu_roi_roi" | "huy_roi_roi";
+
 const cellInput =
   "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none text-[13px] font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors";
 
 const cellTextarea =
-  "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none leading-relaxed text-[13px] text-gray-800 font-semibold outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors resize-none overflow-hidden [field-sizing:content] min-h-[2.5rem]";
+  "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none leading-relaxed text-[13px] text-justify text-gray-800 font-semibold outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors resize-none overflow-hidden [field-sizing:content] min-h-[2.5rem]";
 
 export function ReviewGiaoAClient({
   qd,
@@ -66,6 +81,14 @@ export function ReviewGiaoAClient({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [daLuu, setDaLuu] = useState(qd.da_luu !== false);
+  const [coThayDoi, setCoThayDoi] = useState(false);
+  const [huyDangChay, setHuyDangChay] = useState(false);
+  const [exitResolver, setExitResolver] = useState<
+    ((choice: ExitChoice) => void) | null
+  >(null);
+
+  const chuaLuu = !daLuu || coThayDoi;
 
   const [dupQueue, setDupQueue] = useState<
     Array<{ row: DuAn; existing: DuAnTrungRef }>
@@ -167,10 +190,17 @@ export function ReviewGiaoAClient({
   }, [trungCsdl, trungBang]);
 
   function updateLocal(id: string, patch: Partial<DuAn>) {
+    setCoThayDoi(true);
     setRows((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
         const next = { ...r, ...patch };
+        if (patch.cap_dien_ap !== undefined) {
+          next.loai_hinh_du_an = resolveLoaiHinhDuAn(
+            next.cap_dien_ap,
+            next.loai_hinh_du_an,
+          );
+        }
         if (
           patch.ten_du_an !== undefined ||
           patch.dia_diem !== undefined ||
@@ -235,6 +265,61 @@ export function ReviewGiaoAClient({
     return map;
   }
 
+  /** Chốt bản nháp thành dữ liệu chính thức */
+  async function xacNhanLuu(): Promise<boolean> {
+    const res = await fetch(
+      `/api/giao-a/${qd.id}/ban-nhap?phan_he=${phanHe}`,
+      { method: "POST" },
+    );
+    const json = (await res.json()) as { ok: boolean; error?: string };
+    if (!json.ok) {
+      setError(json.error ?? "Không chốt được bản lưu");
+      return false;
+    }
+    setDaLuu(true);
+    setCoThayDoi(false);
+    return true;
+  }
+
+  /** Bỏ toàn bộ bản quét chưa lưu */
+  async function huyBanNhap(opts?: { hoiLai?: boolean }): Promise<boolean> {
+    if (opts?.hoiLai !== false) {
+      const ok = await showConfirm(
+        daLuu
+          ? "Bỏ các thay đổi chưa lưu và rời màn Review?"
+          : `Hủy toàn bộ bản quét này?\n\nDanh mục ${rows.length} dự án vừa quét sẽ bị xóa, hồ sơ Giao A không được lưu vào hệ thống.`,
+        {
+          title: "Hủy bản quét",
+          variant: "warning",
+          confirmLabel: "Hủy bản quét",
+          cancelLabel: "Quay lại",
+        },
+      );
+      if (!ok) return false;
+    }
+
+    setHuyDangChay(true);
+    setError(null);
+    try {
+      if (!daLuu) {
+        const res = await fetch(
+          `/api/giao-a/${qd.id}/ban-nhap?phan_he=${phanHe}`,
+          { method: "DELETE" },
+        );
+        const json = (await res.json()) as { ok: boolean; error?: string };
+        if (!json.ok) throw new Error(json.error ?? "Hủy bản quét thất bại");
+      }
+      setCoThayDoi(false);
+      setDaLuu(true); // đã dọn xong — không chặn điều hướng nữa
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi hủy bản quét");
+      return false;
+    } finally {
+      setHuyDangChay(false);
+    }
+  }
+
   async function saveAll(opts?: {
     showSuccessAlert?: boolean;
   }): Promise<boolean> {
@@ -291,6 +376,14 @@ export function ReviewGiaoAClient({
         if (!row.ten_du_an?.trim()) {
           throw new Error("Có dòng thiếu tên dự án");
         }
+        if (
+          !laDuAn110kv(row.cap_dien_ap) &&
+          !isLoaiHinhDuAn(row.loai_hinh_du_an)
+        ) {
+          throw new Error(
+            "Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS) trước khi lưu",
+          );
+        }
         const res = resolutions?.get(row.id);
 
         if (res?.action === "update") {
@@ -304,6 +397,10 @@ export function ReviewGiaoAClient({
               quy_mo: row.quy_mo,
               ghi_chu: row.ghi_chu,
               cap_dien_ap: row.cap_dien_ap,
+              loai_hinh_du_an: resolveLoaiHinhDuAn(
+                row.cap_dien_ap,
+                row.loai_hinh_du_an,
+              ),
               huong_giao: row.huong_giao,
               xi_nghiep_id: row.xi_nghiep_id ?? null,
               qd_giao_a_id: qd.id,
@@ -336,6 +433,10 @@ export function ReviewGiaoAClient({
               quy_mo: row.quy_mo,
               ghi_chu: row.ghi_chu,
               cap_dien_ap: row.cap_dien_ap,
+              loai_hinh_du_an: resolveLoaiHinhDuAn(
+                row.cap_dien_ap,
+                row.loai_hinh_du_an,
+              ),
               huong_giao: row.huong_giao,
               xi_nghiep_id: row.xi_nghiep_id ?? null,
             }),
@@ -360,6 +461,9 @@ export function ReviewGiaoAClient({
         }
         return [...byId.values()];
       });
+
+      const chot = await xacNhanLuu();
+      if (!chot) return false;
 
       const parts = [
         updated ? `cập nhật ${updated}` : null,
@@ -393,6 +497,11 @@ export function ReviewGiaoAClient({
 
   async function saveAndClose() {
     const ok = await saveAll({ showSuccessAlert: false });
+    if (ok) router.push(cfg.homeAfterSave);
+  }
+
+  async function huyBoVaThoat() {
+    const ok = await huyBanNhap();
     if (ok) router.push(cfg.homeAfterSave);
   }
 
@@ -458,6 +567,35 @@ export function ReviewGiaoAClient({
     }
   }
 
+  // Nút thoát ở header gọi qua đây trước khi điều hướng
+  const guardRef = useRef<() => Promise<boolean>>(async () => true);
+  useEffect(() => {
+    guardRef.current = async () => {
+      if (!chuaLuu) return true;
+      const choice = await new Promise<ExitChoice>((resolve) => {
+        setExitResolver(() => resolve);
+      });
+      setExitResolver(null);
+      if (choice === "o_lai") return false;
+      if (choice === "luu_roi_roi") {
+        return saveAll({ showSuccessAlert: false });
+      }
+      return huyBanNhap({ hoiLai: false });
+    };
+  });
+
+  useEffect(() => dangKyChanRoiTrang(() => guardRef.current()), []);
+
+  useEffect(() => {
+    if (!chuaLuu) return;
+    const canhBao = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", canhBao);
+    return () => window.removeEventListener("beforeunload", canhBao);
+  }, [chuaLuu]);
+
   const currentDup = dupQueue[dupIndex] ?? null;
 
   return (
@@ -516,6 +654,35 @@ export function ReviewGiaoAClient({
         </div>
       </section>
 
+      {exitResolver ? (
+        <ThoatChuaLuuModal
+          soDuAn={rows.length}
+          daLuu={daLuu}
+          onChoice={(choice) => {
+            const resolve = exitResolver;
+            setExitResolver(null);
+            resolve(choice);
+          }}
+        />
+      ) : null}
+
+      {!daLuu ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-950">
+          <span className="rounded-full bg-orange-500 px-2 py-0.5 text-[11px] font-black tracking-wider text-white uppercase">
+            Chưa lưu
+          </span>
+          <p className="text-[13px] leading-relaxed font-medium">
+            Bản quét đang là <strong>nháp</strong> — chưa vào danh mục dự án.
+            Bấm <strong>Lưu</strong> để chốt, hoặc <strong>Hủy bản quét</strong>{" "}
+            để bỏ toàn bộ.
+          </p>
+        </div>
+      ) : coThayDoi ? (
+        <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-[13px] font-medium text-amber-950">
+          Có thay đổi chưa lưu trên bảng.
+        </div>
+      ) : null}
+
       {trungIds.size > 0 ? (
         <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
           <p className="font-bold">Cảnh báo trùng tên dự án</p>
@@ -546,11 +713,12 @@ export function ReviewGiaoAClient({
           <table className="relative w-full min-w-[1100px] border-collapse text-left text-[13px] [&_td]:border-r [&_td]:border-b [&_td]:border-violet-100/80 [&_td:last-child]:border-r-0 [&_th]:border-r [&_th]:border-b [&_th]:border-violet-200 [&_th:last-child]:border-r-0 [&_tbody_tr:last-child_td]:border-b-0">
             <colgroup>
               <col className="w-11" />
-              <col className="w-[148px]" />
-              <col className="w-[300px]" />
-              <col className="w-[100px]" />
+              <col className="w-[128px]" />
+              <col className="w-[260px]" />
+              <col className="w-[120px]" />
               <col />
-              <col className="w-[116px]" />
+              <col className="w-[108px]" />
+              <col className="w-[128px]" />
               <col className="w-[132px]" />
               <col className="w-14" />
             </colgroup>
@@ -565,6 +733,9 @@ export function ReviewGiaoAClient({
                   Cấp điện áp
                 </th>
                 <th className="bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
+                  Loại hình *
+                </th>
+                <th className="bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
                   Giao nhiệm vụ
                 </th>
                 <th className="bg-violet-100 px-1 py-3 text-center">Xóa</th>
@@ -573,7 +744,7 @@ export function ReviewGiaoAClient({
             <tbody>
               {rows.length === 0 ? (
                 <tr className="bg-[#faf8ff]">
-                  <td colSpan={8} className="px-4 py-20 text-center">
+                  <td colSpan={9} className="px-4 py-20 text-center">
                     <p className="text-sm font-bold text-violet-800/70">
                       Chưa có dữ liệu dự án
                     </p>
@@ -600,8 +771,8 @@ export function ReviewGiaoAClient({
                           onChange={(e) =>
                             updateLocal(row.id, { ma_du_an: e.target.value })
                           }
-                          title="TỈNH-NĂM-110|THA|PCM-VIẾTTẮT"
-                          placeholder="Mã dự án"
+                          title="TỈNH-NĂM-110|THA|PCM-VIẾTTẮT[-TV|-TN|-GS]"
+                          placeholder="VD: TN-2026-THA-XDMCT-TV"
                         />
                       </td>
                       <td className="px-2 py-2 align-middle">
@@ -652,6 +823,7 @@ export function ReviewGiaoAClient({
                             dia_diem: normalizeDiaDiem(e.target.value),
                           })
                         }
+                          title={row.dia_diem ?? ""}
                         />
                       </td>
                       <td className="px-2 py-2 align-middle">
@@ -682,6 +854,40 @@ export function ReviewGiaoAClient({
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-2 py-2 text-center align-middle">
+                        {laDuAn110kv(row.cap_dien_ap) ? (
+                          <span
+                            className="inline-block rounded-full bg-violet-100 px-2 py-0.5 text-[11px] font-bold text-violet-800"
+                            title="Dự án 110kV — hệ thống tự đặt loại hình"
+                          >
+                            110kV
+                          </span>
+                        ) : (
+                          <select
+                            required
+                            className={`${cellInput} cursor-pointer appearance-none text-center ${
+                              !row.loai_hinh_du_an
+                                ? "text-rose-600 ring-1 ring-inset ring-rose-300/70"
+                                : ""
+                            }`}
+                            value={row.loai_hinh_du_an ?? ""}
+                            onChange={(e) =>
+                              updateLocal(row.id, {
+                                loai_hinh_du_an: (e.target.value ||
+                                  null) as LoaiHinhDuAn | null,
+                              })
+                            }
+                            title="Bắt buộc với dự án trung hạ áp — liên quan chi phí sau này"
+                          >
+                            <option value="">Chọn *</option>
+                            {LOAI_HINH_THA_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value}>
+                                {o.short}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </td>
                       <td className="px-2 py-2 align-middle">
                         <XiNghiepPicker
@@ -724,9 +930,19 @@ export function ReviewGiaoAClient({
             <span className="text-xs font-medium text-amber-800/70">
               {rows.length} dự án
               {trungIds.size > 0 ? ` · ${trungIds.size} trùng` : ""}
+              {chuaLuu ? " · chưa lưu" : " · đã lưu"}
             </span>
           </div>
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              disabled={savingAll || huyDangChay || !chuaLuu}
+              onClick={() => void huyBoVaThoat()}
+              className="rounded-xl border-2 border-rose-300 bg-white px-4 py-2.5 text-sm font-bold text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+              title="Bỏ bản quét chưa lưu và về Quản lý dự án"
+            >
+              {huyDangChay ? "Đang hủy…" : "Hủy bản quét"}
+            </button>
             <button
               type="button"
               disabled={savingAll || rows.length === 0}
@@ -752,6 +968,55 @@ export function ReviewGiaoAClient({
               Lưu & Quét tiếp
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ThoatChuaLuuModal({
+  soDuAn,
+  daLuu,
+  onChoice,
+}: {
+  soDuAn: number;
+  daLuu: boolean;
+  onChoice: (choice: ExitChoice) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/55 p-4 backdrop-blur-[2px]">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border-2 border-amber-200 bg-white p-6 shadow-2xl">
+        <h3 className="text-center text-[16px] font-black tracking-tight text-slate-800 uppercase">
+          Chưa lưu bản quét
+        </h3>
+        <p className="mt-3 text-center text-[13px] leading-relaxed font-medium text-slate-600">
+          {daLuu
+            ? "Bảng dự án còn thay đổi chưa lưu. Bạn muốn làm gì?"
+            : `Danh mục ${soDuAn} dự án vừa quét chưa được lưu vào hệ thống. Nếu rời trang mà không lưu, bản quét sẽ bị hủy.`}
+        </p>
+        <div className="mt-6 flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => onChoice("luu_roi_roi")}
+            className="w-full cursor-pointer rounded-xl bg-emerald-600 py-2.5 font-bold text-white shadow-lg shadow-emerald-200/50 transition hover:bg-emerald-700 active:scale-[0.98]"
+          >
+            Lưu rồi rời trang
+          </button>
+          <button
+            type="button"
+            onClick={() => onChoice("huy_roi_roi")}
+            className="w-full cursor-pointer rounded-xl border-2 border-rose-300 bg-white py-2.5 font-bold text-rose-700 transition hover:bg-rose-50 active:scale-[0.98]"
+          >
+            {daLuu ? "Bỏ thay đổi và rời trang" : "Hủy bản quét và rời trang"}
+          </button>
+          <button
+            type="button"
+            autoFocus
+            onClick={() => onChoice("o_lai")}
+            className="w-full cursor-pointer rounded-xl bg-slate-100 py-2.5 font-bold text-slate-700 transition hover:bg-slate-200 active:scale-[0.98]"
+          >
+            Ở lại tiếp tục sửa
+          </button>
         </div>
       </div>
     </div>

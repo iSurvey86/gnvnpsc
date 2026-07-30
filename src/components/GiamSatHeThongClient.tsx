@@ -65,6 +65,155 @@ function badgeHanhDong(h: string): string {
   return "bg-rose-50 text-rose-800";
 }
 
+/** Tên đầy đủ của phân hệ ghi nhật ký */
+const TEN_PHAN_HE_LOG: Record<string, string> = {
+  XAC_THUC: "Xác thực",
+  DA: "Dự án",
+  GIAO_A: "Quyết định Giao A",
+  GIAO_XN: "Giao Xí nghiệp",
+  HE_THONG: "Hệ thống",
+  SYSTEM: "Hệ thống",
+};
+
+/** Tên đầy đủ của hành động ghi nhật ký */
+const TEN_HANH_DONG: Record<string, string> = {
+  LOGIN: "Đăng nhập",
+  LOGIN_FAIL: "Đăng nhập thất bại",
+  LOGOUT: "Đăng xuất",
+  CREATE: "Thêm mới",
+  UPDATE: "Cập nhật",
+  DELETE: "Xóa",
+  EXPORT: "Xuất văn bản",
+  SCAN: "Quét tài liệu",
+  CAP_DANG_NHAP: "Cấp đăng nhập",
+  DOI_MK: "Đổi mật khẩu",
+  VIEW: "Xem",
+};
+
+/** Tên đầy đủ của tổ nghiệp vụ dùng trong chi tiết nhật ký */
+const TEN_TO: Record<string, string> = {
+  tvtk: "Tư vấn thiết kế",
+  thi_nghiem: "Thí nghiệm hiệu chỉnh",
+  tvgs: "Tư vấn giám sát",
+};
+
+/** Trạng thái quyết định giao Xí nghiệp */
+const TEN_TRANG_THAI: Record<string, string> = {
+  nhap: "Nháp",
+  trinh_gd: "Đã trình Giám đốc",
+  da_ban_hanh: "Đã ban hành",
+};
+
+/** Loại hình dự án trong chi tiết nhật ký */
+const TEN_LOAI_HINH_DU_AN: Record<string, string> = {
+  "110kv": "110 kV",
+  cqt: "CQT — Chống quá tải",
+  scmba: "SCMBA — Sửa chữa MBA",
+  dms: "DMS",
+};
+
+function tenPhanHeLog(p: string): string {
+  return TEN_PHAN_HE_LOG[p] ?? p;
+}
+
+function tenHanhDong(h: string): string {
+  return TEN_HANH_DONG[h] ?? h;
+}
+
+const DETAIL_LABELS: Record<string, string> = {
+  reason: "Lý do",
+  ip_address: "Địa chỉ IP",
+  user_agent: "Thiết bị / trình duyệt",
+  email_nhap: "Email đã nhập",
+  phan_he: "Phân hệ",
+  so_qd: "Số quyết định",
+  so_du_an: "Số dự án",
+  loai_hinh_du_an: "Loại hình dự án",
+  xi_nghiep_id: "Mã Xí nghiệp",
+  target_email: "Email tài khoản",
+  target_ma_nv: "Mã nhân viên",
+  vai_tro: "Vai trò",
+  ma_nv: "Mã nhân viên",
+  ho_ten: "Họ và tên",
+  email: "Email",
+  chuc_danh: "Chức danh",
+  dien_thoai: "Điện thoại",
+  to_lam_viec: "Tổ làm việc",
+  quyen_phan_he: "Quyền phân hệ",
+  truong_thay_doi: "Trường đã thay đổi",
+  ma_xi_nghiep: "Mã Xí nghiệp",
+  ten_xi_nghiep: "Tên Xí nghiệp",
+  phu_hop_tvtk: "Phù hợp tư vấn thiết kế",
+  phu_hop_thi_nghiem: "Phù hợp thí nghiệm",
+  phu_hop_tvgs: "Phù hợp tư vấn giám sát",
+  pair: "Dùng chung hồ sơ Giao A",
+  needs_pair: "Chờ xác nhận dùng chung",
+  pair_counts: "Số dự án theo tổ",
+  already_has_phan_he: "Tổ này đã có danh mục",
+  du_an_count: "Số dự án đã quét",
+  du_an_da_luu: "Số dự án đã lưu",
+  du_an_da_bo: "Số dự án đã bỏ",
+  da_luu: "Đã lưu chính thức",
+  xoa_ho_so_giao_a: "Xóa cả hồ sơ Giao A",
+  du_an_id: "Mã dự án nội bộ",
+  ma_du_an: "Mã dự án",
+  ten_du_an: "Tên dự án",
+  loai: "Loại nhiệm vụ",
+  phan_he_ten: "Tên tổ",
+  so_qd_du_thao: "Số quyết định dự thảo",
+  trang_thai_truoc_khi_xoa: "Trạng thái trước khi xóa",
+  xi_changed: "Có đổi Xí nghiệp",
+  tvtk: "Tư vấn thiết kế",
+  thi_nghiem: "Thí nghiệm hiệu chỉnh",
+  tvgs: "Tư vấn giám sát",
+};
+
+function formatDetailValue(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Có" : "Không";
+  if (typeof value === "string") {
+    return TEN_TO[value] ?? TEN_TRANG_THAI[value] ?? TEN_LOAI_HINH_DU_AN[value] ?? value;
+  }
+  if (Array.isArray(value)) return value.map(formatDetailValue).join(", ");
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(
+        ([k, v]) =>
+          `${TEN_TO[k] ?? DETAIL_LABELS[k] ?? k} ${formatDetailValue(v)}`,
+      )
+      .join(" · ");
+  }
+  return String(value);
+}
+
+function ActivityDetails({ row }: { row: NhatKyHoatDong }) {
+  const entries = Object.entries(row.du_lieu_dong ?? {}).filter(
+    ([, v]) => v !== null && v !== undefined && v !== "",
+  );
+  if (!row.doi_tuong_id && entries.length === 0) return null;
+
+  return (
+    <div className="mt-0.5 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-[11px] leading-snug font-light text-teal-700">
+      {row.doi_tuong_id ? (
+        <span>
+          <span className="text-teal-600">Mã đối tượng</span>{" "}
+          <span className="font-mono text-teal-800">{row.doi_tuong_id}</span>
+        </span>
+      ) : null}
+      {entries.map(([key, value]) => {
+        const label = DETAIL_LABELS[key] ?? key;
+        const text = formatDetailValue(value);
+        return (
+          <span key={key}>
+            <span className="text-teal-600">{label}</span>{" "}
+            <span className="text-teal-800">{text}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Sắp xếp mã NV: KD01 < KD02 < … < KD17 (số tăng dần trong cùng tiền tố). */
 function compareMaNv(
   a: string | null | undefined,
@@ -255,7 +404,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
             >
               {PHAN_HE_OPTS.map((o) => (
                 <option key={o} value={o}>
-                  {o === "ALL" ? "Tất cả phân hệ" : o}
+                  {o === "ALL" ? "Tất cả phân hệ" : tenPhanHeLog(o)}
                 </option>
               ))}
             </select>
@@ -269,7 +418,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
             >
               {HANH_DONG_OPTS.map((o) => (
                 <option key={o} value={o}>
-                  {o === "ALL" ? "Tất cả hành động" : o}
+                  {o === "ALL" ? "Tất cả hành động" : tenHanhDong(o)}
                 </option>
               ))}
             </select>
@@ -292,14 +441,21 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
 
           <div className="overflow-hidden rounded-2xl border border-teal-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-teal-100 text-[11px] font-bold tracking-wide text-teal-900 uppercase">
+              <table className="w-full min-w-full text-left text-xs">
+                <colgroup>
+                  <col className="w-12" />
+                  <col className="w-[13rem]" />
+                  <col className="w-[10rem]" />
+                  <col className="w-[10rem]" />
+                  <col />
+                </colgroup>
+                <thead className="bg-teal-100 text-[11px] font-medium tracking-wide text-teal-900 uppercase">
                   <tr>
-                    <th className="px-3 py-2.5">STT</th>
-                    <th className="px-3 py-2.5">Người thực hiện</th>
-                    <th className="px-3 py-2.5">Phân hệ</th>
-                    <th className="px-3 py-2.5">Hành động</th>
-                    <th className="px-3 py-2.5">Chi tiết</th>
+                    <th className="px-2 py-2 text-center">STT</th>
+                    <th className="px-3 py-2 text-center">Người thực hiện</th>
+                    <th className="px-2 py-2 text-center">Phân hệ</th>
+                    <th className="px-2 py-2 text-center">Hành động</th>
+                    <th className="px-3 py-2 text-center">Chi tiết</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -320,42 +476,42 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
                         key={r.id}
                         className="border-t border-teal-100 odd:bg-white even:bg-teal-50/40"
                       >
-                        <td className="px-3 py-2.5 tabular-nums text-teal-700">
+                        <td className="px-2 py-1.5 text-center align-middle tabular-nums text-teal-700">
                           {(page - 1) * 20 + i + 1}
                         </td>
-                        <td className="px-3 py-2.5">
-                          <p className="font-semibold text-teal-950">
+                        <td className="px-3 py-1.5 align-middle">
+                          <p className="truncate font-normal whitespace-nowrap text-teal-950">
                             {r.ho_ten || "—"}
                           </p>
-                          <p className="text-[11px] text-teal-700/70">
+                          <p
+                            className="truncate text-[11px] font-light text-teal-700/70"
+                            title={r.email ?? undefined}
+                          >
                             {r.email}
                           </p>
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-2 py-1.5 text-center align-middle">
                           <span
-                            className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-bold ${badgePhanHe(r.phan_he)}`}
+                            className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-normal ${badgePhanHe(r.phan_he)}`}
                           >
-                            {r.phan_he}
+                            {tenPhanHeLog(r.phan_he)}
                           </span>
                         </td>
-                        <td className="px-3 py-2.5">
+                        <td className="px-2 py-1.5 text-center align-middle">
                           <span
-                            className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-bold ${badgeHanhDong(r.hanh_dong)}`}
+                            className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-normal ${badgeHanhDong(r.hanh_dong)}`}
                           >
-                            {r.hanh_dong}
+                            {tenHanhDong(r.hanh_dong)}
                           </span>
-                          <p className="mt-1 text-[11px] text-teal-700/70">
+                          <p className="mt-0.5 text-[10px] font-light whitespace-nowrap text-teal-700/70">
                             {formatTime(r.thoi_gian)}
                           </p>
                         </td>
-                        <td className="max-w-[360px] px-3 py-2.5">
-                          <p className="text-teal-900">{r.chi_tiet_ngan}</p>
-                          {r.du_lieu_dong &&
-                          Object.keys(r.du_lieu_dong).length > 0 ? (
-                            <p className="mt-1 truncate font-mono text-[10px] text-teal-600/80">
-                              {JSON.stringify(r.du_lieu_dong)}
-                            </p>
-                          ) : null}
+                        <td className="px-3 py-1.5 align-middle">
+                          <p className="leading-snug font-normal text-teal-950">
+                            {r.chi_tiet_ngan || "Không có mô tả"}
+                          </p>
+                          <ActivityDetails row={r} />
                         </td>
                       </tr>
                     ))

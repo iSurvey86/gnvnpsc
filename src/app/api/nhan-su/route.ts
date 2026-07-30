@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
 import { isPhoPhong, isTruongPhong } from "@/lib/chuc-danh";
 import {
   isPhanHeCode,
@@ -120,6 +121,24 @@ export async function POST(request: Request) {
         );
       if (roleError) throw new Error(roleError.message);
     }
+    await logHoatDong({
+      phanHe: "HE_THONG",
+      hanhDong: "CREATE",
+      chiTietNgan: `Thêm nhân sự ${data.ho_ten}`,
+      doiTuongId: data.id,
+      duLieuDong: {
+        ma_nv: data.ma_nv,
+        ho_ten: data.ho_ten,
+        email: data.email,
+        chuc_danh: data.chuc_danh,
+        dien_thoai: data.dien_thoai,
+        to_lam_viec: assignments.map((item) => item.phan_he),
+        quyen_phan_he: assignments[0]?.vai_tro_phan_he ?? null,
+      },
+      email: profile.email,
+      hoTen: profile.nhanSu?.ho_ten ?? profile.email,
+      authUserId: profile.userId,
+    });
     return NextResponse.json({ ok: true, data });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Lỗi thêm nhân sự";

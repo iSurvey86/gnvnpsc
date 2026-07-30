@@ -36,7 +36,8 @@ async function countDuAnByPhanHe(
   const { data } = await supabase
     .from("du_an")
     .select("phan_he")
-    .eq("qd_giao_a_id", qdId);
+    .eq("qd_giao_a_id", qdId)
+    .eq("da_luu", true);
   const map: Record<string, number> = {
     tvtk: 0,
     thi_nghiem: 0,
@@ -47,6 +48,55 @@ async function countDuAnByPhanHe(
     if (ph in map) map[ph] += 1;
   }
   return map;
+}
+
+/** Xóa các dòng dự án nháp (chưa lưu) của 1 phân hệ trên hồ sơ Giao A */
+async function xoaDuAnNhap(
+  supabase: ReturnType<typeof createAdminClient>,
+  qdId: string,
+  phanHe?: PhanHeCode,
+) {
+  let q = supabase
+    .from("du_an")
+    .delete()
+    .eq("qd_giao_a_id", qdId)
+    .eq("da_luu", false);
+  if (phanHe) q = q.eq("phan_he", phanHe);
+  await q;
+}
+
+/**
+ * Dọn bản quét nháp bỏ dở của CHÍNH người đang quét (quét xong không lưu, cũng
+ * không bấm Hủy) để quét lại cùng file không bị chặn unique số QĐ. Bản nháp của
+ * người khác được giữ nguyên — họ có thể đang review.
+ */
+async function xoaHoSoNhapBoDo(
+  supabase: ReturnType<typeof createAdminClient>,
+  soQd: string,
+  keepQdId: string,
+  actorUserId: string,
+) {
+  const { data: stale } = await supabase
+    .from("qd_giao_a")
+    .select("id, storage_path")
+    .eq("so_qd", soQd)
+    .eq("da_luu", false)
+    .eq("created_by", actorUserId)
+    .neq("id", keepQdId);
+
+  for (const row of stale ?? []) {
+    const id = row.id as string;
+    await xoaDuAnNhap(supabase, id);
+    const { count } = await supabase
+      .from("du_an")
+      .select("id", { count: "exact", head: true })
+      .eq("qd_giao_a_id", id);
+    if ((count ?? 0) > 0) continue;
+    if (row.storage_path) {
+      await supabase.storage.from(BUCKET).remove([row.storage_path as string]);
+    }
+    await supabase.from("qd_giao_a").delete().eq("id", id);
+  }
 }
 
 async function insertDuAnForPhanHe(opts: {
@@ -111,6 +161,7 @@ async function insertDuAnForPhanHe(opts: {
     goi_cong_viec: d.goi_cong_viec,
     cap_dien_ap: d.cap_dien_ap,
     phan_he: phanHe,
+    da_luu: false,
     created_by: actorUserId,
     updated_by: actorUserId,
   }));
@@ -175,7 +226,8 @@ export async function POST(request: Request) {
         .from("du_an")
         .select("id", { count: "exact", head: true })
         .eq("qd_giao_a_id", pairQdId)
-        .eq("phan_he", phanHe);
+        .eq("phan_he", phanHe)
+        .eq("da_luu", true);
       if ((count ?? 0) > 0) {
         return NextResponse.json(
           {
@@ -208,12 +260,16 @@ export async function POST(request: Request) {
         du_an: raw.du_an ?? [],
       };
 
+      // Bản nháp bỏ dở của chính phân hệ này (nếu có) — quét lại thì làm mới
+      await xoaDuAnNhap(supabase, pairQdId, phanHe);
+
       // Nếu scan_raw thiếu danh mục — lấy từ DA phân hệ khác làm mẫu tên
       if (!scanned.du_an?.length) {
         const { data: other } = await supabase
           .from("du_an")
           .select("ten_du_an, dia_diem, quy_mo, goi_cong_viec, cap_dien_ap")
           .eq("qd_giao_a_id", pairQdId)
+          .eq("da_luu", true)
           .limit(200);
         scanned.du_an = (other ?? []).map((d) => ({
           ten_du_an: d.ten_du_an as string,
@@ -232,15 +288,27 @@ export async function POST(request: Request) {
         scanned,
       });
 
+      if (duAn.length === 0) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Hồ sơ Giao A này chưa có danh mục dự án để dùng chung. Quét lại tệp PDF kèm bảng danh mục.",
+          },
+          { status: 422 },
+        );
+      }
+
       await logHoatDong({
         phanHe: "GIAO_A",
         hanhDong: "CREATE",
-        chiTietNgan: `Pair Giao A ${existing.so_qd || pairQdId} → ${PHAN_HE[phanHe].short} (${duAn.length} DA)`,
+        chiTietNgan: `Dùng chung Giao A ${existing.so_qd || pairQdId} cho tổ ${PHAN_HE[phanHe].title} — ${duAn.length} dự án nháp, chờ xác nhận lưu`,
         doiTuongId: pairQdId,
         duLieuDong: {
           phan_he: phanHe,
           pair: true,
           du_an_count: duAn.length,
+          da_luu: false,
         },
         email: actor.email,
         hoTen: actor.hoTen,
@@ -275,6 +343,7 @@ export async function POST(request: Request) {
       .from("qd_giao_a")
       .insert({
         scan_status: "processing",
+        da_luu: false,
         created_by: actor.userId,
         updated_by: actor.userId,
         scanned_by: actor.userId,
@@ -315,7 +384,48 @@ export async function POST(request: Request) {
     const scanned = await parseGiaoAPdf(buf);
     const soQd = scanned.so_qd?.trim() || null;
 
-    // ---- Phát hiện pair theo số QĐ ----
+    // Không đọc được dự án nào → coi như quét thất bại, không để lại bản nháp rỗng
+    const soDuAnDocDuoc = (scanned.du_an ?? []).filter((d) =>
+      d.ten_du_an?.trim(),
+    ).length;
+    if (soDuAnDocDuoc === 0) {
+      await supabase.storage.from(BUCKET).remove([storagePath]);
+      await supabase.from("qd_giao_a").delete().eq("id", qdId);
+      createdNewQd = false;
+      qdId = null;
+
+      await logHoatDong({
+        phanHe: "GIAO_A",
+        hanhDong: "SCAN",
+        chiTietNgan: `Quét Giao A ${soQd || "(không đọc được số)"} thất bại — không nhận được dự án nào`,
+        duLieuDong: {
+          phan_he: phanHe,
+          so_qd: soQd,
+          du_an_count: 0,
+          ten_tep: file.name,
+        },
+        trangThai: "Thất bại",
+        email: actor.email,
+        hoTen: actor.hoTen,
+        authUserId: actor.userId,
+      });
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Không đọc được danh mục dự án trong tệp PDF" +
+            (soQd ? ` (số quyết định ${soQd})` : "") +
+            ". Kiểm tra lại tệp có kèm bảng danh mục / phụ lục, hoặc thử quét lại.",
+        },
+        { status: 422 },
+      );
+    }
+
+    // Bản nháp trùng số QĐ do chính mình bỏ dở → dọn để quét lại được
+    if (soQd) await xoaHoSoNhapBoDo(supabase, soQd, qdId, actor.userId);
+
+    // ---- Phát hiện pair theo số QĐ (chỉ với hồ sơ đã lưu chính thức) ----
     if (soQd && !forceNew) {
       // limit(1) thay maybeSingle: dữ liệu cũ có thể còn nhiều hồ sơ trùng số QĐ
       const { data: existedRows } = await supabase
@@ -324,6 +434,7 @@ export async function POST(request: Request) {
           "id, so_qd, ngay_qd, trich_yeu, scanned_by_ho_ten, scanned_by_email, created_at",
         )
         .eq("so_qd", soQd)
+        .eq("da_luu", true)
         .neq("id", qdId)
         .order("created_at", { ascending: true })
         .limit(1);
@@ -340,7 +451,7 @@ export async function POST(request: Request) {
         await logHoatDong({
           phanHe: "GIAO_A",
           hanhDong: "SCAN",
-          chiTietNgan: `Phát hiện pair Giao A ${soQd} — đã có hồ sơ`,
+          chiTietNgan: `Phát hiện Giao A ${soQd} đã được tổ khác quét — chờ xác nhận dùng chung`,
           doiTuongId: existed.id,
           duLieuDong: {
             phan_he: phanHe,
@@ -389,13 +500,32 @@ export async function POST(request: Request) {
         const { data: racedRows } = await supabase
           .from("qd_giao_a")
           .select(
-            "id, so_qd, ngay_qd, trich_yeu, scanned_by_ho_ten, scanned_by_email, created_at",
+            "id, so_qd, ngay_qd, trich_yeu, da_luu, scanned_by_ho_ten, scanned_by_email, created_at",
           )
           .eq("so_qd", soQd)
           .neq("id", qdId)
+          .order("da_luu", { ascending: false })
           .order("created_at", { ascending: true })
           .limit(1);
         const raced = racedRows?.[0] ?? null;
+
+        // Người khác đang quét dở cùng số QĐ và chưa lưu → không chen ngang
+        if (raced && raced.da_luu === false && qdId) {
+          await supabase.storage.from(BUCKET).remove([storagePath]);
+          await supabase.from("qd_giao_a").delete().eq("id", qdId);
+          const nguoiQuet = raced.scanned_by_ho_ten || raced.scanned_by_email;
+          return NextResponse.json(
+            {
+              ok: false,
+              error:
+                `Quyết định Giao A số ${soQd} đang được quét dở và chưa lưu` +
+                (nguoiQuet ? ` bởi ${nguoiQuet}` : "") +
+                ". Chờ người đó lưu hoặc hủy bản quét rồi thử lại.",
+            },
+            { status: 409 },
+          );
+        }
+
         if (raced && qdId) {
           await supabase.storage.from(BUCKET).remove([storagePath]);
           await supabase.from("qd_giao_a").delete().eq("id", qdId);
@@ -455,12 +585,13 @@ export async function POST(request: Request) {
     await logHoatDong({
       phanHe: "GIAO_A",
       hanhDong: "SCAN",
-      chiTietNgan: `Quét Giao A ${soQd || qdId} → ${PHAN_HE[phanHe].short} (${duAn.length} DA)`,
+      chiTietNgan: `Quét Giao A ${soQd || qdId} cho tổ ${PHAN_HE[phanHe].title} — ${duAn.length} dự án nháp, chờ xác nhận lưu`,
       doiTuongId: qdId,
       duLieuDong: {
         phan_he: phanHe,
         so_qd: soQd,
         du_an_count: duAn.length,
+        da_luu: false,
       },
       email: actor.email,
       hoTen: actor.hoTen,

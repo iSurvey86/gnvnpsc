@@ -11,7 +11,13 @@ import {
   resolveLoaiHinhTuVan,
   type LoaiHinhTuVan,
 } from "@/lib/loai-hinh-tu-van";
-import type { CapDienAp, HuongGiao } from "@/lib/types";
+import {
+  LOAI_HINH_DU_AN_OPTIONS,
+  labelLoaiHinhDuAn,
+  resolveLoaiHinhDuAn,
+  shortLoaiHinhDuAn,
+} from "@/lib/loai-hinh-du-an";
+import type { CapDienAp, HuongGiao, LoaiHinhDuAn } from "@/lib/types";
 import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 
 type QdGiaoARef = {
@@ -41,6 +47,7 @@ export type DuAnRow = {
   quy_mo: string | null;
   goi_cong_viec: string | null;
   cap_dien_ap: CapDienAp | null;
+  loai_hinh_du_an?: LoaiHinhDuAn | null;
   huong_giao: HuongGiao | null;
   xi_nghiep_id: string | null;
   phan_he?: PhanHeCode;
@@ -76,6 +83,7 @@ export function DuAnDashboard({
   const [filterDiaDiem, setFilterDiaDiem] = useState("");
   const [filterLoaiXn, setFilterLoaiXn] = useState("");
   const [filterLoaiHinh, setFilterLoaiHinh] = useState("");
+  const [filterLoaiHinhDuAn, setFilterLoaiHinhDuAn] = useState("");
   const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const pageSize = 20;
@@ -126,13 +134,35 @@ export function DuAnDashboard({
         const tags = resolveLoaiHinhTuVan(r.huong_giao, r.cap_dien_ap);
         if (!tags.includes(filterLoaiHinh as LoaiHinhTuVan)) return false;
       }
+      if (
+        filterLoaiHinhDuAn &&
+        resolveLoaiHinhDuAn(r.cap_dien_ap, r.loai_hinh_du_an) !==
+          filterLoaiHinhDuAn
+      ) {
+        return false;
+      }
       return true;
     });
-  }, [rows, searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterLoaiHinh]);
+  }, [
+    rows,
+    searchTerm,
+    filterQdGiaoA,
+    filterDiaDiem,
+    filterLoaiXn,
+    filterLoaiHinh,
+    filterLoaiHinhDuAn,
+  ]);
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, filterQdGiaoA, filterDiaDiem, filterLoaiXn, filterLoaiHinh]);
+  }, [
+    searchTerm,
+    filterQdGiaoA,
+    filterDiaDiem,
+    filterLoaiXn,
+    filterLoaiHinh,
+    filterLoaiHinhDuAn,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const current = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -142,6 +172,7 @@ export function DuAnDashboard({
     setFilterDiaDiem("");
     setFilterLoaiXn("");
     setFilterLoaiHinh("");
+    setFilterLoaiHinhDuAn("");
   };
 
   async function deleteDuAn(id: string, ten: string) {
@@ -175,7 +206,8 @@ export function DuAnDashboard({
     Boolean(filterQdGiaoA) ||
     Boolean(filterDiaDiem) ||
     Boolean(filterLoaiXn) ||
-    Boolean(filterLoaiHinh);
+    Boolean(filterLoaiHinh) ||
+    Boolean(filterLoaiHinhDuAn);
 
   return (
     <div className="relative z-0 mx-auto flex min-h-full w-full max-w-[1600px] flex-1 flex-col space-y-4 p-6 antialiased">
@@ -262,6 +294,18 @@ export function DuAnDashboard({
               ))}
             </select>
             <select
+              value={filterLoaiHinhDuAn}
+              onChange={(e) => setFilterLoaiHinhDuAn(e.target.value)}
+              className={`min-w-[140px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
+            >
+              <option value="">Loại hình dự án</option>
+              {LOAI_HINH_DU_AN_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.short}
+                </option>
+              ))}
+            </select>
+            <select
               value={filterLoaiXn}
               onChange={(e) => setFilterLoaiXn(e.target.value)}
               className={`min-w-[160px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-medium text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
@@ -297,6 +341,9 @@ export function DuAnDashboard({
                 <th className="border-r border-black/10 px-4 py-3.5">
                   Tên dự án
                 </th>
+                <th className="w-28 whitespace-nowrap border-r border-black/10 px-2 py-3.5">
+                  Loại hình DA
+                </th>
                 <th className="w-44 whitespace-nowrap border-r border-black/10 px-3 py-3.5">
                   Loại hình tư vấn
                 </th>
@@ -316,7 +363,7 @@ export function DuAnDashboard({
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center font-medium text-gray-500"
                   >
                     Đang tải dữ liệu dự án...
@@ -324,7 +371,7 @@ export function DuAnDashboard({
                 </tr>
               ) : loadError ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center">
+                  <td colSpan={8} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center space-y-3">
                       <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-red-600">
                         <p className="mb-1 font-bold">
@@ -347,7 +394,7 @@ export function DuAnDashboard({
               ) : current.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center font-medium text-gray-500"
                   >
                     {rows.length === 0 ? (
@@ -373,6 +420,10 @@ export function DuAnDashboard({
                     r.huong_giao,
                     r.cap_dien_ap,
                   );
+                  const loaiHinhDa = resolveLoaiHinhDuAn(
+                    r.cap_dien_ap,
+                    r.loai_hinh_du_an,
+                  );
                   const stt = (page - 1) * pageSize + idx + 1;
                   return (
                     <tr
@@ -392,6 +443,20 @@ export function DuAnDashboard({
                         <p className="mt-0.5 text-xs font-medium text-gray-500">
                           {r.ma_du_an || "—"}
                         </p>
+                      </td>
+                      <td className="px-2 py-3 text-center">
+                        {loaiHinhDa ? (
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.chip}`}
+                            title={labelLoaiHinhDuAn(loaiHinhDa)}
+                          >
+                            {shortLoaiHinhDuAn(loaiHinhDa)}
+                          </span>
+                        ) : (
+                          <span className="text-rose-500" title="Chưa chọn">
+                            —
+                          </span>
+                        )}
                       </td>
                       <td className="px-3 py-3 text-center">
                         {loaiHinh.length ? (
@@ -427,6 +492,14 @@ export function DuAnDashboard({
                             <span className="mt-0.5 text-xs font-medium text-gray-400">
                               {giaoA.ngay_qd || ""}
                             </span>
+                            {giaoA.scanned_by_ho_ten ? (
+                              <span
+                                className="mt-0.5 max-w-[9rem] truncate text-[10px] font-medium text-slate-400"
+                                title={`Người quét: ${giaoA.scanned_by_ho_ten}`}
+                              >
+                                Quét: {giaoA.scanned_by_ho_ten}
+                              </span>
+                            ) : null}
                           </a>
                         ) : (
                           <span className="text-gray-400">—</span>

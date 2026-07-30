@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
+import { getSessionProfile } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -24,6 +26,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile?.isAdmin) {
+      return NextResponse.json(
+        { ok: false, error: "Chỉ Admin được thêm Xí nghiệp" },
+        { status: 403 },
+      );
+    }
+
     const body = (await request.json()) as {
       ma?: string | null;
       ten?: string;
@@ -55,6 +65,22 @@ export async function POST(request: Request) {
       .single();
 
     if (error) throw new Error(error.message);
+    await logHoatDong({
+      phanHe: "HE_THONG",
+      hanhDong: "CREATE",
+      chiTietNgan: `Thêm Xí nghiệp ${data.ten}`,
+      doiTuongId: data.id,
+      duLieuDong: {
+        ma_xi_nghiep: data.ma,
+        ten_xi_nghiep: data.ten,
+        phu_hop_tvtk: data.phu_hop_tvtk,
+        phu_hop_thi_nghiem: data.phu_hop_thi_nghiem,
+        phu_hop_tvgs: data.phu_hop_tvgs,
+      },
+      email: profile.email,
+      hoTen: profile.nhanSu?.ho_ten ?? profile.email,
+      authUserId: profile.userId,
+    });
     return NextResponse.json({ ok: true, data });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Lỗi thêm Xí nghiệp";

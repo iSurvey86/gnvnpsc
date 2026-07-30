@@ -250,7 +250,7 @@ export function XiNghiepAdminClient() {
                         key={r.id}
                         className="border-t border-emerald-100 bg-emerald-50/40"
                       >
-                        <td className="px-2 py-2 align-top">
+                        <td className="px-2 py-2 align-middle">
                           <input
                             value={form.ma}
                             onChange={(e) =>
@@ -260,7 +260,7 @@ export function XiNghiepAdminClient() {
                             placeholder="Mã"
                           />
                         </td>
-                        <td className="px-2 py-2 align-top">
+                        <td className="px-2 py-2 align-middle">
                           <input
                             value={form.ten}
                             onChange={(e) =>

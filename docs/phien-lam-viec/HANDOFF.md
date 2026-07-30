@@ -5,6 +5,50 @@
 
 ---
 
+## 2026-07-30 — Ba phân hệ, truy vết, bản nháp Giao A, loại hình dự án
+
+**Version:** `0.1.2`
+
+### Đã chốt / đã làm
+
+- **Ba phân hệ vận hành song song** (Tư vấn thiết kế · Thí nghiệm hiệu chỉnh · Tư vấn giám sát): dùng chung mã nguồn, khác màu, tách dữ liệu theo `phan_he`. Đúng tổ mới được quét / sửa / giao nhiệm vụ; lạc tổ chỉ xem. Trưởng phòng toàn quyền cả ba tổ, Phó phòng theo tổ phụ trách.
+- **Một Giao A cho nhiều tổ:** tổ quét sau được hỏi dùng chung hồ sơ Giao A đã lưu (không tải lại PDF), chỉ tạo danh mục riêng. Tên dự án cho phép trùng giữa các tổ; mã dự án mang hậu tố `-TV` / `-TN` / `-GS`.
+- **Bản nháp Giao A (`da_luu`)** — sửa lỗi nghiệp vụ nghiêm trọng: trước đây rời màn Review là dữ liệu đã vào danh mục. Nay quét xong là **nháp**, phải bấm Lưu mới thành chính thức; có **Hủy bản quét** và hộp thoại chặn rời trang (Lưu rồi rời · Hủy rồi rời · Ở lại).
+- **Xóa dự thảo quyết định giao Xí nghiệp:** chỉ khi còn trạng thái Nháp, quản trị được bỏ qua; có ghi nhật ký. Nhờ đó xóa được dự án đang bị vướng quyết định.
+- **Loại hình dự án (bắt buộc, liên quan chi phí):** dự án 110kV hệ thống tự đặt `110kV`; dự án trung hạ áp bắt buộc chọn **CQT** (chống quá tải) · **SCMBA** (sửa chữa MBA) · **DMS**. Chặn lưu nếu còn dòng trung hạ áp bỏ trống; có cột và bộ lọc ở Quản lý dự án.
+- **Quét không ra dự án thì báo lỗi, không để lại nháp rỗng:** nếu quyết định chỉ có bảng phụ lục, hệ thống lấy tên công trình trong phụ lục làm danh mục; vẫn rỗng thì xóa tệp vừa tải lên và báo lỗi tại màn nhập, ghi nhật ký Thất bại.
+- **Nhật ký hoạt động dễ đọc:** nhãn và giá trị tiếng Việt đầy đủ (bỏ mã kỹ thuật kiểu `du_an_count`, `TVTK`, `nhap`), mã đối tượng hiện đủ, mọi ô căn giữa theo chiều dọc, bộ lọc cũng dùng tên đầy đủ.
+- **Quản lý hệ thống gom về ba mục** (Giám sát hoạt động · Quản lý nhân sự · Danh sách Xí nghiệp), vào là mở sẵn Giám sát; nhân sự sửa ngay tại dòng, có cột Tổ; bỏ mục Mẫu văn bản Word.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [017_loai_hinh_du_an.sql](d:\AIProject\gnvnpsc\scripts\sql\017_loai_hinh_du_an.sql) | Cột loại hình dự án + backfill 110kV (chạy một lần, đã chạy) |
+| [016_nhap_va_luu_giao_a.sql](d:\AIProject\gnvnpsc\scripts\sql\016_nhap_va_luu_giao_a.sql) | Cờ `da_luu` cho hồ sơ Giao A và dự án |
+| [loai-hinh-du-an.ts](d:\AIProject\gnvnpsc\src\lib\loai-hinh-du-an.ts) | Quy tắc loại hình theo cấp điện áp |
+| [ban-nhap/route.ts](d:\AIProject\gnvnpsc\src\app\api\giao-a\[id]\ban-nhap\route.ts) | Chốt lưu / hủy bản quét |
+| [ingest/route.ts](d:\AIProject\gnvnpsc\src\app\api\giao-a\ingest\route.ts) | Quét, dùng chung Giao A, chặn nháp rỗng |
+| [parse-giao-a.ts](d:\AIProject\gnvnpsc\src\lib\scan-ai\parse-giao-a.ts) | Lấy danh mục từ phụ lục khi thiếu |
+| [ReviewGiaoAClient.tsx](d:\AIProject\gnvnpsc\src\components\ReviewGiaoAClient.tsx) | Màn Review: nháp, loại hình, chặn rời trang |
+| [roi-trang-guard.ts](d:\AIProject\gnvnpsc\src\lib\roi-trang-guard.ts) · [ThoatReviewLink.tsx](d:\AIProject\gnvnpsc\src\components\ThoatReviewLink.tsx) | Chặn rời trang khi chưa lưu |
+| [GiamSatHeThongClient.tsx](d:\AIProject\gnvnpsc\src\components\GiamSatHeThongClient.tsx) | Nhật ký tiếng Việt đầy đủ |
+| [00_tong_quan_toan_du_an.md](d:\AIProject\gnvnpsc\workflows\00_tong_quan_toan_du_an.md) | Sơ đồ module tổng quan |
+
+### Việc tiếp
+
+- [ ] Kiểm tra lại việc quét quyết định **708/QĐ-EVNNPC** sau khi bổ sung nguồn danh mục từ phụ lục; nếu vẫn rỗng thì gửi tệp để chỉnh prompt hoặc thử model Flash bản đầy đủ.
+- [ ] Bổ sung mẫu Word cho hai tổ Thí nghiệm và Tư vấn giám sát.
+- [ ] Khi hoàn thiện luồng PDF, đổi `SHOW_EXPORT_PDF` thành `true`.
+- [ ] Lưu field Word bổ sung vào DB; Thí nghiệm × 1,5% (pha sau).
+- [ ] Xác nhận DMS có tên đầy đủ hay giữ nguyên chữ viết tắt trên giao diện.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất (v0.1.2). SQL đã chạy tới `017`. Ba phân hệ, bản nháp Giao A và loại hình dự án đã xong. Tiếp: kiểm tra quét quyết định 708 hoặc bổ sung mẫu Word cho Thí nghiệm / Tư vấn giám sát.
+
+---
+
 ## 2026-07-30 — Chuẩn hóa cuối phiên: bump version + bắt buộc workflow/HDSD
 
 **Version:** `0.1.1`

@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
+import { isPhanHeCode, PHAN_HE } from "@/lib/phan-he";
+import { AuthError, requireWritePhanHe } from "@/lib/phan-he-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { LoaiGiaoXn } from "@/lib/types";
 
@@ -78,6 +81,95 @@ export async function PATCH(request: Request, ctx: Ctx) {
     return NextResponse.json({ ok: true, data });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Lỗi cập nhật";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+  }
+}
+
+const TRANG_THAI_LABEL: Record<string, string> = {
+  nhap: "Nháp",
+  trinh_gd: "Đã trình Giám đốc",
+  da_ban_hanh: "Đã ban hành",
+};
+
+/**
+ * DELETE — xóa dự thảo QĐ giao Xí nghiệp.
+ * Chỉ xóa khi còn ở trạng thái Nháp; đã trình GĐ / đã ban hành thì phải hạ
+ * trạng thái trước (Admin được xóa để dọn dữ liệu sai).
+ */
+export async function DELETE(_request: Request, ctx: Ctx) {
+  try {
+    const { id } = await ctx.params;
+    const supabase = createAdminClient();
+
+    const { data: current, error: getErr } = await supabase
+      .from("qd_giao_xn")
+      .select(
+        "id, loai, phan_he, trang_thai, so_qd_du_thao, du_an_id, du_an:du_an_id ( ma_du_an, ten_du_an )",
+      )
+      .eq("id", id)
+      .maybeSingle();
+    if (getErr) throw new Error(getErr.message);
+    if (!current) {
+      return NextResponse.json(
+        { ok: false, error: "Không tìm thấy quyết định" },
+        { status: 404 },
+      );
+    }
+
+    const phanHe = isPhanHeCode(current.phan_he) ? current.phan_he : "tvtk";
+    const { actor } = await requireWritePhanHe(phanHe);
+
+    const trangThai = (current.trang_thai as string) || "nhap";
+    if (trangThai !== "nhap" && !actor.isAdmin) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `Quyết định đang ở trạng thái «${
+            TRANG_THAI_LABEL[trangThai] ?? trangThai
+          }» — hạ về Nháp trước khi xóa.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    const { error } = await supabase.from("qd_giao_xn").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+
+    const duAn = Array.isArray(current.du_an) ? current.du_an[0] : current.du_an;
+    await logHoatDong({
+      phanHe: "GIAO_XN",
+      hanhDong: "DELETE",
+      chiTietNgan: `Xóa dự thảo quyết định giao Xí nghiệp ${
+        current.so_qd_du_thao || "(chưa có số)"
+      } — dự án ${duAn?.ma_du_an || duAn?.ten_du_an || current.du_an_id}`,
+      doiTuongId: id,
+      duLieuDong: {
+        phan_he: phanHe,
+        phan_he_ten: PHAN_HE[phanHe].title,
+        loai: current.loai,
+        trang_thai_truoc_khi_xoa: trangThai,
+        so_qd_du_thao: current.so_qd_du_thao,
+        du_an_id: current.du_an_id,
+        ma_du_an: duAn?.ma_du_an ?? null,
+        ten_du_an: duAn?.ten_du_an ?? null,
+      },
+      email: actor.email,
+      hoTen: actor.hoTen,
+      authUserId: actor.userId,
+    });
+
+    return NextResponse.json({
+      ok: true,
+      data: { id, du_an_id: current.du_an_id },
+    });
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { ok: false, error: err.message },
+        { status: err.status },
+      );
+    }
+    const message = err instanceof Error ? err.message : "Lỗi xóa quyết định";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

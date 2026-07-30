@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
 import { isPhoPhong, isTruongPhong } from "@/lib/chuc-danh";
 import {
   isPhanHeCode,
@@ -81,6 +82,8 @@ export async function PATCH(request: Request, { params }: Props) {
 
     if (error) throw new Error(error.message);
 
+    let effectiveCodes: PhanHeCode[] | undefined;
+    let effectiveRole: VaiTroPhanHe | undefined;
     if (body.phan_he !== undefined) {
       const selected = body.phan_he.filter(isPhanHeCode);
       const quanLyToanBo =
@@ -88,6 +91,8 @@ export async function PATCH(request: Request, { params }: Props) {
       const codes = quanLyToanBo ? ALL_PHAN_HE : selected;
       const role: VaiTroPhanHe =
         quanLyToanBo || isPhoPhong(data.chuc_danh) ? "manager" : "assigner";
+      effectiveCodes = codes;
+      effectiveRole = role;
 
       const { error: disableError } = await supabase
         .from("nhan_su_phan_he")
@@ -110,6 +115,25 @@ export async function PATCH(request: Request, { params }: Props) {
         if (roleError) throw new Error(roleError.message);
       }
     }
+    await logHoatDong({
+      phanHe: "HE_THONG",
+      hanhDong: "UPDATE",
+      chiTietNgan: `Cập nhật nhân sự ${data.ho_ten}`,
+      doiTuongId: id,
+      duLieuDong: {
+        truong_thay_doi: Object.keys(body),
+        ma_nv: data.ma_nv,
+        ho_ten: data.ho_ten,
+        email: data.email,
+        chuc_danh: data.chuc_danh,
+        dien_thoai: data.dien_thoai,
+        to_lam_viec: effectiveCodes ?? body.phan_he ?? null,
+        quyen_phan_he: effectiveRole ?? null,
+      },
+      email: profile.email,
+      hoTen: profile.nhanSu?.ho_ten ?? profile.email,
+      authUserId: profile.userId,
+    });
     return NextResponse.json({ ok: true, data });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Lỗi cập nhật nhân sự";

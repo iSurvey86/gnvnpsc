@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useAppDialog } from "@/components/AppDialog";
 import { QdGiaoXnDocBanner } from "@/components/QdGiaoXnDocBanner";
 import type {
   DuAn,
@@ -85,6 +86,7 @@ export function SoanQdGiaoXnEditor({
   initial,
 }: Props) {
   const router = useRouter();
+  const { showConfirm } = useAppDialog();
   const backHref = `/du-an/${duAn.id}/giao-xn`;
   const isTvtkTha = loai === "tvtk" && duAn.cap_dien_ap === "trung_ha_ap";
   const showTinhTien = shouldTinhTienGiao(loai, duAn.cap_dien_ap);
@@ -168,9 +170,9 @@ export function SoanQdGiaoXnEditor({
   const [tmdtOverrides, setTmdtOverrides] = useState<string[]>(() =>
     congTrinhBase.map((r) => (r.ct_tmdt ?? "").toString()),
   );
-  const [busy, setBusy] = useState<"save" | "close" | "word" | "pdf" | null>(
-    null,
-  );
+  const [busy, setBusy] = useState<
+    "save" | "close" | "word" | "pdf" | "delete" | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
 
@@ -276,6 +278,34 @@ export function SoanQdGiaoXnEditor({
     } catch (err) {
       setError(err instanceof Error ? err.message : "Lỗi lưu");
     } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onDelete() {
+    if (!qdId) return;
+    const ok = await showConfirm(
+      `Xóa dự thảo quyết định giao ${tenXiNhan === "…" ? "Xí nghiệp" : tenXiNhan}?\n\nDự án trở về trạng thái chưa giao, có thể lập lại quyết định mới. Bản Word đã tải về không bị ảnh hưởng.`,
+      {
+        title: "Xóa dự thảo quyết định",
+        variant: "warning",
+        confirmLabel: "Xóa dự thảo",
+        cancelLabel: "Quay lại",
+      },
+    );
+    if (!ok) return;
+
+    setBusy("delete");
+    setError(null);
+    setOkMsg(null);
+    try {
+      const res = await fetch(`/api/qd-giao-xn/${qdId}`, { method: "DELETE" });
+      const json = (await res.json()) as { ok: boolean; error?: string };
+      if (!json.ok) throw new Error(json.error ?? "Xóa dự thảo thất bại");
+      router.push(backHref);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi xóa dự thảo");
       setBusy(null);
     }
   }
@@ -411,6 +441,17 @@ export function SoanQdGiaoXnEditor({
                 className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${theme.btnOutline}`}
               >
                 {busy === "pdf" ? "Đang mở…" : "Xuất PDF"}
+              </button>
+            ) : null}
+            {qdId ? (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => void onDelete()}
+                className="rounded-lg border border-rose-300 bg-white px-3 py-1.5 text-xs font-medium text-rose-700 transition hover:bg-rose-50 disabled:opacity-50"
+                title="Xóa dự thảo quyết định — dự án trở về chưa giao"
+              >
+                {busy === "delete" ? "Đang xóa…" : "Xóa dự thảo"}
               </button>
             ) : null}
             <Link

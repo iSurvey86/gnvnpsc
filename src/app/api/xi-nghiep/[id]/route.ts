@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
+import { getSessionProfile } from "@/lib/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -7,6 +9,14 @@ type Props = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Props) {
   try {
+    const profile = await getSessionProfile();
+    if (!profile?.isAdmin) {
+      return NextResponse.json(
+        { ok: false, error: "Chỉ Admin được cập nhật Xí nghiệp" },
+        { status: 403 },
+      );
+    }
+
     const { id } = await params;
     const body = (await request.json()) as {
       ma?: string | null;
@@ -53,6 +63,23 @@ export async function PATCH(request: Request, { params }: Props) {
       .single();
 
     if (error) throw new Error(error.message);
+    await logHoatDong({
+      phanHe: "HE_THONG",
+      hanhDong: "UPDATE",
+      chiTietNgan: `Cập nhật Xí nghiệp ${data.ten}`,
+      doiTuongId: id,
+      duLieuDong: {
+        truong_thay_doi: Object.keys(body),
+        ma_xi_nghiep: data.ma,
+        ten_xi_nghiep: data.ten,
+        phu_hop_tvtk: data.phu_hop_tvtk,
+        phu_hop_thi_nghiem: data.phu_hop_thi_nghiem,
+        phu_hop_tvgs: data.phu_hop_tvgs,
+      },
+      email: profile.email,
+      hoTen: profile.nhanSu?.ho_ten ?? profile.email,
+      authUserId: profile.userId,
+    });
     return NextResponse.json({ ok: true, data });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Lỗi cập nhật XN";

@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReviewGiaoAClient } from "@/components/ReviewGiaoAClient";
+import { ThoatReviewLink } from "@/components/ThoatReviewLink";
 import { PHAN_HE, parsePhanHe } from "@/lib/phan-he";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DuAn, QdGiaoA } from "@/lib/types";
@@ -64,12 +64,12 @@ export default async function GiaoADetailPage({ params, searchParams }: Props) {
             </p>
           </div>
         </div>
-        <Link
+        <ThoatReviewLink
           href={cfg.href}
-          className={`rounded-xl px-4 py-2 text-xs font-bold shadow-sm ${cfg.theme.btnOutline}`}
+          className={`cursor-pointer rounded-xl px-4 py-2 text-xs font-bold shadow-sm ${cfg.theme.btnOutline}`}
         >
           ← Về Quản lý dự án
-        </Link>
+        </ThoatReviewLink>
       </header>
       <main className="mx-auto w-full max-w-[1600px] flex-1 space-y-5 px-4 py-6 md:px-8">
         {(qd as QdGiaoA).scanned_by_ho_ten ? (

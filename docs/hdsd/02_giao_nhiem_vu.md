@@ -10,7 +10,7 @@ Từ **Quản lý dự án**, mở một dòng dự án → trang **Giao nhiệm
 
 ## I. Thông tin chung
 
-- Xem mã, tên, địa điểm, cấp điện áp, **hướng giao**.
+- Xem mã, tên, địa điểm, cấp điện áp, **loại hình dự án**, **hướng giao**.
 - **Giao A số**: bấm để mở **file PDF** Quyết định giao danh mục (tab mới).
 - Đọc trích yếu và quy mô để đối chiếu khi soạn.
 
@@ -35,6 +35,13 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
 4. **Trung hạ áp:** bảng chi phí lần 01 (L1) và tạm ứng (số + bằng chữ) tự tính từ phụ lục — có thể sửa tay.
 5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word**. Nút **Xuất PDF** đang tạm ẩn và sẽ mở lại sau.
+
+### Xóa dự thảo quyết định
+
+1. Mở lại quyết định cần bỏ → bấm **Xóa dự thảo** trên đầu trang soạn.
+2. Chỉ xóa được khi quyết định còn ở trạng thái **Nháp**. Nếu đã trình Giám đốc hoặc đã ban hành, chuyển về Nháp trước (quản trị hệ thống được xóa bỏ qua điều kiện này).
+3. Việc xóa được ghi nhật ký kèm số dự thảo, dự án và trạng thái trước khi xóa.
+4. Muốn xóa hẳn dự án thì xóa dự thảo quyết định trước, sau đó xóa dự án ở danh mục.
 
 ### Xuất Word
 

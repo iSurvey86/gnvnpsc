@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { logHoatDong } from "@/lib/activity-log";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
+import { laDuAn110kv, resolveLoaiHinhDuAn } from "@/lib/loai-hinh-du-an";
 import {
   AuthError,
   parsePhanHeParam,
@@ -25,6 +26,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
       goi_cong_viec?: string | null;
       ghi_chu?: string | null;
       cap_dien_ap?: string | null;
+      loai_hinh_du_an?: string | null;
       huong_giao?: string | null;
       xi_nghiep_id?: string | null;
       qd_giao_a_id?: string | null;
@@ -34,7 +36,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
     const supabase = createAdminClient();
     const { data: current } = await supabase
       .from("du_an")
-      .select("id, phan_he, xi_nghiep_id, ten_du_an, ma_du_an")
+      .select(
+        "id, phan_he, xi_nghiep_id, ten_du_an, ma_du_an, cap_dien_ap, loai_hinh_du_an",
+      )
       .eq("id", id)
       .maybeSingle();
     if (!current) {
@@ -52,6 +56,41 @@ export async function PATCH(request: Request, ctx: Ctx) {
     if (body.ten_du_an !== undefined && !body.ten_du_an.trim()) {
       return NextResponse.json(
         { ok: false, error: "Tên dự án không được trống" },
+        { status: 400 },
+      );
+    }
+
+    const capDienApMoi =
+      body.cap_dien_ap !== undefined
+        ? body.cap_dien_ap === "110kv" || body.cap_dien_ap === "trung_ha_ap"
+          ? body.cap_dien_ap
+          : null
+        : (current.cap_dien_ap as string | null);
+
+    // Dự án 110kV: loại hình do hệ thống đặt; trung hạ áp: người nhập bắt buộc chọn
+    let loaiHinhPatch: string | null | undefined;
+    if (laDuAn110kv(capDienApMoi)) {
+      if (current.loai_hinh_du_an !== "110kv") loaiHinhPatch = "110kv";
+    } else if (body.loai_hinh_du_an !== undefined) {
+      const parsed = resolveLoaiHinhDuAn(capDienApMoi, body.loai_hinh_du_an);
+      if (!parsed) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              "Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS)",
+          },
+          { status: 400 },
+        );
+      }
+      loaiHinhPatch = parsed;
+    } else if (current.loai_hinh_du_an === "110kv") {
+      // Đổi từ 110kV sang trung hạ áp mà chưa chọn lại
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Đổi sang trung hạ áp thì phải chọn loại hình (CQT / SCMBA / DMS)",
+        },
         { status: 400 },
       );
     }
@@ -76,13 +115,10 @@ export async function PATCH(request: Request, ctx: Ctx) {
           : {}),
         ...(body.ghi_chu !== undefined ? { ghi_chu: body.ghi_chu } : {}),
         ...(body.cap_dien_ap !== undefined
-          ? {
-              cap_dien_ap:
-                body.cap_dien_ap === "110kv" ||
-                body.cap_dien_ap === "trung_ha_ap"
-                  ? body.cap_dien_ap
-                  : null,
-            }
+          ? { cap_dien_ap: capDienApMoi }
+          : {}),
+        ...(loaiHinhPatch !== undefined
+          ? { loai_hinh_du_an: loaiHinhPatch }
           : {}),
         ...(body.huong_giao !== undefined
           ? {
@@ -118,7 +154,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
     await logHoatDong({
       phanHe: "DA",
       hanhDong: "UPDATE",
-      chiTietNgan: `Sửa DA ${data.ma_du_an || data.ten_du_an}${
+      chiTietNgan: `Sửa dự án ${data.ma_du_an || data.ten_du_an}${
         xiChanged ? " (đổi Xí nghiệp)" : ""
       }`,
       doiTuongId: id,
@@ -177,7 +213,8 @@ export async function DELETE(_request: Request, ctx: Ctx) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Dự án đã có QĐ giao XN — xóa QĐ trước hoặc giữ lại dự án",
+          error:
+            "Dự án đã có quyết định giao Xí nghiệp. Mở tên dự án → Giao nhiệm vụ → Mở soạn quyết định → Xóa dự thảo, rồi xóa lại dự án.",
         },
         { status: 400 },
       );
@@ -189,7 +226,7 @@ export async function DELETE(_request: Request, ctx: Ctx) {
     await logHoatDong({
       phanHe: "DA",
       hanhDong: "DELETE",
-      chiTietNgan: `Xóa DA ${current.ma_du_an || current.ten_du_an}`,
+      chiTietNgan: `Xóa dự án ${current.ma_du_an || current.ten_du_an}`,
       doiTuongId: id,
       duLieuDong: { phan_he: phanHe },
       email: actor.email,

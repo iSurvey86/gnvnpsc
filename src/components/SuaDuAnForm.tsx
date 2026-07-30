@@ -5,7 +5,12 @@ import { useState } from "react";
 import { XiNghiepPicker } from "@/components/XiNghiepPicker";
 import { CAP_DIEN_AP_OPTIONS } from "@/lib/cap-dien-ap";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
-import type { CapDienAp, DuAn, XiNghiep } from "@/lib/types";
+import {
+  LOAI_HINH_THA_OPTIONS,
+  isLoaiHinhDuAn,
+  laDuAn110kv,
+} from "@/lib/loai-hinh-du-an";
+import type { CapDienAp, DuAn, LoaiHinhDuAn, XiNghiep } from "@/lib/types";
 
 type Props = {
   duAn: DuAn;
@@ -23,6 +28,10 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
   const [capDienAp, setCapDienAp] = useState<CapDienAp | "">(
     duAn.cap_dien_ap ?? "",
   );
+  const [loaiHinh, setLoaiHinh] = useState<LoaiHinhDuAn | "">(
+    duAn.loai_hinh_du_an === "110kv" ? "" : (duAn.loai_hinh_du_an ?? ""),
+  );
+  const la110kv = laDuAn110kv(capDienAp);
   const [xiId, setXiId] = useState<string | null>(duAn.xi_nghiep_id ?? null);
   const [quyMo, setQuyMo] = useState(duAn.quy_mo ?? "");
   const [ghiChu, setGhiChu] = useState(duAn.ghi_chu ?? "");
@@ -33,6 +42,10 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
     e.preventDefault();
     if (!tenDuAn.trim()) {
       setError("Tên dự án không được trống");
+      return;
+    }
+    if (!la110kv && !isLoaiHinhDuAn(loaiHinh)) {
+      setError("Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS)");
       return;
     }
     setSaving(true);
@@ -46,6 +59,7 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
           ten_du_an: tenDuAn.trim(),
           dia_diem: normalizeDiaDiem(diaDiem) || null,
           cap_dien_ap: capDienAp || null,
+          loai_hinh_du_an: la110kv ? "110kv" : loaiHinh,
           xi_nghiep_id: xiId,
           quy_mo: quyMo.trim() || null,
           ghi_chu: ghiChu.trim() || null,
@@ -116,6 +130,39 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
                 </option>
               ))}
             </select>
+          </label>
+
+          <label className="block lg:col-span-4">
+            <FieldLabel>
+              Loại hình dự án{" "}
+              {la110kv ? null : <span className="text-rose-600">*</span>}
+            </FieldLabel>
+            {la110kv ? (
+              <div
+                className={`${field} bg-teal-50/60 text-teal-800`}
+                title="Dự án 110kV — hệ thống tự đặt loại hình"
+              >
+                110 kV (mặc định theo cấp điện áp)
+              </div>
+            ) : (
+              <select
+                required
+                value={loaiHinh}
+                onChange={(e) =>
+                  setLoaiHinh((e.target.value || "") as LoaiHinhDuAn | "")
+                }
+                className={`${field} cursor-pointer ${
+                  !loaiHinh ? "border-rose-300" : ""
+                }`}
+              >
+                <option value="">— Chọn bắt buộc —</option>
+                {LOAI_HINH_THA_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            )}
           </label>
 
           <div className="lg:col-span-4">
