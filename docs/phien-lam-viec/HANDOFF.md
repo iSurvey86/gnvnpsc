@@ -5,6 +5,36 @@
 
 ---
 
+## 2026-07-30 — Tạm ẩn Xuất PDF · đổi màu trang Thí nghiệm
+
+### Đã làm
+
+- Tạm ẩn nút **Xuất PDF** trên trang soạn; giữ nguyên logic để có thể bật lại sau.
+- Cập nhật hướng dẫn tại phần giao nhiệm vụ, chỉ còn **Lưu · Lưu & đóng · Xuất Word**.
+- Đổi theme Thí nghiệm từ hồng đào sang **vàng cát trầm**; giảm gradient và bóng đổ, giữ dấu **DỰ THẢO** màu đỏ.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) | Ẩn nút Xuất PDF bằng cờ cấu hình |
+| [soan-qd-theme.ts](d:\AIProject\gnvnpsc\src\lib\soan-qd-theme.ts) | Theme TN vàng cát trầm |
+| [QdGiaoXnDocBanner.tsx](d:\AIProject\gnvnpsc\src\components\QdGiaoXnDocBanner.tsx) | Banner theo theme mới |
+| [workflows/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) | Workflow giao nhiệm vụ |
+| [docs/hdsd/02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\docs\hdsd\02_giao_nhiem_vu.md) | HDSD trang soạn |
+
+### Việc tiếp
+
+- [ ] Khi hoàn thiện luồng PDF, đổi `SHOW_EXPORT_PDF` thành `true` để hiện lại nút.
+- [ ] Chạy SQL `010` (và `009` nếu chưa) trên Supabase.
+- [ ] Lưu field Word bổ sung vào DB; TN × 1,5% (pha sau).
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất. Kiểm tra trang soạn TN với màu vàng cát trầm và nút PDF đang ẩn. Tiếp: hoàn thiện PDF hoặc field Word / tiền TN.
+
+---
+
 ## 2026-07-28 — Giám sát hoạt động · tài khoản · chỉnh bảng UX
 
 ### Đã làm

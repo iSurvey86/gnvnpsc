@@ -28,6 +28,9 @@ import {
   SOAN_QD_THEME,
 } from "@/lib/soan-qd-theme";
 
+/** Tạm ẩn — bật `true` khi mở lại nút Xuất PDF. */
+const SHOW_EXPORT_PDF = false;
+
 type Props = {
   duAn: DuAn;
   qdGiaoA: QdGiaoA | null;
@@ -387,14 +390,16 @@ export function SoanQdGiaoXnEditor({
             >
               {busy === "word" ? "Đang xuất…" : "Xuất Word"}
             </button>
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => void onExportPdf()}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${theme.btnOutline}`}
-            >
-              {busy === "pdf" ? "Đang mở…" : "Xuất PDF"}
-            </button>
+            {SHOW_EXPORT_PDF ? (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => void onExportPdf()}
+                className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${theme.btnOutline}`}
+              >
+                {busy === "pdf" ? "Đang mở…" : "Xuất PDF"}
+              </button>
+            ) : null}
             <Link
               href={backHref}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${theme.closeBtn}`}

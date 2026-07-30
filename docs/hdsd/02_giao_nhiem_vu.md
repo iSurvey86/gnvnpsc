@@ -30,18 +30,17 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 
 ### Lập / soạn quyết định
 
-1. Bấm **+ Lập** hoặc **Mở soạn** → trang soạn dạng giấy QĐ (màu pastel khác nhau theo loại).
+1. Bấm **+ Lập** hoặc **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát trầm).
 2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
 3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
 4. **Trung hạ áp:** bảng chi phí lần 01 (L1) và tạm ứng (số + bằng chữ) tự tính từ phụ lục — có thể sửa tay.
-5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Xuất PDF**.
+5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word**. Nút **Xuất PDF** đang tạm ẩn và sẽ mở lại sau.
 
-### Xuất Word / PDF
+### Xuất Word
 
 | Nút | Kết quả |
 |-----|---------|
 | Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Số QĐ để trống sẽ thành khoảng trắng để điền tay sau. |
-| Xuất PDF | Mở bản in tóm tắt → Ctrl+P → Save as PDF (văn bản đầy đủ lấy từ Word). |
 
 ### Gợi ý thao tác
 

@@ -3,13 +3,13 @@ import type { CapDienAp, LoaiGiaoXn } from "@/lib/types";
 /**
  * Palette trang soạn QĐ — pastel có màu (không xám/ghi, không chói).
  */
-export type SoanQdTone = "sky" | "emerald" | "rose";
+export type SoanQdTone = "sky" | "emerald" | "amber";
 
 export function resolveSoanQdTone(
   loai: LoaiGiaoXn,
   cap: CapDienAp | null | undefined,
 ): SoanQdTone {
-  if (loai === "thi_nghiem") return "rose";
+  if (loai === "thi_nghiem") return "amber";
   if (cap === "110kv") return "sky";
   return "emerald";
 }
@@ -109,37 +109,37 @@ export const SOAN_QD_THEME: Record<SoanQdTone, SoanQdTheme> = {
     textBody: "text-teal-950",
     closeBtn: "border-teal-200 bg-white text-teal-800 hover:bg-teal-50",
   },
-  /** Thí nghiệm / TNHC — hồng đào pastel */
-  rose: {
-    pageBg: "from-rose-50 via-[#fff7f8] to-orange-50/30",
-    headerBorder: "border-rose-200",
-    title: "text-rose-950",
-    label: "text-rose-700",
+  /** Thí nghiệm / TNHC — vàng cát trầm (nền phẳng, không bóng) */
+  amber: {
+    pageBg: "from-amber-50/60 via-[#fbfaf6] to-amber-50/30",
+    headerBorder: "border-amber-200/80",
+    title: "text-amber-950",
+    label: "text-amber-800",
     field:
-      "border-rose-200 bg-rose-50/40 focus:border-rose-400 focus:ring-rose-100",
-    btnPrimary: "bg-rose-400 text-white hover:bg-rose-500",
+      "border-amber-200 bg-amber-50/25 focus:border-amber-400 focus:ring-amber-100",
+    btnPrimary: "bg-amber-600 text-white hover:bg-amber-700",
     btnSecondary:
-      "border-rose-200 bg-rose-50 text-rose-900 hover:bg-rose-100",
-    btnWord: "border-rose-300 bg-rose-100 text-rose-900 hover:bg-rose-200",
-    btnOutline: "border-rose-200 bg-white text-rose-800 hover:bg-rose-50",
-    articleBorder: "border-rose-200",
-    articleShadow: "shadow-[0_10px_32px_-14px_rgba(251,113,133,0.28)]",
-    topBar: "from-rose-300 via-orange-200 to-rose-200",
-    banner: "border-rose-200 bg-gradient-to-b from-rose-100 to-rose-50",
-    bannerTitle: "text-rose-950",
-    bannerSub: "text-rose-800",
-    badge: "bg-rose-400 text-white",
-    sectionTitle: "text-rose-900",
-    tableHead: "bg-rose-100 text-rose-900",
-    tableBorder: "border-rose-200",
-    tableRowBorder: "border-rose-100",
-    tableFoot: "border-rose-200 bg-rose-50 font-semibold text-rose-900",
-    hintBox: "border-rose-200 bg-rose-50 text-rose-800",
-    btnRecalc: "border-rose-200 bg-white text-rose-800 hover:bg-rose-50",
-    draftStamp: "border-rose-400 bg-rose-100 text-rose-700",
-    textMuted: "text-rose-700/70",
-    textBody: "text-rose-950",
-    closeBtn: "border-rose-200 bg-white text-rose-800 hover:bg-rose-50",
+      "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100",
+    btnWord: "border-amber-300 bg-amber-100 text-amber-900 hover:bg-amber-200",
+    btnOutline: "border-amber-200 bg-white text-amber-900 hover:bg-amber-50",
+    articleBorder: "border-amber-200",
+    articleShadow: "shadow-[0_6px_20px_-16px_rgba(120,86,25,0.35)]",
+    topBar: "from-amber-300 via-amber-200 to-amber-100",
+    banner: "border-amber-200 bg-amber-50/70",
+    bannerTitle: "text-amber-950",
+    bannerSub: "text-amber-900",
+    badge: "bg-amber-600 text-white",
+    sectionTitle: "text-amber-900",
+    tableHead: "bg-amber-100/80 text-amber-900",
+    tableBorder: "border-amber-200",
+    tableRowBorder: "border-amber-100",
+    tableFoot: "border-amber-200 bg-amber-50 font-semibold text-amber-900",
+    hintBox: "border-amber-200 bg-amber-50 text-amber-900",
+    btnRecalc: "border-amber-200 bg-white text-amber-900 hover:bg-amber-50",
+    draftStamp: "border-rose-300 bg-rose-50 text-rose-600",
+    textMuted: "text-amber-800/70",
+    textBody: "text-amber-950",
+    closeBtn: "border-amber-200 bg-white text-amber-900 hover:bg-amber-50",
   },
 };
 

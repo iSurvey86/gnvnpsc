@@ -247,7 +247,7 @@ export function GiaoNhiemVuSection({ duAn, qd, existingQds }: Props) {
           </h2>
           <p className="mt-1 text-xs text-amber-800/70">
             Bấm <strong>Lập</strong> / <strong>Mở soạn</strong> để vào trang soạn
-            QĐ (Lưu, Xuất Word, Xuất PDF) — không trôi form dưới thẻ.
+            QĐ (Lưu, Xuất Word) — không trôi form dưới thẻ.
           </p>
         </div>
 

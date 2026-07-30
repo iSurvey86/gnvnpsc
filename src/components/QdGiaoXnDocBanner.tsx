@@ -9,7 +9,7 @@ type Props = {
   tenXiNghiep: string;
   /** Hiện dấu Dự thảo (trang soạn) */
   showDraftStamp?: boolean;
-  /** Màu theo loại: 110 → sky, THA → emerald, TN → rose pastel */
+  /** Màu theo loại: 110 → sky, THA → emerald, TN → vàng cát */
   tone?: SoanQdTone;
   className?: string;
 };

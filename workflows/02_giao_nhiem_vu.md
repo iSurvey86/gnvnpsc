@@ -31,7 +31,6 @@ flowchart TD
   Save["Lưu hoặc Lưu và đóng"]
   Pick["Chọn mẫu Word theo loại và cấp"]
   Word["Xuất Word — số QĐ trống thành khoảng trắng"]
-  Pdf["Xuất PDF — bản in trình duyệt"]
   End(["Quay lại thẻ giao nhiệm vụ"])
 
   Open --> Info
@@ -46,13 +45,12 @@ flowchart TD
   Valid -->|Thiếu| Form
   Valid -->|Đủ| Save --> End
   Form -.-> Pick --> Word
-  Form -.-> Pdf
 
   class Open,Info,LinkA,Sec2,PickCard,Lap,Form,MacDinh userClass
   class Cap,Allow,Valid,Tien,Pick processClass
   class L1 aiClass
   class Save,End dbClass
-  class Block,Word,Pdf,NoCap exportClass
+  class Block,Word,NoCap exportClass
 ```
 
 ## Nội dung màn hình
@@ -61,7 +59,7 @@ flowchart TD
 |------|----------|
 | I. Thông tin chung | Mã/tên DA, địa điểm, cấp ĐA, hướng giao; Giao A (PDF); quy mô |
 | II. Giao nhiệm vụ | Thẻ TVTK theo cấp · Thẻ TN — bấm Lập mở trang soạn |
-| Trang soạn | Giấy QĐ pastel theo loại (110 / THA / TN); Lưu · Word · PDF |
+| Trang soạn | Giấy QĐ theo loại (110 xanh dương / THA xanh ngọc / TN vàng cát); Lưu · Word; tạm ẩn PDF |
 
 ## Quy tắc soạn (đã chốt)
 
@@ -73,7 +71,8 @@ flowchart TD
 | Số QĐ trống | Xuất Word chèn 10 khoảng trắng |
 | TVTK THA — L1 | L1 = TMĐT × 3,3% (triệu); tạm ứng = L1 đổi sang đồng + bằng chữ |
 | TVTK 110 | Không tính L1 / tạm ứng |
-| Màu trang soạn | 110 xanh dương · THA xanh ngọc · TN hồng đào pastel |
+| Màu trang soạn | 110 xanh dương · THA xanh ngọc · TN vàng cát trầm, ít bóng |
+| Xuất PDF | Tạm ẩn nút; giữ logic để bật lại sau |
 
 ## Phụ lục kỹ thuật
 
