@@ -10,6 +10,11 @@ type Props = {
   searchParams: Promise<{ loai?: string; qdId?: string }>;
 };
 
+function oneRel<T>(v: T | T[] | null | undefined): T | null {
+  if (v == null) return null;
+  return Array.isArray(v) ? (v[0] ?? null) : v;
+}
+
 export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) {
   const { id } = await params;
   const sp = await searchParams;
@@ -29,6 +34,41 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
     redirect(`/du-an/${id}/giao-xn`);
   }
 
+  // Đã có QĐ (sở hữu hoặc được phủ) → mở đúng bản đó, không tạo nháp mới
+  if (!sp.qdId) {
+    const { data: owned } = await supabase
+      .from("qd_giao_xn")
+      .select("id, loai, du_an_id")
+      .eq("du_an_id", id)
+      .eq("loai", loai)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (owned) {
+      redirect(
+        `/du-an/${id}/giao-xn/soan?loai=${owned.loai}&qdId=${owned.id}`,
+      );
+    }
+
+    const { data: maps } = await supabase
+      .from("qd_giao_xn_du_an")
+      .select("qd_giao_xn:qd_giao_xn_id ( id, loai, du_an_id )")
+      .eq("du_an_id", id);
+    for (const m of maps ?? []) {
+      const q = oneRel(
+        m.qd_giao_xn as
+          | { id: string; loai: string; du_an_id: string }
+          | { id: string; loai: string; du_an_id: string }[]
+          | null,
+      );
+      if (q?.loai === loai) {
+        redirect(
+          `/du-an/${q.du_an_id}/giao-xn/soan?loai=${q.loai}&qdId=${q.id}`,
+        );
+      }
+    }
+  }
+
   let qdGiaoA: QdGiaoA | null = null;
   if (duAn.qd_giao_a_id) {
     const { data } = await supabase
@@ -45,9 +85,26 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
       .from("qd_giao_xn")
       .select("*")
       .eq("id", sp.qdId)
-      .eq("du_an_id", id)
       .maybeSingle();
-    initial = (data as QdGiaoXn) ?? null;
+    const qd = (data as QdGiaoXn) ?? null;
+    if (qd) {
+      if (qd.du_an_id !== id) {
+        const { data: mapOk } = await supabase
+          .from("qd_giao_xn_du_an")
+          .select("du_an_id")
+          .eq("qd_giao_xn_id", qd.id)
+          .eq("du_an_id", id)
+          .maybeSingle();
+        if (mapOk) {
+          redirect(
+            `/du-an/${qd.du_an_id}/giao-xn/soan?loai=${qd.loai}&qdId=${qd.id}`,
+          );
+        }
+        // qdId không thuộc dự án này và cũng không map → bỏ qua
+      } else {
+        initial = qd;
+      }
+    }
   }
 
   const { data: xiNghiep } = await supabase

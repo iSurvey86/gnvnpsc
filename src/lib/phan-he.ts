@@ -69,7 +69,8 @@ const themeTvtk: PhanHeTheme = {
   softText: "text-teal-800",
   rowOdd: "odd:bg-white",
   rowEven: "even:bg-[#eef8f5]",
-  rowHover: "hover:bg-[#dcefea]",
+  /** Hover/focus — cam nhạt (không dùng xanh) */
+  rowHover: "hover:bg-[#fff3e8] focus-within:bg-[#fff3e8]",
   chip: "bg-teal-50 text-teal-800",
   btnPrimary:
     "border-2 border-teal-500 bg-teal-50 text-teal-800 hover:bg-teal-100",

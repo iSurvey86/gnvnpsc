@@ -1,4 +1,18 @@
-/** `2026-07-26` → `ngày 26 tháng 7 năm 2026` */
+/**
+ * Chuẩn Việt Nam trên giao diện: `2026-04-14` → `14/04/2026`.
+ * Giữ nguyên chuỗi nếu không khớp YYYY-MM-DD.
+ */
+export function formatNgayVN(
+  isoDate: string | null | undefined,
+  empty = "—",
+): string {
+  if (!isoDate?.trim()) return empty;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate.trim());
+  if (!m) return isoDate.trim();
+  return `${m[3]}/${m[2]}/${m[1]}`;
+}
+
+/** `2026-07-26` → `ngày 26 tháng 7 năm 2026` (văn bản / Word) */
 export function formatNgayBanHanhChu(
   isoDate: string | null | undefined,
 ): string {

@@ -117,6 +117,10 @@ export type QdGiaoXn = {
   can_cu: string | null;
   trang_thai: TrangThaiQdXn;
   word_storage_path: string | null;
+  /** PDF quyết định đã ký — có thì coi như đã giao */
+  pdf_ky_storage_path?: string | null;
+  pdf_ky_at?: string | null;
+  pdf_ky_by?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
   exported_by?: string | null;

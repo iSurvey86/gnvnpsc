@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAppDialog } from "@/components/AppDialog";
 import { QdGiaoXnDocBanner } from "@/components/QdGiaoXnDocBanner";
 import type {
@@ -11,6 +11,7 @@ import type {
   PhuLucCongTrinh,
   QdGiaoA,
   QdGiaoXn,
+  TrangThaiQdXn,
   XiNghiep,
 } from "@/lib/types";
 import {
@@ -19,15 +20,21 @@ import {
   matchXiNghiepByTinh,
 } from "@/lib/soan-qd-defaults";
 import {
+  laCungDiaBanTinh,
   shouldTinhTienGiao,
   tinhChiPhiL1TuPhuLuc,
-  TY_LE_L1_TVTK_THA,
 } from "@/lib/tinh-tien-giao-xn";
+import { resolveLoaiHinhDuAn, shortLoaiHinhDuAn } from "@/lib/loai-hinh-du-an";
 import { soTienBangChu, formatVndTuTrieu } from "@/lib/so-tien-bang-chu";
 import {
   resolveSoanQdTone,
   SOAN_QD_THEME,
 } from "@/lib/soan-qd-theme";
+import {
+  laDaGiaoXn,
+  labelTrangThaiGiaoXn,
+} from "@/lib/trang-thai-giao-xn";
+import { isPhanHeCode, PHAN_HE } from "@/lib/phan-he";
 
 /** Tạm ẩn — bật `true` khi mở lại nút Xuất PDF. */
 const SHOW_EXPORT_PDF = false;
@@ -67,13 +74,13 @@ function SectionHead({
   titleClass: string;
 }) {
   return (
-    <div className={`flex items-center gap-2.5 ${className}`}>
+    <div className={`flex items-center gap-1.5 ${className}`}>
       <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold ${badgeClass}`}
+        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ${badgeClass}`}
       >
         {n}
       </span>
-      <h2 className={`text-sm font-semibold ${titleClass}`}>{children}</h2>
+      <h2 className={`text-[13px] font-semibold ${titleClass}`}>{children}</h2>
     </div>
   );
 }
@@ -87,7 +94,9 @@ export function SoanQdGiaoXnEditor({
 }: Props) {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
-  const backHref = `/du-an/${duAn.id}/giao-xn`;
+  const phanHe = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
+  /** Ra bảng Quản lý dự án (không dừng ở trang giao XN trung gian). */
+  const backHref = PHAN_HE[phanHe].homeAfterSave;
   const isTvtkTha = loai === "tvtk" && duAn.cap_dien_ap === "trung_ha_ap";
   const showTinhTien = shouldTinhTienGiao(loai, duAn.cap_dien_ap);
 
@@ -167,42 +176,87 @@ export function SoanQdGiaoXnEditor({
   /** User đã sửa tạm ứng tay → không ghi đè khi L1 đổi */
   const [tamUngDirty, setTamUngDirty] = useState(false);
   const [soLuongCt, setSoLuongCt] = useState("");
+  /** Bản làm việc bảng L1 (có thể xóa dòng; «Tính lại» khôi phục từ phụ lục). */
+  const [congTrinhEdit, setCongTrinhEdit] = useState<PhuLucCongTrinh[]>(
+    () => congTrinhBase,
+  );
   const [tmdtOverrides, setTmdtOverrides] = useState<string[]>(() =>
     congTrinhBase.map((r) => (r.ct_tmdt ?? "").toString()),
   );
   const [busy, setBusy] = useState<
-    "save" | "close" | "word" | "pdf" | "delete" | null
+    "save" | "close" | "word" | "pdf" | "delete" | "uploadKy" | null
   >(null);
   const [error, setError] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
+  const [trangThai, setTrangThai] = useState<TrangThaiQdXn>(
+    initial?.trang_thai ?? "nhap",
+  );
+  const [coPdfKy, setCoPdfKy] = useState(Boolean(initial?.pdf_ky_storage_path));
+  const pdfKyInputRef = useRef<HTMLInputElement>(null);
+  const daGiao = laDaGiaoXn(trangThai);
 
-  useEffect(() => {
+  function resetCongTrinhTuPhuLuc() {
+    setCongTrinhEdit(congTrinhBase);
     setTmdtOverrides(
       congTrinhBase.map((r) => (r.ct_tmdt ?? "").toString()),
     );
+  }
+
+  useEffect(() => {
+    resetCongTrinhTuPhuLuc();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ sync khi phụ lục đổi
   }, [congTrinhBase]);
+
+  const loaiHinhDa = useMemo(
+    () => resolveLoaiHinhDuAn(duAn.cap_dien_ap, duAn.loai_hinh_du_an),
+    [duAn.cap_dien_ap, duAn.loai_hinh_du_an],
+  );
+
+  const tenXnHienThi = useMemo(
+    () => filteredXn.find((x) => x.id === xiId)?.ten?.trim() || "",
+    [filteredXn, xiId],
+  );
+
+  const cungDiaBan = useMemo(
+    () =>
+      laCungDiaBanTinh({
+        tenPcTinh,
+        tenXiNghiep: tenXnHienThi,
+        diaDiemDuAn: duAn.dia_diem,
+      }),
+    [tenPcTinh, tenXnHienThi, duAn.dia_diem],
+  );
 
   const ketQuaTien = useMemo(
     () =>
       tinhChiPhiL1TuPhuLuc({
         loai,
         cap: duAn.cap_dien_ap,
-        cong_trinh: congTrinhBase,
+        cong_trinh: congTrinhEdit,
         tmdtOverrides,
+        loaiHinhDuAn: loaiHinhDa,
+        cungDiaBan,
       }),
-    [loai, duAn.cap_dien_ap, congTrinhBase, tmdtOverrides],
+    [
+      loai,
+      duAn.cap_dien_ap,
+      congTrinhEdit,
+      tmdtOverrides,
+      loaiHinhDa,
+      cungDiaBan,
+    ],
   );
 
-  // Tạm ứng mặc định = tổng chi phí L1 (triệu → đồng), kèm bằng chữ
+  // Tạm ứng mặc định = tổng giá trị tạm ứng (triệu → đồng), kèm bằng chữ
   useEffect(() => {
     if (!isTvtkTha || tamUngDirty) return;
-    const trieu = ketQuaTien.tong_chi_phi_l1_so;
+    const trieu = ketQuaTien.tong_gia_tri_tam_ung_so;
     if (trieu == null) return;
     const vnd = formatVndTuTrieu(trieu);
     if (!vnd) return;
     setSoTienTamUng(vnd);
     setSoTienTamUngChu(soTienBangChu(vnd));
-  }, [isTvtkTha, tamUngDirty, ketQuaTien.tong_chi_phi_l1_so]);
+  }, [isTvtkTha, tamUngDirty, ketQuaTien.tong_gia_tri_tam_ung_so]);
 
   useEffect(() => {
     if (!xiId) {
@@ -225,7 +279,13 @@ export function SoanQdGiaoXnEditor({
   }, [filteredXn, xiId, duAn.dia_diem, tenPcTinh, tenPcMacDinh]);
 
   function payload() {
-    return {
+    const congTrinh =
+      congTrinhEdit.length > 0
+        ? congTrinhEdit
+        : congTrinhBase.length > 0
+          ? congTrinhBase
+          : [{ ct_ten: duAn.ten_du_an }];
+    const body: Record<string, unknown> = {
       du_an_id: duAn.id,
       loai,
       so_qd_du_thao: soQd || null,
@@ -234,11 +294,14 @@ export function SoanQdGiaoXnEditor({
       pham_vi: phamVi || null,
       thoi_han: thoiHan || null,
       can_cu: canCu || null,
-      trang_thai: "nhap" as const,
+      cong_trinh: congTrinh,
     };
+    // Tạo mới luôn là nháp; khi đã giao không ghi đè trạng thái lúc Lưu nội dung
+    if (!qdId) body.trang_thai = "nhap";
+    return body;
   }
 
-  async function save(): Promise<string> {
+  async function save(): Promise<{ id: string; mappedCount: number }> {
     if (!xiId) throw new Error("Chọn Xí nghiệp nhận từ danh mục");
     const body = payload();
     if (qdId) {
@@ -249,7 +312,9 @@ export function SoanQdGiaoXnEditor({
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "Lưu thất bại");
-      return qdId;
+      const mappedCount =
+        (json.map?.mapped_du_an_ids as string[] | undefined)?.length ?? 0;
+      return { id: qdId, mappedCount };
     }
     const res = await fetch("/api/qd-giao-xn", {
       method: "POST",
@@ -263,7 +328,9 @@ export function SoanQdGiaoXnEditor({
     router.replace(
       `/du-an/${duAn.id}/giao-xn/soan?loai=${loai}&qdId=${id}`,
     );
-    return id;
+    const mappedCount =
+      (json.map?.mapped_du_an_ids as string[] | undefined)?.length ?? 0;
+    return { id, mappedCount };
   }
 
   async function onSave(closeAfter: boolean) {
@@ -271,8 +338,12 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      await save();
-      setOkMsg("Đã lưu dự thảo.");
+      const { mappedCount } = await save();
+      setOkMsg(
+        mappedCount > 1
+          ? `Đã lưu dự thảo — liên kết ${mappedCount} dự án (công trình) trong bảng.`
+          : "Đã lưu dự thảo.",
+      );
       router.refresh();
       if (closeAfter) router.push(backHref);
     } catch (err) {
@@ -284,6 +355,12 @@ export function SoanQdGiaoXnEditor({
 
   async function onDelete() {
     if (!qdId) return;
+    if (daGiao) {
+      setError(
+        "Quyết định đã giao (đã có PDF ký). Chỉ Quản trị được xóa để dọn dữ liệu sai.",
+      );
+      return;
+    }
     const ok = await showConfirm(
       `Xóa dự thảo quyết định giao ${tenXiNhan === "…" ? "Xí nghiệp" : tenXiNhan}?\n\nDự án trở về trạng thái chưa giao, có thể lập lại quyết định mới. Bản Word đã tải về không bị ảnh hưởng.`,
       {
@@ -315,7 +392,7 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      const id = await save();
+      const { id } = await save();
       const res = await fetch(`/api/qd-giao-xn/${id}/export/word`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -326,6 +403,7 @@ export function SoanQdGiaoXnEditor({
           so_tien_tam_ung_chu: soTienTamUngChu || null,
           so_luong_cong_trinh: soLuongCt || null,
           tmdt_overrides: showTinhTien ? tmdtOverrides : undefined,
+          cong_trinh: showTinhTien ? congTrinhEdit : undefined,
         }),
       });
       if (!res.ok) {
@@ -356,7 +434,7 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      const id = await save();
+      const { id } = await save();
       window.open(
         `/du-an/${duAn.id}/giao-xn/soan/in?qdId=${id}`,
         "_blank",
@@ -373,14 +451,44 @@ export function SoanQdGiaoXnEditor({
     }
   }
 
+  async function onUploadPdfKy(file: File) {
+    setBusy("uploadKy");
+    setError(null);
+    setOkMsg(null);
+    try {
+      const { id } = await save();
+      const form = new FormData();
+      form.set("file", file);
+      const res = await fetch(`/api/qd-giao-xn/${id}/pdf-ky`, {
+        method: "POST",
+        body: form,
+      });
+      const json = (await res.json()) as {
+        ok: boolean;
+        error?: string;
+        data?: QdGiaoXn;
+      };
+      if (!json.ok) throw new Error(json.error ?? "Tải PDF thất bại");
+      setTrangThai("da_ban_hanh");
+      setCoPdfKy(true);
+      setOkMsg("Đã tải PDF ký — quyết định chuyển sang «Đã giao».");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi tải PDF đã ký");
+    } finally {
+      setBusy(null);
+      if (pdfKyInputRef.current) pdfKyInputRef.current.value = "";
+    }
+  }
+
   const tone = resolveSoanQdTone(loai, duAn.cap_dien_ap);
   const theme = SOAN_QD_THEME[tone];
   const field =
-    `w-full rounded-lg border px-3 py-2 text-sm outline-none transition focus:ring-2 ${theme.field} ${theme.textBody}`;
+    `w-full rounded-md border px-2.5 py-1.5 text-[13px] leading-snug outline-none transition focus:ring-2 ${theme.field} ${theme.textBody}`;
   const fieldAuto =
-    `${field} resize-none overflow-hidden [field-sizing:content] min-h-[2.75rem]`;
+    `${field} resize-none overflow-hidden [field-sizing:content]`;
   const labelCls =
-    `mb-1.5 block text-[11px] font-medium tracking-wide uppercase ${theme.label}`;
+    `mb-0.5 block text-[10px] font-medium tracking-wide uppercase ${theme.label}`;
   const title = labelLoai(loai, duAn.cap_dien_ap);
   const disabled = busy !== null;
   const tenXiNhan =
@@ -393,10 +501,10 @@ export function SoanQdGiaoXnEditor({
       <header
         className={`sticky top-0 z-20 border-b bg-white/90 shadow-sm backdrop-blur ${theme.headerBorder}`}
       >
-        <div className="flex w-full items-center justify-between gap-4 px-4 py-3 md:px-5">
+        <div className="flex w-full items-center justify-between gap-3 px-3 py-2 md:px-4">
           <div className="min-w-0 flex-1">
             <h1
-              className={`line-clamp-2 text-[15px] font-medium leading-snug md:text-base ${theme.title}`}
+              className={`line-clamp-1 text-[13px] font-medium leading-snug md:text-sm ${theme.title}`}
             >
               <span className={`font-normal ${theme.textMuted}`}>Dự án:</span>{" "}
               {duAn.ten_du_an}
@@ -409,6 +517,17 @@ export function SoanQdGiaoXnEditor({
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            {qdId ? (
+              <span
+                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  daGiao
+                    ? "bg-emerald-100 text-emerald-800"
+                    : "bg-amber-100 text-amber-900"
+                }`}
+              >
+                {labelTrangThaiGiaoXn(trangThai)}
+              </span>
+            ) : null}
             <button
               type="button"
               disabled={disabled}
@@ -444,6 +563,43 @@ export function SoanQdGiaoXnEditor({
               </button>
             ) : null}
             {qdId ? (
+              <>
+                <input
+                  ref={pdfKyInputRef}
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void onUploadPdfKy(f);
+                  }}
+                />
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => pdfKyInputRef.current?.click()}
+                  className="rounded-lg border border-emerald-400 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900 transition hover:bg-emerald-100 disabled:opacity-50"
+                  title="Tải PDF quyết định đã ký để chốt luồng → Đã giao"
+                >
+                  {busy === "uploadKy"
+                    ? "Đang tải…"
+                    : daGiao
+                      ? "Đổi PDF đã ký"
+                      : "Tải PDF đã ký"}
+                </button>
+                {coPdfKy ? (
+                  <a
+                    href={`/api/qd-giao-xn/${qdId}/pdf-ky`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    Xem PDF ký
+                  </a>
+                ) : null}
+              </>
+            ) : null}
+            {qdId && !daGiao ? (
               <button
                 type="button"
                 disabled={disabled}
@@ -464,115 +620,133 @@ export function SoanQdGiaoXnEditor({
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[920px] flex-1 px-4 py-6 md:px-5">
+      <main className="mx-auto w-full max-w-[960px] flex-1 px-3 py-3 md:px-4 md:pb-8">
         {error ? (
-          <p className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          <p className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-1.5 text-sm text-rose-700">
             {error}
           </p>
         ) : null}
         {okMsg ? (
-          <p className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+          <p className="mb-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm text-emerald-800">
             {okMsg}
           </p>
         ) : null}
 
         {/* Giấy quyết định */}
         <article
-          className={`overflow-hidden rounded-2xl border bg-white ${theme.articleBorder} ${theme.articleShadow}`}
+          className={`overflow-hidden rounded-xl border bg-white ${theme.articleBorder} ${theme.articleShadow}`}
         >
-          <div className={`h-1 bg-gradient-to-r ${theme.topBar}`} />
+          <div className={`h-0.5 bg-gradient-to-r ${theme.topBar}`} />
 
           <QdGiaoXnDocBanner
             loaiNhiemVu={title.toLowerCase()}
             tenXiNghiep={tenXiNhan}
-            showDraftStamp
+            showDraftStamp={!daGiao}
             tone={tone}
           />
 
-          <div className="space-y-7 px-5 py-7 md:px-10 md:py-8">
-            {/* Số / ngày / năm ĐTXD (tag Word — không phải năm SXKD) */}
-            <section className="grid gap-4 sm:grid-cols-3">
-              <label className="block">
-                <span className={labelCls}>Số quyết định</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={soQd}
-                    onChange={(e) => setSoQd(e.target.value)}
-                    className={field}
-                    placeholder="VD: 123"
-                  />
-                  <span className={`shrink-0 text-xs font-medium ${theme.textMuted}`}>
-                    /QĐ-NPSC
-                  </span>
-                </div>
-              </label>
-              <label className="block">
-                <span className={labelCls}>Ngày ban hành</span>
+          <div className="space-y-3.5 px-4 py-3.5 md:px-5 md:py-4">
+            {/* Số / ngày / năm — fieldset + legend, căn giữa */}
+            <section className="flex flex-wrap items-stretch justify-center gap-2.5">
+              <fieldset
+                className={`flex w-[11.5rem] shrink-0 items-center gap-1 rounded-md border px-2.5 pb-1.5 pt-0 ${theme.articleBorder}`}
+              >
+                <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                  Số quyết định
+                </legend>
+                <input
+                  value={soQd}
+                  onChange={(e) => setSoQd(e.target.value)}
+                  className={`min-w-0 flex-1 border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
+                  placeholder="VD: 123"
+                />
+                <span className={`shrink-0 text-[11px] font-medium ${theme.textMuted}`}>
+                  /QĐ-NPSC
+                </span>
+              </fieldset>
+              <fieldset
+                className={`w-[11rem] shrink-0 rounded-md border px-2.5 pb-1.5 pt-0 ${theme.articleBorder}`}
+              >
+                <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                  Ngày ban hành
+                </legend>
                 <input
                   type="date"
                   value={ngay}
                   onChange={(e) => setNgay(e.target.value)}
-                  className={field}
+                  className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
                 />
-              </label>
-              <label className="block">
-                <span className={labelCls}>Năm ĐTXD</span>
+              </fieldset>
+              <fieldset
+                className={`w-[6rem] shrink-0 rounded-md border px-2.5 pb-1.5 pt-0 ${theme.articleBorder}`}
+              >
+                <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                  Năm ĐTXD
+                </legend>
                 <input
                   value={namKeHoach}
                   onChange={(e) => setNamKeHoach(e.target.value)}
-                  className={field}
+                  className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
                   placeholder="2026"
                   inputMode="numeric"
                 />
-              </label>
+              </fieldset>
             </section>
 
-            <section>
-              <SectionHead n={1} className="mb-2.5" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+            <section className="rounded-lg border border-sky-100 bg-sky-50/70 px-2.5 py-2">
+              <SectionHead n={1} className="mb-1" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
                 Căn cứ
               </SectionHead>
               <textarea
                 value={canCu}
                 onChange={(e) => setCanCu(e.target.value)}
-                rows={2}
-                className={fieldAuto}
+                rows={1}
+                className={`${fieldAuto} min-h-[2.25rem] bg-white/90`}
                 placeholder="Căn cứ Quyết định giao danh mục số …"
               />
             </section>
 
-            <section>
-              <SectionHead n={2} className="mb-2.5" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
-                Điều 1 — Phạm vi / nội dung giao
+            <section className="rounded-lg border border-amber-100 bg-amber-50/70 px-2.5 py-2">
+              <SectionHead n={2} className="mb-1" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                Phạm vi / nội dung giao
               </SectionHead>
               <textarea
                 value={phamVi}
                 onChange={(e) => setPhamVi(e.target.value)}
-                rows={2}
-                className={fieldAuto}
+                rows={1}
+                className={`${fieldAuto} min-h-[2.25rem] bg-white/90`}
               />
             </section>
 
-            <section className="space-y-3">
-              <SectionHead n={3} className="mb-0.5" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
-                Điều 2 — Chủ đầu tư & Xí nghiệp nhận
+            <section className="rounded-lg border border-emerald-100 bg-emerald-50/70 px-2.5 py-2">
+              <SectionHead n={3} className="mb-1" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                Chủ đầu tư & Xí nghiệp
               </SectionHead>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <label className="block min-w-0">
-                  <span className={labelCls}>Chủ đầu tư (PC tỉnh)</span>
+              <div className="flex flex-wrap items-stretch gap-2">
+                <fieldset
+                  className="min-w-0 flex-[1_1_11rem] rounded-md border border-emerald-200/80 bg-white/90 px-2.5 pb-1.5 pt-0"
+                >
+                  <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                    Chủ đầu tư
+                  </legend>
                   <input
                     value={tenPcTinh}
                     onChange={(e) => setTenPcTinh(e.target.value)}
-                    className={field}
+                    className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
                     placeholder="Công ty Điện lực …"
                   />
-                </label>
-                <label className="block min-w-0">
-                  <span className={labelCls}>Xí nghiệp nhận</span>
+                </fieldset>
+                <fieldset
+                  className="min-w-0 flex-[1.8_1_16rem] rounded-md border border-emerald-200/80 bg-white/90 px-2.5 pb-1.5 pt-0"
+                >
+                  <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                    Xí nghiệp
+                  </legend>
                   <select
                     required
                     value={xiId}
                     onChange={(e) => setXiId(e.target.value)}
-                    className={field}
+                    className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
                   >
                     <option value="">— Chọn từ danh mục —</option>
                     {filteredXn.map((x) => (
@@ -582,36 +756,54 @@ export function SoanQdGiaoXnEditor({
                       </option>
                     ))}
                   </select>
-                </label>
+                </fieldset>
+                <fieldset
+                  className="w-[7.5rem] shrink-0 grow-0 rounded-md border border-emerald-200/80 bg-white/90 px-2.5 pb-1.5 pt-0"
+                >
+                  <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                    Thời hạn (ngày)
+                  </legend>
+                  <input
+                    value={thoiHan}
+                    onChange={(e) => setThoiHan(e.target.value)}
+                    placeholder="45"
+                    inputMode="numeric"
+                    className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
+                  />
+                </fieldset>
               </div>
             </section>
 
-            <section>
-              <SectionHead n={4} className="mb-2.5" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
-                Điều 3 — Thời hạn thực hiện
-              </SectionHead>
-              <input
-                value={thoiHan}
-                onChange={(e) => setThoiHan(e.target.value)}
-                placeholder="VD: 30 ngày kể từ ngày ký"
-                className={field}
-              />
-            </section>
-
             {showTinhTien ? (
-              <section className="space-y-3">
+              <section className="space-y-2 rounded-lg border border-violet-100 bg-violet-50/60 px-2.5 py-2">
                 <div className="flex flex-wrap items-end justify-between gap-2">
-                  <SectionHead n={5} badgeClass={theme.badge} titleClass={theme.sectionTitle}>Chi phí lần 01 (L1)</SectionHead>
+                  <div>
+                    <SectionHead n={4} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                      Giá trị hợp đồng &amp; tạm ứng
+                    </SectionHead>
+                    <p className={`mt-0.5 text-[11px] ${theme.textMuted}`}>
+                      {loaiHinhDa
+                        ? `Loại hình ${shortLoaiHinhDuAn(loaiHinhDa)} · GHĐ ${(
+                            (ketQuaTien.ty_le ?? 0) * 100
+                          )
+                            .toLocaleString("vi-VN")
+                            .replace(".", ",")}% × TMĐT`
+                        : "Chưa có loại hình dự án (CQT / SCMBA / DMS) — mặc định GHĐ 3,3%"}
+                      {" · "}
+                      Tạm ứng{" "}
+                      {(
+                        (ketQuaTien.ty_le_tam_ung ?? 0) * 100
+                      ).toLocaleString("vi-VN")}
+                      % × GHĐ (
+                      {cungDiaBan ? "cùng địa bàn tỉnh" : "khác địa bàn tỉnh"})
+                    </p>
+                  </div>
                   <button
                     type="button"
                     disabled={disabled}
                     onClick={() => {
                       setTamUngDirty(false);
-                      setTmdtOverrides(
-                        congTrinhBase.map((r) =>
-                          (r.ct_tmdt ?? "").toString(),
-                        ),
-                      );
+                      resetCongTrinhTuPhuLuc();
                     }}
                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${theme.btnRecalc}`}
                   >
@@ -619,23 +811,41 @@ export function SoanQdGiaoXnEditor({
                   </button>
                 </div>
 
-                {congTrinhBase.length === 0 ? (
+                {congTrinhEdit.length === 0 ? (
                   <p className={`text-xs ${theme.textMuted}`}>
-                    Chưa có phụ lục công trình từ Quyết định giao danh mục —
-                    quét lại trước khi xuất bảng tiền.
+                    {congTrinhBase.length === 0
+                      ? "Chưa có phụ lục công trình từ Quyết định giao danh mục — quét lại trước khi xuất bảng tiền."
+                      : "Đã xóa hết dòng — bấm «Tính lại từ phụ lục» để khôi phục."}
                   </p>
                 ) : (
                   <div className={`overflow-x-auto rounded-lg border ${theme.tableBorder}`}>
-                    <table className="min-w-full text-left text-xs">
+                    <table className={`min-w-full text-left text-[12px] leading-snug ${theme.textBody}`}>
                       <thead className={theme.tableHead}>
                         <tr>
-                          <th className="w-10 px-2 py-2 font-semibold">STT</th>
-                          <th className="px-2 py-2 font-semibold">Công trình</th>
-                          <th className="w-16 px-2 py-2 font-semibold">TMĐT</th>
-                          <th className="w-24 px-2 py-2 font-semibold">
-                            Chi phí L1 (
-                            {(TY_LE_L1_TVTK_THA * 100).toLocaleString("vi-VN")}
-                            %)
+                          <th className="w-10 px-2 py-2 text-center text-[12px] font-semibold">STT</th>
+                          <th className="px-2 py-2 text-center text-[12px] font-semibold">Công trình</th>
+                          <th className="w-[6.75rem] min-w-[6.75rem] px-2 py-2 text-center text-[12px] font-semibold leading-tight">
+                            <span className="block">TMĐT</span>
+                            <span className="mt-0.5 block font-normal whitespace-nowrap">
+                              (triệu đồng)
+                            </span>
+                          </th>
+                          <th className="min-w-[5.5rem] px-2 py-2 text-center text-[12px] font-semibold">
+                            Giá trị HĐ
+                            {ketQuaTien.ty_le != null
+                              ? ` (${(ketQuaTien.ty_le * 100)
+                                  .toLocaleString("vi-VN")
+                                  .replace(".", ",")}%)`
+                              : ""}
+                          </th>
+                          <th className="min-w-[5.5rem] px-2 py-2 text-center text-[12px] font-semibold">
+                            Giá trị tạm ứng
+                            {ketQuaTien.ty_le_tam_ung != null
+                              ? ` (${(ketQuaTien.ty_le_tam_ung * 100).toLocaleString("vi-VN")}%)`
+                              : ""}
+                          </th>
+                          <th className="w-12 px-1 py-2 text-center text-[12px] font-semibold">
+                            Xóa
                           </th>
                         </tr>
                       </thead>
@@ -645,13 +855,13 @@ export function SoanQdGiaoXnEditor({
                             key={`${row.stt}-${i}`}
                             className={`border-t ${theme.tableRowBorder}`}
                           >
-                            <td className={`px-2 py-1.5 tabular-nums ${theme.textMuted}`}>
-                              {row.stt}
+                            <td className={`px-2 py-1.5 text-center align-middle tabular-nums ${theme.textBody}`}>
+                              {i + 1}
                             </td>
-                            <td className={`max-w-[220px] px-2 py-1.5 ${theme.textBody}`}>
+                            <td className="min-w-[14rem] px-2 py-1.5 align-middle text-justify">
                               {row.ct_ten || "—"}
                             </td>
-                            <td className="px-2 py-1.5">
+                            <td className="w-[6.75rem] min-w-[6.75rem] px-2 py-1.5 align-middle">
                               <input
                                 value={tmdtOverrides[i] ?? ""}
                                 onChange={(e) => {
@@ -659,27 +869,63 @@ export function SoanQdGiaoXnEditor({
                                   next[i] = e.target.value;
                                   setTmdtOverrides(next);
                                 }}
-                                className={`w-16 rounded-md border bg-white px-1.5 py-1 text-center tabular-nums outline-none focus:ring-1 ${theme.field}`}
+                                className={`w-full rounded-md border bg-white px-1.5 py-1 text-center text-[12px] leading-snug tabular-nums outline-none focus:ring-1 ${theme.field} ${theme.textBody}`}
                                 placeholder="0"
                               />
                             </td>
-                            <td className={`px-2 py-1.5 font-medium tabular-nums ${theme.textBody}`}>
-                              {row.ct_chi_phi_l1 || "—"}
+                            <td className="px-2 py-1.5 text-right align-middle tabular-nums">
+                              {row.ct_gia_tri_hd || "—"}
+                            </td>
+                            <td className="px-2 py-1.5 text-right align-middle tabular-nums">
+                              {row.ct_gia_tri_tam_ung || "—"}
+                            </td>
+                            <td className="px-1.5 py-1.5 text-center align-middle">
+                              <button
+                                type="button"
+                                disabled={disabled}
+                                title="Xóa dòng"
+                                aria-label={`Xóa công trình ${i + 1}`}
+                                onClick={() => {
+                                  setCongTrinhEdit((prev) =>
+                                    prev.filter((_, j) => j !== i),
+                                  );
+                                  setTmdtOverrides((prev) =>
+                                    prev.filter((_, j) => j !== i),
+                                  );
+                                }}
+                                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-rose-500 transition hover:bg-rose-100 hover:text-rose-700 disabled:opacity-40"
+                              >
+                                <svg
+                                  className="h-4 w-4"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2.25"
+                                  strokeLinecap="round"
+                                  aria-hidden
+                                >
+                                  <path d="M6 6l12 12M18 6L6 18" />
+                                </svg>
+                              </button>
                             </td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot>
-                        <tr className={`border-t ${theme.tableFoot}`}>
+                        <tr className={`border-t text-[12px] ${theme.tableFoot}`}>
                           <td className="px-2 py-2" colSpan={2}>
                             Tổng
                           </td>
-                          <td className="px-2 py-2 tabular-nums">
+                          <td className="px-2 py-2 text-right tabular-nums">
                             {ketQuaTien.tong_tmdt || "—"}
                           </td>
-                          <td className="px-2 py-2 tabular-nums">
-                            {ketQuaTien.tong_chi_phi_l1 || "—"}
+                          <td className="px-2 py-2 text-right tabular-nums">
+                            {ketQuaTien.tong_gia_tri_hd || "—"}
                           </td>
+                          <td className="px-2 py-2 text-right tabular-nums">
+                            {ketQuaTien.tong_gia_tri_tam_ung || "—"}
+                          </td>
+                          <td />
                         </tr>
                       </tfoot>
                     </table>
@@ -689,28 +935,37 @@ export function SoanQdGiaoXnEditor({
             ) : null}
 
             {isTvtkTha ? (
-              <section className="grid gap-3 sm:grid-cols-[minmax(7.5rem,11rem)_1fr]">
-                <label className="block min-w-0">
-                  <span className={labelCls}>Số tiền tạm ứng</span>
-                  <input
-                    value={soTienTamUng}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setTamUngDirty(true);
-                      setSoTienTamUng(v);
-                      setSoTienTamUngChu(soTienBangChu(v));
-                    }}
-                    onBlur={() => {
-                      if (!soTienTamUngChu.trim() && soTienTamUng.trim()) {
-                        setSoTienTamUngChu(soTienBangChu(soTienTamUng));
-                      }
-                    }}
-                    className={`${field} tabular-nums`}
-                    placeholder=""
-                  />
-                </label>
-                <label className="block min-w-0">
-                  <span className={labelCls}>Số tiền tạm ứng bằng chữ</span>
+              <section className="grid gap-2 rounded-lg border border-orange-100 bg-orange-50/60 px-2.5 py-2 sm:grid-cols-2">
+                <fieldset
+                  className={`rounded-md border px-2.5 pb-1.5 pt-0 ${theme.articleBorder} bg-white/90`}
+                >
+                  <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                    Giá trị hợp đồng (triệu)
+                  </legend>
+                  <p className={`text-[13px] tabular-nums ${theme.textBody}`}>
+                    {ketQuaTien.tong_gia_tri_hd || "—"}
+                  </p>
+                </fieldset>
+                <fieldset
+                  className={`rounded-md border px-2.5 pb-1.5 pt-0 ${theme.articleBorder} bg-white/90`}
+                >
+                  <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                    Giá trị tạm ứng (đồng)
+                  </legend>
+                  <p className={`text-[13px] tabular-nums ${theme.textBody}`}>
+                    {formatVndTuTrieu(ketQuaTien.tong_gia_tri_tam_ung_so) ||
+                      "—"}
+                    <span className={`ml-1.5 text-[10px] font-normal ${theme.textMuted}`}>
+                      {cungDiaBan ? "15% cùng tỉnh" : "16% khác tỉnh"}
+                    </span>
+                  </p>
+                </fieldset>
+                <fieldset
+                  className={`flex min-h-[2.75rem] items-center rounded-md border px-2.5 py-1.5 sm:col-span-2 ${theme.articleBorder} bg-white/90`}
+                >
+                  <legend className={`px-1 text-[11px] font-semibold ${theme.label}`}>
+                    Số tiền tạm ứng bằng chữ
+                  </legend>
                   <textarea
                     value={soTienTamUngChu}
                     onChange={(e) => {
@@ -718,15 +973,15 @@ export function SoanQdGiaoXnEditor({
                       setSoTienTamUngChu(e.target.value);
                     }}
                     rows={1}
-                    className={fieldAuto}
+                    className={`w-full resize-none overflow-hidden border-0 bg-transparent p-0 text-[13px] leading-snug outline-none [field-sizing:content] ${theme.textBody}`}
                     placeholder=""
                   />
-                </label>
+                </fieldset>
               </section>
             ) : null}
 
             {loai === "thi_nghiem" ? (
-              <section>
+              <section className="rounded-lg border border-rose-100 bg-rose-50/60 px-2.5 py-2">
                 <label className="block">
                   <span className={labelCls}>Số lượng công trình</span>
                   <input

@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
+import { logHoatDong } from "@/lib/activity-log";
+import { isPhanHeCode, PHAN_HE } from "@/lib/phan-he";
+import { AuthError, requireWritePhanHe } from "@/lib/phan-he-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { CapDienAp, DuAn, LoaiGiaoXn, QdGiaoA, XiNghiep } from "@/lib/types";
+import type {
+  CapDienAp,
+  DuAn,
+  LoaiGiaoXn,
+  PhuLucCongTrinh,
+  QdGiaoA,
+  XiNghiep,
+} from "@/lib/types";
 import {
   buildWordTagData,
   renderQdGiaoXnDocx,
@@ -26,6 +36,7 @@ type ExportBody = Partial<{
   so_luong_cong_trinh: string | null;
   ghi_chu_bo_sung: string | null;
   tmdt_overrides: Array<string | null | undefined>;
+  cong_trinh: PhuLucCongTrinh[];
 }>;
 
 async function exportWord(id: string, extras: ExportBody = {}) {
@@ -44,6 +55,10 @@ async function exportWord(id: string, extras: ExportBody = {}) {
       { status: 404 },
     );
   }
+
+  const phanHeRaw = draft.phan_he as string | null | undefined;
+  const phanHe = isPhanHeCode(phanHeRaw) ? phanHeRaw : "tvtk";
+  const { actor } = await requireWritePhanHe(phanHe);
 
   const { data: duAn, error: daErr } = await supabase
     .from("du_an")
@@ -103,6 +118,28 @@ async function exportWord(id: string, extras: ExportBody = {}) {
   const file = resolveQdGiaoXnTemplateFile(loai, cap);
   const outName = `QD-giao-XN-${(duAn.ma_du_an || id).toString().slice(0, 40)}-${file.replace("qd-giao-nhiem-vu-", "").replace(".docx", "")}.docx`;
 
+  await logHoatDong({
+    phanHe: "GIAO_XN",
+    hanhDong: "EXPORT",
+    chiTietNgan: `Xuất Word quyết định giao Xí nghiệp ${
+      draft.so_qd_du_thao?.trim() || "(chưa có số)"
+    } — dự án ${duAn.ma_du_an || duAn.ten_du_an}`,
+    doiTuongId: id,
+    duLieuDong: {
+      phan_he: phanHe,
+      phan_he_ten: PHAN_HE[phanHe].title,
+      loai,
+      so_qd_du_thao: draft.so_qd_du_thao,
+      du_an_id: draft.du_an_id,
+      ma_du_an: duAn.ma_du_an,
+      ten_du_an: duAn.ten_du_an,
+      ten_tep: outName,
+    },
+    email: actor.email,
+    hoTen: actor.hoTen,
+    authUserId: actor.userId,
+  });
+
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {
@@ -119,6 +156,12 @@ export async function GET(_request: Request, ctx: Ctx) {
     const { id } = await ctx.params;
     return await exportWord(id);
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { ok: false, error: err.message },
+        { status: err.status },
+      );
+    }
     const message = err instanceof Error ? err.message : "Lỗi xuất Word";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
@@ -131,6 +174,12 @@ export async function POST(request: Request, ctx: Ctx) {
     const extras = (await request.json().catch(() => ({}))) as ExportBody;
     return await exportWord(id, extras);
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { ok: false, error: err.message },
+        { status: err.status },
+      );
+    }
     const message = err instanceof Error ? err.message : "Lỗi xuất Word";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }

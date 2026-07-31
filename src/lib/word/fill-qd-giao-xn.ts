@@ -5,12 +5,17 @@ import type {
   CapDienAp,
   DuAn,
   LoaiGiaoXn,
+  LoaiHinhDuAn,
   PhuLucCongTrinh,
   PhuLucGiaoA,
   QdGiaoA,
   XiNghiep,
 } from "@/lib/types";
-import { tinhChiPhiL1TuPhuLuc } from "@/lib/tinh-tien-giao-xn";
+import {
+  laCungDiaBanTinh,
+  tinhChiPhiL1TuPhuLuc,
+} from "@/lib/tinh-tien-giao-xn";
+import { resolveLoaiHinhDuAn } from "@/lib/loai-hinh-du-an";
 import {
   extractTenPcTinh,
   cleanTenPcTinh,
@@ -45,6 +50,8 @@ export type QdGiaoXnExportInput = {
   ghi_chu_bo_sung?: string | null;
   /** Ghi đè TMĐT (triệu đồng) theo thứ tự dòng phụ lục */
   tmdt_overrides?: Array<string | null | undefined>;
+  /** Danh sách công trình đã chỉnh (vd. sau khi xóa dòng trên form soạn) */
+  cong_trinh?: PhuLucCongTrinh[];
 };
 
 /** Giá trị tag docxtemplater (scalar hoặc mảng loop) */
@@ -74,17 +81,24 @@ function mapCongTrinhRows(
   loai: LoaiGiaoXn,
   cap: CapDienAp | null | undefined,
   tmdtOverrides?: Array<string | null | undefined>,
+  opts?: {
+    loaiHinhDuAn?: LoaiHinhDuAn | null;
+    cungDiaBan?: boolean;
+  },
 ): {
   cong_trinh: Array<Record<string, string | number>>;
   tong_tmdt: string;
   tong_chi_phi_l1: string;
   tong_gia_tri_hd: string;
+  tong_gia_tri_tam_ung: string;
 } {
   const tinh = tinhChiPhiL1TuPhuLuc({
     loai,
     cap,
     cong_trinh: rows,
     tmdtOverrides,
+    loaiHinhDuAn: opts?.loaiHinhDuAn,
+    cungDiaBan: opts?.cungDiaBan,
   });
 
   const cong_trinh = rows.map((r, i) => {
@@ -93,7 +107,8 @@ function mapCongTrinhRows(
     const tvgs = (r.ct_danh_dau_tvgs ?? "").toString();
     const calc = tinh.rows[i];
     const tmdt = calc?.ct_tmdt || (r.ct_tmdt ?? "").toString();
-    const l1 = calc?.ct_chi_phi_l1 || "";
+    const ghd = calc?.ct_gia_tri_hd || calc?.ct_chi_phi_l1 || "";
+    const tu = calc?.ct_gia_tri_tam_ung || "";
     return {
       stt: r.stt ?? i + 1,
       ct_ten: (r.ct_ten ?? "").toString(),
@@ -107,9 +122,9 @@ function mapCongTrinhRows(
       ct_danh_dau_goi: tvtk,
       ct_danh_dau_tvtk: tvtk,
       ct_danh_dau_tvgs: tvgs,
-      // THA: giá trị HĐ tạm tính = chi phí L1 (TMĐT × 3,3%)
-      ct_gia_tri_hd: l1 || (r.ct_gia_tri_hd ?? "").toString(),
-      ct_chi_phi_l1: l1 || (r.ct_chi_phi_l1 ?? "").toString(),
+      ct_gia_tri_hd: ghd || (r.ct_gia_tri_hd ?? "").toString(),
+      ct_chi_phi_l1: ghd || (r.ct_chi_phi_l1 ?? "").toString(),
+      ct_gia_tri_tam_ung: tu,
       ct_khv: (r.ct_khv ?? "").toString(),
       ct_tdtm: (r.ct_tdtm ?? "").toString(),
       ct_khcb: (r.ct_khcb ?? "").toString(),
@@ -120,7 +135,8 @@ function mapCongTrinhRows(
     cong_trinh,
     tong_tmdt: tinh.tong_tmdt,
     tong_chi_phi_l1: tinh.tong_chi_phi_l1,
-    tong_gia_tri_hd: tinh.tong_chi_phi_l1,
+    tong_gia_tri_hd: tinh.tong_gia_tri_hd,
+    tong_gia_tri_tam_ung: tinh.tong_gia_tri_tam_ung,
   };
 }
 
@@ -154,12 +170,26 @@ export function buildWordTagData(opts: {
 
   const empty = "";
   const phuLuc = readPhuLuc(qdGiaoA);
-  const mapped = phuLuc
+  const rowsNguon =
+    draft.cong_trinh != null
+      ? draft.cong_trinh
+      : (phuLuc?.cong_trinh ?? []);
+  const loaiHinh = resolveLoaiHinhDuAn(
+    duAn.cap_dien_ap,
+    duAn.loai_hinh_du_an,
+  );
+  const cungDiaBan = laCungDiaBanTinh({
+    tenPcTinh: draft.ten_pc_tinh,
+    tenXiNghiep: xiNghiep?.ten,
+    diaDiemDuAn: duAn.dia_diem,
+  });
+  const mapped = rowsNguon.length
     ? mapCongTrinhRows(
-        phuLuc.cong_trinh,
+        rowsNguon,
         draft.loai,
         duAn.cap_dien_ap,
         draft.tmdt_overrides,
+        { loaiHinhDuAn: loaiHinh, cungDiaBan },
       )
     : null;
   const cong_trinh = mapped?.cong_trinh ?? [];
@@ -198,6 +228,7 @@ export function buildWordTagData(opts: {
       mapped?.tong_chi_phi_l1 ||
       phuLuc?.tong_chi_phi_l1?.toString().trim() ||
       empty,
+    tong_gia_tri_tam_ung: mapped?.tong_gia_tri_tam_ung || empty,
     tong_khv: phuLuc?.tong_khv?.toString().trim() || empty,
     tong_tdtm: phuLuc?.tong_tdtm?.toString().trim() || empty,
     tong_khcb: phuLuc?.tong_khcb?.toString().trim() || empty,

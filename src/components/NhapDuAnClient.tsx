@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAppDialog } from "@/components/AppDialog";
 import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
+import { formatNgayVN } from "@/lib/word/format-ngay";
 
 type Props = {
   phanHe: PhanHeCode;
@@ -252,7 +253,7 @@ export function NhapDuAnClient({ phanHe }: Props) {
                 {pairInfo.existing.so_qd || pairInfo.scanned_so_qd || "—"}
               </strong>
               {pairInfo.existing.ngay_qd
-                ? ` ngày ${pairInfo.existing.ngay_qd}`
+                ? ` ngày ${formatNgayVN(pairInfo.existing.ngay_qd)}`
                 : ""}{" "}
               đã được quét
               {pairInfo.existing.scanned_by_ho_ten

@@ -8,6 +8,7 @@ import {
   type DupResolveChoice,
 } from "@/components/DuAnTrungResolveModal";
 import { CAP_DIEN_AP_OPTIONS } from "@/lib/cap-dien-ap";
+import { formatNgayVN } from "@/lib/word/format-ngay";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
 import {
   LOAI_HINH_THA_OPTIONS,
@@ -640,7 +641,7 @@ export function ReviewGiaoAClient({
               Ngày QĐ
             </label>
             <div className="rounded-xl border border-sky-200 bg-white/90 p-2.5 text-sm font-semibold text-slate-800">
-              {qd.ngay_qd || "—"}
+              {formatNgayVN(qd.ngay_qd)}
             </div>
           </div>
           <div className="min-w-[220px] flex-[2.5]">

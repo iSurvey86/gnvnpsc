@@ -61,7 +61,7 @@ flowchart TD
 | STT | Theo trang đang xem |
 | Người thực hiện | Họ tên và email người thao tác |
 | Phân hệ | Nhóm nghiệp vụ: Xác thực · Dự án · Quyết định Giao A · Giao Xí nghiệp · Hệ thống |
-| Hành động | Đăng nhập · Đăng xuất · Thêm mới · Cập nhật · Xóa · Quét tài liệu · Cấp đăng nhập… kèm thời điểm |
+| Hành động | Đăng nhập · Đăng xuất · Tạo mới · Cập nhật · Xóa · Xuất văn bản · Quét tài liệu · Cấp đăng nhập… kèm thời điểm |
 | Chi tiết | Mô tả việc đã làm, mã đối tượng đầy đủ và các thông tin kèm theo |
 
 Quy ước trình bày nhật ký:
@@ -71,6 +71,8 @@ Quy ước trình bày nhật ký:
 - Mã đối tượng hiện đủ, dùng phông đơn cách để đối chiếu khi tra cứu.
 - Nội dung mọi ô căn giữa theo chiều dọc; tiêu đề cột căn giữa.
 - Bộ lọc Phân hệ và Hành động cũng dùng tên đầy đủ tiếng Việt.
+
+**Giao Xí nghiệp được ghi:** tạo dự thảo · lưu dự thảo · xuất Word · tải PDF đã ký · xóa dự thảo (phân hệ «Giao Xí nghiệp»). Xuất Word thường kèm một dòng Lưu ngay trước đó.
 
 ## Cột danh sách tài khoản
 
@@ -87,6 +89,6 @@ Quy ước trình bày nhật ký:
 | Mục | Chi tiết |
 |-----|----------|
 | SQL | `scripts/sql/010_nhat_ky_hoat_dong.sql` → bảng `nhat_ky_hoat_dong` |
-| Logger | `src/lib/activity-log.ts` — login / logout / cấp TK |
+| Logger | `src/lib/activity-log.ts` — login / logout / cấp TK / DA / Giao A / Giao XN (CREATE·UPDATE·EXPORT·DELETE·PDF ký) |
 | API | `GET/POST /api/nhat-ky` · `GET /api/tai-khoan` |
 | UI | `GiamSatHeThongClient.tsx` · `SidebarUserFooter.tsx` |

@@ -24,7 +24,7 @@ export function QdGiaoXnDocBanner({
   const theme = SOAN_QD_THEME[tone];
   return (
     <div
-      className={`relative border-b px-6 py-7 text-center md:px-10 ${theme.banner} ${className}`}
+      className={`relative border-b px-4 py-3.5 text-center md:px-8 md:py-4 ${theme.banner} ${className}`}
     >
       {showDraftStamp ? (
         <span
@@ -34,21 +34,24 @@ export function QdGiaoXnDocBanner({
           Dự thảo
         </span>
       ) : null}
-      <p
-        className={`text-[17px] font-semibold leading-snug uppercase md:text-[19px] ${theme.bannerTitle}`}
-      >
-        Công ty Dịch vụ Điện lực miền Bắc
-      </p>
-      <p
-        className={`mt-2 text-[14px] font-semibold leading-snug uppercase md:text-[15px] ${theme.bannerTitle}`}
-      >
-        Quyết định
-      </p>
-      <div
-        className={`mx-auto mt-3 max-w-md space-y-1 text-[13px] font-normal leading-relaxed ${theme.bannerSub}`}
-      >
-        <p>Về việc giao nhiệm vụ {loaiNhiemVu} cho</p>
-        <p className={`font-medium uppercase ${theme.bannerTitle}`}>
+      {/* Cùng leading + gap đều giữa các dòng */}
+      <div className="mx-auto flex max-w-xl flex-col gap-1 px-10 leading-snug md:px-12">
+        <p
+          className={`text-[15px] font-semibold uppercase md:text-[17px] ${theme.bannerTitle}`}
+        >
+          Công ty Dịch vụ Điện lực miền Bắc
+        </p>
+        <p
+          className={`text-[13px] font-semibold uppercase md:text-[14px] ${theme.bannerTitle}`}
+        >
+          Quyết định
+        </p>
+        <p className={`text-[12px] font-normal md:text-[13px] ${theme.bannerSub}`}>
+          Về việc giao nhiệm vụ {loaiNhiemVu} cho
+        </p>
+        <p
+          className={`text-[12px] font-medium uppercase md:text-[13px] ${theme.bannerTitle}`}
+        >
           {tenXiNghiep || "…"}
         </p>
       </div>

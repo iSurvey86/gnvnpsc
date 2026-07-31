@@ -16,6 +16,14 @@ export function labelLoaiHinhTuVan(v: LoaiHinhTuVan): string {
   return LOAI_HINH_TU_VAN_OPTIONS.find((o) => o.value === v)?.label ?? "—";
 }
 
+/** Nhãn ngắn trên bảng danh mục (cột hẹp) */
+export function shortLoaiHinhTuVan(v: LoaiHinhTuVan): string {
+  if (v === "tvtk_110") return "110kV";
+  if (v === "tvtk_tha") return "THA";
+  if (v === "tnhc") return "TN";
+  return "—";
+}
+
 /**
  * Suy loại hình từ hướng giao + cấp điện áp.
  * - TNHC khi hướng TN / TVTK&TN

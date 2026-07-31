@@ -34,12 +34,31 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
 3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
 4. **Trung hạ áp:** bảng chi phí lần 01 (L1) và tạm ứng (số + bằng chữ) tự tính từ phụ lục — có thể sửa tay.
-5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word**. Nút **Xuất PDF** đang tạm ẩn và sẽ mở lại sau.
+5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Tải PDF đã ký** (sau khi ký ngoài). Nút **Xuất PDF** đang tạm ẩn.
+6. Sau khi **Lưu**: danh mục dự án hiện **Đã có dự thảo** dưới tên Xí nghiệp. Các dự án khác **cùng Giao A** có tên khớp công trình còn lại trên bảng soạn cũng được gắn vào quyết định này (nhãn **Đã có trong QĐ**) — không cần / không được lập quyết định riêng. Nhật ký ghi **Tạo mới** / **Cập nhật** (phân hệ Giao Xí nghiệp).
+7. Sau khi **Tải PDF đã ký**: trạng thái **Đã giao**, bỏ dấu Dự thảo; bấm nhãn trên danh mục để xem PDF. Nhật ký ghi cập nhật «Tải PDF đã ký».
+8. **Xuất Word** cũng được ghi nhật ký (**Xuất văn bản**). Vì xuất thường lưu trước, có thể thấy hai dòng liền nhau (Cập nhật + Xuất văn bản).
+
+### Một quyết định phủ nhiều công trình
+
+1. Mở **bất kỳ** dự án trong cùng Giao A → soạn quyết định; bảng công trình lấy từ phụ lục (có thể xóa bớt dòng không giao lần này).
+2. **Lưu** (hoặc Xuất Word / Tải PDF ký): hệ thống gắn mọi dự án cùng Giao A, cùng phân hệ, trùng tên công trình vào quyết định.
+3. Trên bảng Quản lý dự án, các dòng đã gắn hiện **Đã có trong QĐ** (hoặc số QĐ nếu có) thay vì «Chưa lập QĐ».
+4. Bấm vào dòng đã gắn → **Mở soạn quyết định** đã lập (không tạo bản nháp mới).
+5. Xóa dự thảo quyết định → các dự án đã gắn trở lại «Chưa lập QĐ».
+6. Cần chạy SQL [019_qd_giao_xn_du_an.sql](d:\AIProject\gnvnpsc\scripts\sql\019_qd_giao_xn_du_an.sql) trên Supabase trước khi dùng.
+
+### Tải PDF đã ký (chốt luồng)
+
+1. Xuất Word → in / ký ngoài hệ thống → có tệp PDF đã ký.
+2. Mở lại trang soạn quyết định → bấm **Tải PDF đã ký** → chọn tệp PDF.
+3. Hệ thống lưu tệp và chuyển trạng thái **Đã giao**. Có thể **Xem PDF ký** hoặc **Đổi PDF đã ký** nếu tải lại.
+4. Cần chạy SQL [018_qd_giao_xn_pdf_ky.sql](d:\AIProject\gnvnpsc\scripts\sql\018_qd_giao_xn_pdf_ky.sql) và tạo bucket Storage `qd-giao-xn` (nếu chưa có) trên Supabase.
 
 ### Xóa dự thảo quyết định
 
-1. Mở lại quyết định cần bỏ → bấm **Xóa dự thảo** trên đầu trang soạn.
-2. Chỉ xóa được khi quyết định còn ở trạng thái **Nháp**. Nếu đã trình Giám đốc hoặc đã ban hành, chuyển về Nháp trước (quản trị hệ thống được xóa bỏ qua điều kiện này).
+1. Mở lại quyết định cần bỏ → bấm **Xóa dự thảo** trên đầu trang soạn (chỉ hiện khi chưa Đã giao).
+2. Chỉ xóa được khi quyết định còn **Nháp / dự thảo**. Quyết định **Đã giao** chỉ Quản trị được xóa để dọn dữ liệu sai.
 3. Việc xóa được ghi nhật ký kèm số dự thảo, dự án và trạng thái trước khi xóa.
 4. Muốn xóa hẳn dự án thì xóa dự thảo quyết định trước, sau đó xóa dự án ở danh mục.
 

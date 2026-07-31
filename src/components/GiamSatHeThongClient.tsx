@@ -129,6 +129,8 @@ const DETAIL_LABELS: Record<string, string> = {
   so_qd: "Số quyết định",
   so_du_an: "Số dự án",
   loai_hinh_du_an: "Loại hình dự án",
+  pdf_ky: "Có PDF đã ký",
+  ten_tep: "Tên tệp",
   xi_nghiep_id: "Mã Xí nghiệp",
   target_email: "Email tài khoản",
   target_ma_nv: "Mã nhân viên",

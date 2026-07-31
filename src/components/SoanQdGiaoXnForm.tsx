@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { DuAn, LoaiGiaoXn, QdGiaoA, XiNghiep } from "@/lib/types";
+import { formatNgayVN } from "@/lib/word/format-ngay";
 
 type Props = {
   duAn: DuAn;
@@ -33,7 +34,7 @@ export function SoanQdGiaoXnForm({
   const router = useRouter();
   const defaultCanCu = useMemo(() => {
     if (!qd?.so_qd) return "";
-    return `Căn cứ QĐ Giao A số ${qd.so_qd}${qd.ngay_qd ? ` ngày ${qd.ngay_qd}` : ""}`;
+    return `Căn cứ QĐ Giao A số ${qd.so_qd}${qd.ngay_qd ? ` ngày ${formatNgayVN(qd.ngay_qd)}` : ""}`;
   }, [qd]);
 
   const [loai, setLoai] = useState<LoaiGiaoXn>(

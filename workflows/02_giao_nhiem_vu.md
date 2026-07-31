@@ -26,17 +26,23 @@ flowchart TD
   Cta["Bấm Giao nhiệm vụ"]
   Form["Trang soạn quyết định dạng giấy"]
   MacDinh["Tự điền căn cứ, chủ đầu tư, Xí nghiệp, ngày"]
+  BangCt["Bảng công trình — có thể xóa bớt dòng"]
   Tien{"Thuộc loại trung hạ áp?"}
   L1["Tính chi phí bước 1 và tạm ứng"]
   Valid{"Đủ đơn vị nhận và thông tin bắt buộc?"}
-  Save["Lưu quyết định giao Xí nghiệp"]
+  Save["Lưu quyết định — đồng bộ danh sách công trình đã giao"]
+  Map["Gắn các dự án cùng Giao A trùng tên công trình vào quyết định"]
   Log["Ghi nhật ký người giao nhiệm vụ"]
-  Word["Xuất Word theo mẫu — số quyết định trống để ký sau"]
+  Word["Xuất Word theo mẫu — in / ký ngoài"]
+  UpPdf["Tải PDF quyết định đã ký"]
+  DaGiao["Chốt luồng — Đã giao"]
   Xoa{"Cần bỏ quyết định đã soạn?"}
   CheckTt{"Quyết định còn ở trạng thái Nháp?"}
-  Chan["Chặn xóa — hạ trạng thái về Nháp trước"]
-  XoaXong["Xóa dự thảo, ghi nhật ký người xóa"]
-  End(["Về bảng Quản lý dự án — trạng thái đã giao"])
+  Chan["Chặn xóa — quyết định đã giao chỉ Admin được xóa"]
+  XoaXong["Xóa dự thảo, gỡ gắn mọi dự án đã map, ghi nhật ký"]
+  MoMap{"Dòng dự án đã nằm trong quyết định khác?"}
+  MoQdCu["Mở đúng quyết định đã lập — không tạo bản mới"]
+  End(["Về bảng — nhãn: Đã có dự thảo / Đã giao / Đã có trong QĐ"])
 
   Hub --> Bang --> Chon
   Chon -->|Biểu tượng sửa| Sua --> Bang
@@ -45,24 +51,38 @@ flowchart TD
   Chon -->|Tên dự án| Mo --> Info --> Cap
   Cap -->|Chưa| NoCap --> Cta
   Cap -->|Có| Cta
-  Cta --> Form --> MacDinh --> Tien
+  Cta --> MoMap
+  MoMap -->|Có| MoQdCu --> Form
+  MoMap -->|Chưa| Form
+  Form --> MacDinh --> BangCt --> Tien
   Tien -->|Có| L1 --> Valid
   Tien -->|Không| Valid
   Valid -->|Thiếu| Form
-  Valid -->|Đủ| Save --> Log --> End
-  Form -.-> Word
+  Valid -->|Đủ| Save --> Map --> Log --> Word --> UpPdf --> DaGiao --> End
   Form --> Xoa
   Xoa -->|Có| CheckTt
   CheckTt -->|Không| Chan --> Form
   CheckTt -->|Còn nháp| XoaXong --> End
 
-  class Hub,Bang,Sua,ChonXn,MoPdf,Mo,Info,Cta,Form,MacDinh userClass
-  class Chon,Cap,Tien,Valid,Xoa,CheckTt processClass
-  class L1 aiClass
-  class Save,Log,End dbClass
+  class Hub,Bang,Sua,ChonXn,MoPdf,Mo,Info,Cta,Form,MacDinh,BangCt,UpPdf,MoQdCu userClass
+  class Chon,Cap,Tien,Valid,Xoa,CheckTt,MoMap processClass
+  class L1,Map aiClass
+  class Save,Log,DaGiao,End dbClass
   class NoCap,Word,Chan,XoaXong exportClass
 ```
 
+## Nhãn cột Giao Xí nghiệp
+
+| Tình huống | Hiện dưới tên Xí nghiệp |
+|---|---|
+| Chưa chọn / chưa soạn QĐ | Chưa giao hoặc Chưa lập QĐ |
+| Đã lưu dự thảo (dự án chủ) | Đã có dự thảo |
+| Đã tải PDF ký | Đã giao (bấm để xem PDF) |
+| Dự án khác đã nằm trong cùng quyết định | Đã có trong QĐ (hoặc Trong QĐ + số) — bấm mở quyết định đã lập |
+
+## Một quyết định — nhiều công trình
+
+Khi soạn từ **một** dự án, bảng công trình (lấy từ phụ lục Giao A, có thể xóa bớt) là danh sách đã giao. Lưu / xuất Word / tải PDF ký sẽ **gắn** các dự án cùng Giao A (cùng phân hệ) có tên khớp công trình vào quyết định đó. Các dòng đó không còn «Chưa lập QĐ»; mở vào sẽ vào đúng quyết định đã lập, không tạo bản nháp mới. Xóa dự thảo → gỡ toàn bộ gắn kết.
 ## Nội dung màn hình
 
 | Phần | Nội dung |
@@ -83,21 +103,25 @@ flowchart TD
 | Tư vấn thiết kế trung hạ áp | Chi phí bước 1 = tổng mức đầu tư × 3,3%; tạm ứng kèm số tiền bằng chữ |
 | Tư vấn thiết kế 110 kV | Không tính chi phí bước 1 / tạm ứng |
 | Xuất PDF | Tạm ẩn nút; giữ logic để bật lại sau |
-| Xóa dự thảo | Nút **Xóa dự thảo** trên trang soạn (chỉ hiện khi đã lưu); chỉ xóa khi còn trạng thái Nháp, đã trình GĐ / đã ban hành thì phải hạ trạng thái trước (Admin được xóa để dọn dữ liệu sai) |
+| Tải PDF đã ký | Nút trên trang soạn — lưu tệp, chuyển «Đã giao», bỏ dấu Dự thảo |
+| Xóa dự thảo | Chỉ khi còn Nháp; đã giao thì chỉ Admin được xóa để dọn dữ liệu sai |
 | Xóa dự án | Dự án còn quyết định giao Xí nghiệp thì bị chặn xóa — phải xóa dự thảo quyết định trước |
+| Một QĐ nhiều công trình | Lưu/xuất đồng bộ gắn dự án cùng Giao A khớp tên công trình; chặn lập trùng; xóa QĐ gỡ map |
 
 ## Phụ lục kỹ thuật
 
 | Mục | Chi tiết |
 |-----|----------|
-| Bảng danh mục | `DuAnDashboard.tsx` — nguồn `GET /api/du-an?phan_he=` (lọc `da_luu = true`) |
+| Bảng danh mục | `DuAnDashboard.tsx` — nguồn `GET /api/du-an?phan_he=` (lọc `da_luu = true`) + `qd_giao_xn_map` |
 | UI giao nhiệm vụ | `GiaoNhiemVuSection.tsx` |
 | Sửa thông tin chung | `/du-an/[id]/sua` · `SuaDuAnForm.tsx` |
 | UI soạn | `SoanQdGiaoXnEditor.tsx` · banner `QdGiaoXnDocBanner.tsx` |
+| Map nhiều DA | `qd-giao-xn-map.ts` · bảng `qd_giao_xn_du_an` · SQL `019_qd_giao_xn_du_an.sql` |
 | Xóa dự thảo | `DELETE /api/qd-giao-xn/[id]` — chặn khi `trang_thai <> 'nhap'`, ghi nhật ký `GIAO_XN / DELETE` |
+| PDF đã ký | `POST/GET /api/qd-giao-xn/[id]/pdf-ky` · SQL `018_qd_giao_xn_pdf_ky.sql` · bucket `qd-giao-xn` |
 | Theme phân hệ | `phan-he.ts` · `soan-qd-theme.ts` |
 | Mặc định chủ đầu tư / XN | `soan-qd-defaults.ts` |
 | Tiền bước 1 / số thành chữ | `tinh-tien-giao-xn.ts` · `so-tien-bang-chu.ts` |
 | Word | `fill-qd-giao-xn.ts` · mẫu trong `public/templates/` |
 | PDF Giao A | `GET /api/giao-a/[id]/pdf` |
-| SQL | `008_phu_luc_giao_a.sql` · `009_ten_pc_tinh.sql` · `012_phan_he_truy_vet.sql` |
+| SQL | `008_phu_luc_giao_a.sql` · `009_ten_pc_tinh.sql` · `012_phan_he_truy_vet.sql` · `019_qd_giao_xn_du_an.sql` |

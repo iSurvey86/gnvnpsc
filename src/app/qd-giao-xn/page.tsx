@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { formatNgayVN } from "@/lib/word/format-ngay";
 
 export const dynamic = "force-dynamic";
 
@@ -158,7 +159,7 @@ export default async function QdGiaoXnListPage() {
                         {r.so_qd_du_thao || "Chưa số"}
                       </div>
                       <div className="text-xs font-medium text-gray-400">
-                        {r.ngay_du_thao || "—"}
+                        {formatNgayVN(r.ngay_du_thao)}
                       </div>
                     </td>
                     <td className="px-3 py-3 text-center text-gray-700">

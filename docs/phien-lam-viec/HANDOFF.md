@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-07-31 — Map nhiều DA vào một QĐ, PDF ký, tiền tạm ứng, nhật ký Giao XN
+
+**Version:** `0.1.3`
+
+### Đã chốt / đã làm
+
+- **Một QĐ phủ nhiều công trình (phương án A):** khi Lưu / Xuất Word / Tải PDF ký, hệ thống gắn các dự án cùng Giao A + cùng phân hệ trùng tên công trình trên bảng soạn vào quyết định. Bảng ngoài hiện «Đã có trong QĐ»; mở vào đúng QĐ đã lập, chặn lập trùng.
+- **PDF quyết định đã ký:** tải lên → trạng thái Đã giao; xem PDF từ danh mục / màn giao nhiệm vụ.
+- **Tiền giao XN (TVTK trung hạ áp):** GHĐ theo loại hình (CQT 3,3% · SCMBA/DMS 1,5%); tạm ứng 15% cùng tỉnh / 16% khác tỉnh; UI soạn gọn hơn.
+- **Nhật ký Giao Xí nghiệp:** bổ sung ghi nhận Tạo dự thảo · Lưu · Xuất Word (trước đó thiếu; chỉ có xóa / PDF ký).
+- UI soạn / dashboard: đóng về home phân hệ, nhãn XN, cột TMĐT, v.v.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [019_qd_giao_xn_du_an.sql](d:\AIProject\gnvnpsc\scripts\sql\019_qd_giao_xn_du_an.sql) | Bảng map QĐ ↔ nhiều dự án (**cần chạy Supabase**) |
+| [018_qd_giao_xn_pdf_ky.sql](d:\AIProject\gnvnpsc\scripts\sql\018_qd_giao_xn_pdf_ky.sql) | Cột PDF ký + bucket `qd-giao-xn` (**chạy nếu chưa**) |
+| [qd-giao-xn-map.ts](d:\AIProject\gnvnpsc\src\lib\qd-giao-xn-map.ts) | Đồng bộ map theo tên công trình |
+| [qd-giao-xn/route.ts](d:\AIProject\gnvnpsc\src\app\api\qd-giao-xn\route.ts) · [[id]/route.ts](d:\AIProject\gnvnpsc\src\app\api\qd-giao-xn\[id]\route.ts) | Tạo/Lưu + map + nhật ký |
+| [export/word](d:\AIProject\gnvnpsc\src\app\api\qd-giao-xn\[id]\export\word\route.ts) · [pdf-ky](d:\AIProject\gnvnpsc\src\app\api\qd-giao-xn\[id]\pdf-ky\route.ts) | Xuất Word / PDF ký + nhật ký |
+| [DuAnDashboard.tsx](d:\AIProject\gnvnpsc\src\components\DuAnDashboard.tsx) · [SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) | UI danh mục + soạn |
+| [02_giao_nhiem_vu.md](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) · [HDSD 02](d:\AIProject\gnvnpsc\docs\hdsd\02_giao_nhiem_vu.md) | Workflow / HDSD giao nhiệm vụ |
+| [03_giam_sat_he_thong.md](d:\AIProject\gnvnpsc\workflows\03_giam_sat_he_thong.md) | Nhật ký đủ hành động Giao XN |
+
+### Việc tiếp
+
+- [ ] Chạy SQL `018` (nếu chưa) + `019` trên Supabase; tạo bucket Storage `qd-giao-xn` nếu thiếu.
+- [ ] QĐ đã lưu trước khi có map: mở lại và **Lưu** một lần để đồng bộ gắn kết.
+- [ ] Kiểm tra quét quyết định **708/QĐ-EVNNPC** nếu vẫn rỗng danh mục.
+- [ ] Bổ sung mẫu Word Thí nghiệm / Tư vấn giám sát.
+- [ ] Khi hoàn thiện luồng PDF in, đổi `SHOW_EXPORT_PDF` thành `true`.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất (v0.1.3). Chạy SQL 018+019 nếu chưa. Map nhiều DA → một QĐ và nhật ký Giao XN đã có. Tiếp: xác nhận map trên dữ liệu thật hoặc mẫu Word TN/TVGS.
+
+Chi tiết phiên: [2026-07-31-map-qd-nhieu-da.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-07-31-map-qd-nhieu-da.md)
+
+---
+
 ## 2026-07-30 — Ba phân hệ, truy vết, bản nháp Giao A, loại hình dự án
 
 **Version:** `0.1.2`

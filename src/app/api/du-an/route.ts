@@ -29,7 +29,7 @@ export async function GET(request: Request) {
         `id, ma_du_an, ten_du_an, dia_diem, quy_mo, goi_cong_viec, ghi_chu, cap_dien_ap, loai_hinh_du_an, huong_giao, xi_nghiep_id, phan_he, da_luu, qd_giao_a_id, created_at, created_by, updated_by, assigned_by, assigned_at,
          qd_giao_a:qd_giao_a_id ( id, so_qd, ngay_qd, scan_status, scanned_by_ho_ten ),
          xi_nghiep:xi_nghiep_id ( id, ten, ma ),
-         qd_giao_xn ( id, loai, trang_thai, so_qd_du_thao, phan_he, xi_nghiep:xi_nghiep_id ( id, ten, ma ) )`,
+         qd_giao_xn ( id, loai, trang_thai, so_qd_du_thao, phan_he, pdf_ky_storage_path, xi_nghiep:xi_nghiep_id ( id, ten, ma ) )`,
       )
       .order("created_at", { ascending: false })
       .limit(500);
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     const { data, error } = await q;
     if (error) throw new Error(error.message);
 
-    const rows = data ?? [];
+    const rows = (data ?? []) as Array<Record<string, unknown> & { id: string }>;
     await Promise.all(
       rows.map(async (r) => {
         if (r.dia_diem) return;
@@ -53,6 +53,33 @@ export async function GET(request: Request) {
           .eq("id", r.id);
       }),
     );
+
+    // Map QĐ phủ nhiều công trình (cùng Giao A)
+    const ids = rows.map((r) => r.id);
+    if (ids.length) {
+      const { data: maps, error: mapErr } = await supabase
+        .from("qd_giao_xn_du_an")
+        .select(
+          `du_an_id,
+           qd_giao_xn:qd_giao_xn_id (
+             id, loai, trang_thai, so_qd_du_thao, du_an_id, pdf_ky_storage_path, phan_he,
+             xi_nghiep:xi_nghiep_id ( id, ten, ma )
+           )`,
+        )
+        .in("du_an_id", ids);
+      if (mapErr) throw new Error(mapErr.message);
+
+      const byDuAn = new Map<string, unknown[]>();
+      for (const m of maps ?? []) {
+        const list = byDuAn.get(m.du_an_id as string) ?? [];
+        const qd = Array.isArray(m.qd_giao_xn) ? m.qd_giao_xn[0] : m.qd_giao_xn;
+        if (qd) list.push({ ...qd, mapped: true });
+        byDuAn.set(m.du_an_id as string, list);
+      }
+      for (const r of rows) {
+        r.qd_giao_xn_map = byDuAn.get(r.id) ?? [];
+      }
+    }
 
     return NextResponse.json({ ok: true, data: rows });
   } catch (err) {
