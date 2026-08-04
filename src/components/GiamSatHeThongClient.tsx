@@ -107,8 +107,10 @@ const TEN_TRANG_THAI: Record<string, string> = {
 /** Loại hình dự án trong chi tiết nhật ký */
 const TEN_LOAI_HINH_DU_AN: Record<string, string> = {
   "110kv": "110 kV",
-  cqt: "CQT — Chống quá tải",
-  scmba: "SCMBA — Sửa chữa MBA",
+  cqt: "CQT (cũ)",
+  xdm: "XDM — Xây dựng mới",
+  cai_tao: "Cải tạo",
+  scmba: "SCMBA — Sửa chữa máy biến áp",
   dms: "DMS",
 };
 

@@ -26,10 +26,9 @@ flowchart TD
   HoiPair["Hỏi dùng chung hồ sơ Giao A đã có"]
   Nhap["Tạo bản quét NHÁP cho phân hệ — chưa vào danh mục"]
   Review["Màn Review — sửa mã, tên, địa điểm, quy mô, cấp điện áp, loại hình dự án"]
-  ChonXn["Chọn Xí nghiệp dự kiến giao (nếu đã rõ)"]
   Cap{"Cấp điện áp của dự án?"}
   Mac110["Loại hình tự đặt là 110kV — không phải chọn"]
-  ChonLoai["Chọn loại hình bắt buộc: CQT / SCMBA / DMS"]
+  ChonLoai["Chọn loại hình bắt buộc: XDM / Cải tạo / SCMBA / DMS"]
   Quyet{"Người dùng chọn gì?"}
   Trung{"Có dự án trùng tên trong phân hệ?"}
   HoiTrung["Hỏi từng dòng: cập nhật bản cũ hoặc tạo mới"]
@@ -50,9 +49,8 @@ flowchart TD
   Pair -->|Có| HoiPair --> Nhap
   Pair -->|Chưa| Nhap
   Nhap --> Review --> Cap
-  Cap -->|110kV| Mac110 --> ChonXn
-  Cap -->|Trung hạ áp| ChonLoai --> ChonXn
-  ChonXn --> Quyet
+  Cap -->|110kV| Mac110 --> Quyet
+  Cap -->|Trung hạ áp| ChonLoai --> Quyet
   Quyet -->|Lưu| ThieuLoai
   ThieuLoai -->|Thiếu| BaoThieu --> ChonLoai
   ThieuLoai -->|Đủ| Trung
@@ -66,7 +64,7 @@ flowchart TD
   HoiRoi -->|Ở lại| Review
   Luu --> Log --> Done
 
-  class Start,Cta,Pick,Quet,Review,ChonXn,ChonLoai,HoiPair,HoiTrung,HoiRoi userClass
+  class Start,Cta,Pick,Quet,Review,ChonLoai,HoiPair,HoiTrung,HoiRoi userClass
   class Quyen,Fail,Pair,Quyet,Trung,Roi,ThieuLoai,Cap processClass
   class Ai aiClass
   class Nhap,Luu,Log,Done,Mac110 dbClass
@@ -78,7 +76,7 @@ flowchart TD
 | Tình huống | Hệ thống làm gì |
 |---|---|
 | Vừa quét xong | Bản quét là **nháp**: chỉ thấy trên màn Review, không hiện ở Quản lý dự án, không giao nhiệm vụ được |
-| Bấm Lưu (Lưu tất cả / Lưu & đóng / Lưu & Quét tiếp) | Mọi dòng **trung hạ áp** phải chọn **loại hình dự án** (CQT / SCMBA / DMS); dòng **110kV** hệ thống tự đặt → danh mục thành chính thức, ghi nhật ký người lưu |
+| Bấm Lưu (Lưu tất cả / Lưu & đóng / Lưu & Quét tiếp) | Mọi dòng **trung hạ áp** phải chọn **loại hình dự án** (XDM / Cải tạo / SCMBA / DMS); dòng **110kV** hệ thống tự đặt → danh mục thành chính thức, ghi nhật ký người lưu |
 | Bấm Hủy bản quét | Xóa danh mục nháp; nếu hồ sơ Giao A chưa từng được lưu thì xóa luôn hồ sơ và tệp PDF |
 | Bấm Về Quản lý dự án khi còn nháp | Hộp thoại 3 lựa chọn: Lưu rồi rời · Hủy bản quét rồi rời · Ở lại tiếp tục sửa |
 | Đóng tab / bấm F5 khi còn nháp | Trình duyệt cảnh báo rời trang |
@@ -91,7 +89,8 @@ flowchart TD
 - Một Quyết định Giao A có thể sinh nhiệm vụ cho nhiều tổ: tổ sau dùng chung hồ sơ Giao A đã lưu (không tải lại PDF), chỉ tạo danh mục dự án riêng cho tổ mình.
 - **Loại hình dự án** dùng cho chi phí sau này, phụ thuộc cấp điện áp:
   - Dự án **110kV** — loại hình luôn là 110kV, hệ thống tự đặt, người nhập không chọn.
-  - Dự án **trung hạ áp** — bắt buộc chọn một trong ba: CQT (chống quá tải) · SCMBA (sửa chữa MBA) · DMS.
+  - Dự án **trung hạ áp** — bắt buộc chọn một trong: XDM (xây dựng mới) · Cải tạo · SCMBA (sửa chữa máy biến áp) · DMS.
+  - Không chọn Xí nghiệp trên màn Review — chọn khi vào **giao nhiệm vụ**.
   - Đổi cấp điện áp từ 110kV sang trung hạ áp thì phải chọn lại loại hình.
   - Khác với «Loại hình tư vấn» (suy ra từ cấp điện áp / hướng giao).
 - Tên dự án được phép trùng giữa các phân hệ; mã dự án mang hậu tố phân hệ để phân biệt.

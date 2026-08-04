@@ -26,7 +26,6 @@ import {
   extractNamFromQd,
   generateMaDuAn,
 } from "@/lib/ma-du-an";
-import { XiNghiepPicker } from "@/components/XiNghiepPicker";
 import { dangKyChanRoiTrang } from "@/lib/roi-trang-guard";
 import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 import type {
@@ -34,7 +33,6 @@ import type {
   DuAn,
   LoaiHinhDuAn,
   QdGiaoA,
-  XiNghiep,
 } from "@/lib/types";
 
 type Props = {
@@ -76,7 +74,6 @@ export function ReviewGiaoAClient({
     })),
   );
   const [pool, setPool] = useState<DuAnTrungRef[]>([]);
-  const [xiNghiep, setXiNghiep] = useState<XiNghiep[]>([]);
   const [savingAll, setSavingAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -153,27 +150,6 @@ export function ReviewGiaoAClient({
       cancelled = true;
     };
   }, [phanHe]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/xi-nghiep");
-        const json = (await res.json()) as {
-          ok: boolean;
-          data?: XiNghiep[];
-        };
-        if (!cancelled && json.ok && Array.isArray(json.data)) {
-          setXiNghiep(json.data);
-        }
-      } catch {
-        /* không chọn được Xí nghiệp thì vẫn lưu được danh mục */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const trungCsdl = useMemo(
     () =>
@@ -382,7 +358,7 @@ export function ReviewGiaoAClient({
           !isLoaiHinhDuAn(row.loai_hinh_du_an)
         ) {
           throw new Error(
-            "Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS) trước khi lưu",
+            "Dự án trung hạ áp phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS) trước khi lưu",
           );
         }
         const res = resolutions?.get(row.id);
@@ -711,7 +687,7 @@ export function ReviewGiaoAClient({
           </p>
         </div>
         <div className="max-h-[650px] overflow-auto">
-          <table className="relative w-full min-w-[1100px] border-collapse text-left text-[13px] [&_td]:border-r [&_td]:border-b [&_td]:border-violet-100/80 [&_td:last-child]:border-r-0 [&_th]:border-r [&_th]:border-b [&_th]:border-violet-200 [&_th:last-child]:border-r-0 [&_tbody_tr:last-child_td]:border-b-0">
+          <table className="relative w-full min-w-[980px] border-collapse text-left text-[13px] [&_td]:border-r [&_td]:border-b [&_td]:border-violet-100/80 [&_td:last-child]:border-r-0 [&_th]:border-r [&_th]:border-b [&_th]:border-violet-200 [&_th:last-child]:border-r-0 [&_tbody_tr:last-child_td]:border-b-0">
             <colgroup>
               <col className="w-11" />
               <col className="w-[128px]" />
@@ -720,7 +696,6 @@ export function ReviewGiaoAClient({
               <col />
               <col className="w-[108px]" />
               <col className="w-[128px]" />
-              <col className="w-[132px]" />
               <col className="w-14" />
             </colgroup>
             <thead className="sticky top-0 z-10 bg-violet-100 text-[12px] font-extrabold tracking-wide text-violet-900 uppercase shadow-sm">
@@ -736,16 +711,13 @@ export function ReviewGiaoAClient({
                 <th className="bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
                   Loại hình *
                 </th>
-                <th className="bg-violet-100 px-2 py-3 text-center whitespace-nowrap">
-                  Giao nhiệm vụ
-                </th>
                 <th className="bg-violet-100 px-1 py-3 text-center">Xóa</th>
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr className="bg-[#faf8ff]">
-                  <td colSpan={9} className="px-4 py-20 text-center">
+                  <td colSpan={8} className="px-4 py-20 text-center">
                     <p className="text-sm font-bold text-violet-800/70">
                       Chưa có dữ liệu dự án
                     </p>
@@ -889,15 +861,6 @@ export function ReviewGiaoAClient({
                             ))}
                           </select>
                         )}
-                      </td>
-                      <td className="px-2 py-2 align-middle">
-                        <XiNghiepPicker
-                          options={xiNghiep}
-                          value={row.xi_nghiep_id ?? null}
-                          onChange={(id) =>
-                            updateLocal(row.id, { xi_nghiep_id: id })
-                          }
-                        />
                       </td>
                       <td className="px-1 py-2 text-center align-middle">
                         <button

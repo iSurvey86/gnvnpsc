@@ -996,7 +996,7 @@ export function SoanQdGiaoXnEditor({
                           )
                             .toLocaleString("vi-VN")
                             .replace(".", ",")}% × TMĐT`
-                        : "Chưa có loại hình dự án (CQT / SCMBA / DMS) — mặc định GHĐ 3,3%"}
+                        : "Chưa có loại hình dự án (XDM / Cải tạo / SCMBA / DMS) — mặc định GHĐ 3,3%"}
                       {" · "}
                       Tạm ứng{" "}
                       {(

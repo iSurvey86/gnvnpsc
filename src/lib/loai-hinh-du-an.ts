@@ -3,16 +3,22 @@ import type { CapDienAp } from "@/lib/cap-dien-ap";
 /**
  * Loại hình dự án:
  * - `110kv` — hệ thống tự đặt cho dự án 110kV, người nhập không chọn
- * - `cqt` / `scmba` / `dms` — bắt buộc chọn với dự án trung hạ áp
+ * - `xdm` / `cai_tao` / `scmba` / `dms` — bắt buộc chọn với dự án trung hạ áp
  */
-export type LoaiHinhDuAn = "110kv" | "cqt" | "scmba" | "dms";
+export type LoaiHinhDuAn =
+  | "110kv"
+  | "xdm"
+  | "cai_tao"
+  | "scmba"
+  | "dms";
 
 type Option = { value: LoaiHinhDuAn; label: string; short: string };
 
 /** Các loại hình người nhập được chọn (chỉ áp dụng trung hạ áp) */
 export const LOAI_HINH_THA_OPTIONS: Option[] = [
-  { value: "cqt", label: "CQT — Chống quá tải", short: "CQT" },
-  { value: "scmba", label: "SCMBA — Sửa chữa MBA", short: "SCMBA" },
+  { value: "xdm", label: "XDM — Xây dựng mới", short: "XDM" },
+  { value: "cai_tao", label: "Cải tạo", short: "Cải tạo" },
+  { value: "scmba", label: "SCMBA — Sửa chữa máy biến áp", short: "SCMBA" },
   { value: "dms", label: "DMS", short: "DMS" },
 ];
 
@@ -28,8 +34,16 @@ export const LOAI_HINH_DU_AN_OPTIONS: Option[] = [
   ...LOAI_HINH_THA_OPTIONS,
 ];
 
+const VALID = new Set<string>([
+  "110kv",
+  "xdm",
+  "cai_tao",
+  "scmba",
+  "dms",
+]);
+
 export function isLoaiHinhDuAn(v: unknown): v is LoaiHinhDuAn {
-  return v === "110kv" || v === "cqt" || v === "scmba" || v === "dms";
+  return typeof v === "string" && VALID.has(v);
 }
 
 export function parseLoaiHinhDuAn(
@@ -37,6 +51,8 @@ export function parseLoaiHinhDuAn(
 ): LoaiHinhDuAn | null {
   if (!raw) return null;
   const s = raw.trim().toLowerCase();
+  // Dữ liệu cũ CQT → coi như chưa chọn hợp lệ (đã migrate SQL 020)
+  if (s === "cqt") return null;
   return isLoaiHinhDuAn(s) ? s : null;
 }
 
@@ -61,9 +77,11 @@ export function resolveLoaiHinhDuAn(
 }
 
 export function labelLoaiHinhDuAn(v: string | null | undefined): string {
+  if (v === "cqt") return "CQT (cũ) — cần chọn lại";
   return LOAI_HINH_DU_AN_OPTIONS.find((o) => o.value === v)?.label ?? "—";
 }
 
 export function shortLoaiHinhDuAn(v: string | null | undefined): string {
+  if (v === "cqt") return "CQT?";
   return LOAI_HINH_DU_AN_OPTIONS.find((o) => o.value === v)?.short ?? "—";
 }

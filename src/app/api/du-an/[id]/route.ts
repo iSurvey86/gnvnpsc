@@ -78,7 +78,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
           {
             ok: false,
             error:
-              "Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS)",
+              "Dự án trung hạ áp phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS)",
           },
           { status: 400 },
         );
@@ -89,7 +89,7 @@ export async function PATCH(request: Request, ctx: Ctx) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Đổi sang trung hạ áp thì phải chọn loại hình (CQT / SCMBA / DMS)",
+          error: "Đổi sang trung hạ áp thì phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS)",
         },
         { status: 400 },
       );

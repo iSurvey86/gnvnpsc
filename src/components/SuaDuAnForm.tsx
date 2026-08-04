@@ -45,7 +45,7 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
       return;
     }
     if (!la110kv && !isLoaiHinhDuAn(loaiHinh)) {
-      setError("Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS)");
+      setError("Dự án trung hạ áp phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS)");
       return;
     }
     setSaving(true);

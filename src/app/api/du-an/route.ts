@@ -135,7 +135,7 @@ export async function POST(request: Request) {
       !loaiHinh
     ) {
       return NextResponse.json(
-        { ok: false, error: "Loại hình dự án không hợp lệ (CQT / SCMBA / DMS)" },
+        { ok: false, error: "Loại hình dự án không hợp lệ (XDM / Cải tạo / SCMBA / DMS)" },
         { status: 400 },
       );
     }
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
         {
           ok: false,
           error:
-            "Dự án trung hạ áp phải chọn loại hình (CQT / SCMBA / DMS) trước khi lưu",
+            "Dự án trung hạ áp phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS) trước khi lưu",
         },
         { status: 400 },
       );

@@ -75,7 +75,7 @@ export async function POST(request: Request, ctx: Ctx) {
       if (fixErr) throw new Error(fixErr.message);
     }
 
-    // Trung hạ áp: người nhập phải chọn CQT / SCMBA / DMS
+    // Trung hạ áp: người nhập phải chọn XDM / Cải tạo / SCMBA / DMS
     const thieuLoai = (banNhap ?? []).filter(
       (d) => !laDuAn110kv(d.cap_dien_ap) && !isLoaiHinhDuAn(d.loai_hinh_du_an),
     );
@@ -83,7 +83,7 @@ export async function POST(request: Request, ctx: Ctx) {
       return NextResponse.json(
         {
           ok: false,
-          error: `Còn ${thieuLoai.length} dự án trung hạ áp chưa chọn loại hình (CQT / SCMBA / DMS)`,
+          error: `Còn ${thieuLoai.length} dự án trung hạ áp chưa chọn loại hình (XDM / Cải tạo / SCMBA / DMS)`,
         },
         { status: 400 },
       );

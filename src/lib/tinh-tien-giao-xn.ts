@@ -10,13 +10,14 @@ import {
   tinhFromTenPcTinh,
 } from "@/lib/soan-qd-defaults";
 
-/** CQT — giá trị HĐ = 3,3% × TMĐT */
-export const TY_LE_GHD_CQT = 0.033;
+/** XDM / Cải tạo — giá trị HĐ = 3,3% × TMĐT */
+export const TY_LE_GHD_XDM_CAI_TAO = 0.033;
 /** SCMBA / DMS — giá trị HĐ = 1,5% × TMĐT */
 export const TY_LE_GHD_SCMBA_DMS = 0.015;
 
-/** Alias cũ (CQT) — giữ tương thích import */
-export const TY_LE_L1_TVTK_THA = TY_LE_GHD_CQT;
+/** Alias — giữ tương thích import cũ */
+export const TY_LE_GHD_CQT = TY_LE_GHD_XDM_CAI_TAO;
+export const TY_LE_L1_TVTK_THA = TY_LE_GHD_XDM_CAI_TAO;
 
 /** Cùng tỉnh (Chủ đầu tư ↔ Xí nghiệp) → tạm ứng 15% × GHĐ */
 export const TY_LE_TAM_UNG_CUNG_TINH = 0.15;
@@ -58,15 +59,16 @@ export function parseTrieuDong(raw: string | number | null | undefined): number 
 
 /** Tỷ lệ Giá trị hợp đồng theo loại hình dự án (chỉ THA). */
 export function tyLeGiaTriHopDong(
-  loaiHinh: LoaiHinhDuAn | null | undefined,
+  loaiHinh: LoaiHinhDuAn | string | null | undefined,
 ): number | null {
-  if (loaiHinh === "cqt") return TY_LE_GHD_CQT;
+  if (loaiHinh === "xdm" || loaiHinh === "cai_tao" || loaiHinh === "cqt")
+    return TY_LE_GHD_XDM_CAI_TAO;
   if (loaiHinh === "scmba" || loaiHinh === "dms") return TY_LE_GHD_SCMBA_DMS;
   return null;
 }
 
 /**
- * @deprecated Dùng tyLeGiaTriHopDong(loaiHinh) — mặc định CQT 3,3% khi chưa biết loại hình.
+ * @deprecated Dùng tyLeGiaTriHopDong(loaiHinh) — mặc định XDM/Cải tạo 3,3% khi chưa biết loại hình.
  */
 export function tyLeChiPhiL1(
   loai: LoaiGiaoXn,
@@ -74,7 +76,7 @@ export function tyLeChiPhiL1(
   loaiHinh?: LoaiHinhDuAn | null,
 ): number | null {
   if (loai !== "tvtk" || cap !== "trung_ha_ap") return null;
-  return tyLeGiaTriHopDong(loaiHinh) ?? TY_LE_GHD_CQT;
+  return tyLeGiaTriHopDong(loaiHinh) ?? TY_LE_GHD_XDM_CAI_TAO;
 }
 
 export function shouldTinhTienGiao(
@@ -140,7 +142,7 @@ export type KetQuaTinhTien = {
 
 /**
  * Tính Giá trị HĐ + tạm ứng theo dòng từ phụ lục (TVTK THA).
- * - GHĐ: CQT 3,3% × TMĐT; SCMBA/DMS 1,5% × TMĐT
+ * - GHĐ: XDM/Cải tạo 3,3% × TMĐT; SCMBA/DMS 1,5% × TMĐT
  * - Tạm ứng: cùng tỉnh 15% × GHĐ; khác tỉnh 16% × GHĐ
  */
 export function tinhChiPhiL1TuPhuLuc(opts: {

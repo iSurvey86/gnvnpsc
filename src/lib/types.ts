@@ -4,8 +4,13 @@ export type ScanStatus = "pending" | "processing" | "done" | "error";
 export type LoaiGiaoXn = "tvtk" | "thi_nghiem" | "tvgs";
 export type TrangThaiQdXn = "nhap" | "trinh_gd" | "da_ban_hanh";
 export type CapDienAp = "110kv" | "trung_ha_ap";
-/** Loại hình dự án — 110kV tự đặt; trung hạ áp bắt buộc chọn CQT / SCMBA / DMS */
-export type LoaiHinhDuAn = "110kv" | "cqt" | "scmba" | "dms";
+/** Loại hình dự án — 110kV tự đặt; trung hạ áp: XDM / Cải tạo / SCMBA / DMS */
+export type LoaiHinhDuAn =
+  | "110kv"
+  | "xdm"
+  | "cai_tao"
+  | "scmba"
+  | "dms";
 /** Hướng giao PCM: TVTK / Thí nghiệm / cả hai */
 export type HuongGiao = "tvtk" | "tn" | "tvtk_tn";
 export type { PhanHeCode };
@@ -77,7 +82,7 @@ export type DuAn = {
   goi_cong_viec: string | null;
   ghi_chu: string | null;
   cap_dien_ap: CapDienAp | null;
-  /** CQT / SCMBA / DMS — người nhập chọn, bắt buộc khi lưu */
+  /** XDM / Cải tạo / SCMBA / DMS — bắt buộc khi trung hạ áp */
   loai_hinh_du_an?: LoaiHinhDuAn | null;
   huong_giao: HuongGiao | null;
   /** Xí nghiệp được giao nhiệm vụ — chọn trên bảng danh mục dự án */
