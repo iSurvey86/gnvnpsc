@@ -1,5 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { SoanQdGiaoXnEditor } from "@/components/SoanQdGiaoXnEditor";
+import { isPhanHeCode } from "@/lib/phan-he";
+import { loadPhuLucGiaoXnContext } from "@/lib/qd-giao-xn-map";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DuAn, LoaiGiaoXn, QdGiaoA, QdGiaoXn, XiNghiep } from "@/lib/types";
 
@@ -34,7 +36,6 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
     redirect(`/du-an/${id}/giao-xn`);
   }
 
-  // Đã có QĐ (sở hữu hoặc được phủ) → mở đúng bản đó, không tạo nháp mới
   if (!sp.qdId) {
     const { data: owned } = await supabase
       .from("qd_giao_xn")
@@ -100,12 +101,24 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
             `/du-an/${qd.du_an_id}/giao-xn/soan?loai=${qd.loai}&qdId=${qd.id}`,
           );
         }
-        // qdId không thuộc dự án này và cũng không map → bỏ qua
       } else {
         initial = qd;
       }
     }
   }
+
+  const phanHe = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
+  const loaiHieuLuc = (initial?.loai ?? loai) as LoaiGiaoXn;
+  const phuLucCtx = await loadPhuLucGiaoXnContext(supabase, {
+    qdGiaoAId: (duAn.qd_giao_a_id as string | null) ?? null,
+    phanHe,
+    loai: loaiHieuLuc,
+    excludeQdId: initial?.id ?? null,
+  }).catch(() => ({
+    daGiaoKhac: [],
+    tenTrongQdHienTai: [] as string[],
+    soDaChuaGiao: 0,
+  }));
 
   const { data: xiNghiep } = await supabase
     .from("xi_nghiep")
@@ -118,8 +131,9 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
       duAn={duAn as DuAn}
       qdGiaoA={qdGiaoA}
       xiNghiep={(xiNghiep ?? []) as XiNghiep[]}
-      loai={initial?.loai ?? loai}
+      loai={loaiHieuLuc}
       initial={initial}
+      phuLucCtx={phuLucCtx}
     />
   );
 }

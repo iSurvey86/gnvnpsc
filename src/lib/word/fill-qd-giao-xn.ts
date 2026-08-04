@@ -15,6 +15,7 @@ import {
   laCungDiaBanTinh,
   tinhChiPhiL1TuPhuLuc,
 } from "@/lib/tinh-tien-giao-xn";
+import { danhXungGiamDocXn } from "@/lib/danh-xung-gd-xn";
 import { resolveLoaiHinhDuAn } from "@/lib/loai-hinh-du-an";
 import {
   extractTenPcTinh,
@@ -198,6 +199,7 @@ export function buildWordTagData(opts: {
     so_qd: soQdForWord(draft.so_qd_du_thao),
     ngay_ban_hanh_chu: formatNgayBanHanhChu(draft.ngay_du_thao),
     ten_xi_nghiep: xiNghiep?.ten?.trim() || empty,
+    danh_xung_gd_xn: danhXungGiamDocXn(xiNghiep?.ten),
     ten_pc_tinh: pc,
     ten_tinh: tinh,
     nam_ke_hoach: nam,

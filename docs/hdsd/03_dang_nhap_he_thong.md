@@ -4,7 +4,7 @@
 
 1. Mở hệ thống → nếu chưa đăng nhập sẽ vào màn **Đăng nhập**.
 2. Nhập **email** và **mật khẩu** (mặc định khi được cấp login).
-3. Sau khi đăng nhập thành công vào trang **chọn phân hệ** — Tư vấn thiết kế · Thí nghiệm hiệu chỉnh · Tư vấn giám sát. Chọn phân hệ của tổ mình để vào Quản lý dự án.
+3. Sau khi đăng nhập thành công vào trang **chọn phân hệ** — Tư vấn thiết kế · Thí nghiệm hiệu chỉnh · Tư vấn giám sát. Mỗi thẻ hiện **Đã giao nhiệm vụ** / **Chưa giao nhiệm vụ** (dự án đã lưu; đã giao = đã có quyết định giao Xí nghiệp, kể cả được phủ trong QĐ chung). Chọn phân hệ của tổ mình để vào Quản lý dự án.
 
 ### Đăng xuất / Tài khoản (sidebar)
 

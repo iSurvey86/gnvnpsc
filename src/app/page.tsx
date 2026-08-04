@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { PHAN_HE } from "@/lib/phan-he";
+import { loadHubPhanHeStats } from "@/lib/hub-phan-he-stats";
+import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 import { getSessionProfile } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
 
 const cards = [
   { ...PHAN_HE.tvtk, ready: true },
@@ -12,6 +15,8 @@ const cards = [
 export default async function PhanHeHubPage() {
   const profile = await getSessionProfile();
   if (!profile) redirect("/login");
+
+  const stats = await loadHubPhanHeStats().catch(() => null);
 
   return (
     <div className="mx-auto flex min-h-full max-w-5xl flex-col justify-center gap-9 p-6 md:p-10">
@@ -30,6 +35,11 @@ export default async function PhanHeHubPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         {cards.map((c) => {
           const t = c.theme;
+          const s = stats?.[c.code as PhanHeCode] ?? {
+            tong: 0,
+            daGiao: 0,
+            chuaGiao: 0,
+          };
           return (
             <Link
               key={c.href}
@@ -56,9 +66,20 @@ export default async function PhanHeHubPage() {
               >
                 {c.desc}
               </p>
-              <p className={`mt-4 text-[11px] font-bold ${t.hubCta}`}>
-                Vào phân hệ →
-              </p>
+              <dl className={`mt-4 space-y-1.5 text-xs ${t.hubDesc}`}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="font-medium">Đã giao nhiệm vụ</dt>
+                  <dd className={`text-base font-bold tabular-nums ${t.hubTitle}`}>
+                    {s.daGiao}
+                  </dd>
+                </div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <dt className="font-medium">Chưa giao nhiệm vụ</dt>
+                  <dd className={`text-base font-bold tabular-nums ${t.hubTitle}`}>
+                    {s.chuaGiao}
+                  </dd>
+                </div>
+              </dl>
             </Link>
           );
         })}

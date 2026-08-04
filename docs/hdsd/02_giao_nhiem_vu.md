@@ -41,11 +41,11 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 
 ### Một quyết định phủ nhiều công trình
 
-1. Mở **bất kỳ** dự án trong cùng Giao A → soạn quyết định; bảng công trình lấy từ phụ lục (có thể xóa bớt dòng không giao lần này).
-2. **Lưu** (hoặc Xuất Word / Tải PDF ký): hệ thống gắn mọi dự án cùng Giao A, cùng phân hệ, trùng tên công trình vào quyết định.
-3. Trên bảng Quản lý dự án, các dòng đã gắn hiện **Đã có trong QĐ** (hoặc số QĐ nếu có) thay vì «Chưa lập QĐ».
-4. Bấm vào dòng đã gắn → **Mở soạn quyết định** đã lập (không tạo bản nháp mới).
-5. Xóa dự thảo quyết định → các dự án đã gắn trở lại «Chưa lập QĐ».
+1. Mở **bất kỳ** dự án trong cùng Giao A → soạn quyết định.
+2. Mục **Công trình giao lần này**: tick các công trình giao cho Xí nghiệp đang chọn (110 kV và trung hạ áp đều có). Công trình đã giao đơn vị khác bị khóa.
+3. Muốn chia nhiều Xí nghiệp: bỏ tick phần giao sau → Lưu QĐ 1 → mở dự án còn lại → tick phần còn lại cho XN khác.
+4. Khi tick hết phần còn lại (≥2 dòng), hệ thống hỏi xác nhận trước khi lưu.
+5. **Lưu** / Xuất Word / Tải PDF ký: gắn dự án khớp tên đã tick vào quyết định.
 6. Cần chạy SQL [019_qd_giao_xn_du_an.sql](d:\AIProject\gnvnpsc\scripts\sql\019_qd_giao_xn_du_an.sql) trên Supabase trước khi dùng.
 
 ### Tải PDF đã ký (chốt luồng)
@@ -66,7 +66,7 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 
 | Nút | Kết quả |
 |-----|---------|
-| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Số QĐ để trống sẽ thành khoảng trắng để điền tay sau. |
+| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. Điều 3: Giám đốc XN Hà Giang = Bà, XN khác = Ông. |
 
 ### Gợi ý thao tác
 

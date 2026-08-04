@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAppDialog } from "@/components/AppDialog";
 import { QdGiaoXnDocBanner } from "@/components/QdGiaoXnDocBanner";
+import { normalizeTenDuAn } from "@/lib/du-an-trung";
+import type { PhuLucGiaoXnContext } from "@/lib/qd-giao-xn-map";
 import type {
   DuAn,
   LoaiGiaoXn,
@@ -45,6 +47,7 @@ type Props = {
   xiNghiep: XiNghiep[];
   loai: LoaiGiaoXn;
   initial: QdGiaoXn | null;
+  phuLucCtx?: PhuLucGiaoXnContext;
 };
 
 function labelLoai(loai: LoaiGiaoXn, cap: DuAn["cap_dien_ap"]): string {
@@ -58,6 +61,20 @@ function phuLucRows(qd: QdGiaoA | null): PhuLucCongTrinh[] {
   const pl = qd?.phu_luc;
   if (!pl || !Array.isArray(pl.cong_trinh)) return [];
   return pl.cong_trinh;
+}
+
+function buildInitialSelected(
+  rows: PhuLucCongTrinh[],
+  lockedKeys: Set<string>,
+  thisQdKeys: Set<string>,
+  editing: boolean,
+): boolean[] {
+  return rows.map((r) => {
+    const k = normalizeTenDuAn(r.ct_ten);
+    if (k && lockedKeys.has(k)) return false;
+    if (editing && thisQdKeys.size > 0) return Boolean(k && thisQdKeys.has(k));
+    return true;
+  });
 }
 
 function SectionHead({
@@ -91,6 +108,7 @@ export function SoanQdGiaoXnEditor({
   xiNghiep,
   loai,
   initial,
+  phuLucCtx,
 }: Props) {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
@@ -101,6 +119,21 @@ export function SoanQdGiaoXnEditor({
   const showTinhTien = shouldTinhTienGiao(loai, duAn.cap_dien_ap);
 
   const congTrinhBase = useMemo(() => phuLucRows(qdGiaoA), [qdGiaoA]);
+
+  const lockedByKey = useMemo(() => {
+    const m = new Map<string, NonNullable<PhuLucGiaoXnContext["daGiaoKhac"]>[number]>();
+    for (const row of phuLucCtx?.daGiaoKhac ?? []) {
+      m.set(row.ten_key, row);
+    }
+    return m;
+  }, [phuLucCtx?.daGiaoKhac]);
+
+  const thisQdKeys = useMemo(
+    () => new Set(phuLucCtx?.tenTrongQdHienTai ?? []),
+    [phuLucCtx?.tenTrongQdHienTai],
+  );
+
+  const soDaChuaGiao = phuLucCtx?.soDaChuaGiao ?? 0;
 
   const phuLucTenGop = useMemo(
     () =>
@@ -153,9 +186,7 @@ export function SoanQdGiaoXnEditor({
   const [qdId, setQdId] = useState<string | null>(initial?.id ?? null);
   const [soQd, setSoQd] = useState(initial?.so_qd_du_thao ?? "");
   const [ngay, setNgay] = useState(
-    () =>
-      initial?.ngay_du_thao?.trim() ||
-      new Date().toISOString().slice(0, 10),
+    () => initial?.ngay_du_thao?.trim() || "",
   );
   const [xiId, setXiId] = useState(defaultXiId);
   const [phamVi, setPhamVi] = useState(
@@ -176,9 +207,14 @@ export function SoanQdGiaoXnEditor({
   /** User đã sửa tạm ứng tay → không ghi đè khi L1 đổi */
   const [tamUngDirty, setTamUngDirty] = useState(false);
   const [soLuongCt, setSoLuongCt] = useState("");
-  /** Bản làm việc bảng L1 (có thể xóa dòng; «Tính lại» khôi phục từ phụ lục). */
-  const [congTrinhEdit, setCongTrinhEdit] = useState<PhuLucCongTrinh[]>(
-    () => congTrinhBase,
+  /** Tick chọn công trình giao lần này (theo index phụ lục). */
+  const [selected, setSelected] = useState<boolean[]>(() =>
+    buildInitialSelected(
+      congTrinhBase,
+      new Set((phuLucCtx?.daGiaoKhac ?? []).map((x) => x.ten_key)),
+      new Set(phuLucCtx?.tenTrongQdHienTai ?? []),
+      Boolean(initial?.id),
+    ),
   );
   const [tmdtOverrides, setTmdtOverrides] = useState<string[]>(() =>
     congTrinhBase.map((r) => (r.ct_tmdt ?? "").toString()),
@@ -195,17 +231,48 @@ export function SoanQdGiaoXnEditor({
   const pdfKyInputRef = useRef<HTMLInputElement>(null);
   const daGiao = laDaGiaoXn(trangThai);
 
-  function resetCongTrinhTuPhuLuc() {
-    setCongTrinhEdit(congTrinhBase);
+  function resetChonTuPhuLuc() {
+    setSelected(
+      buildInitialSelected(
+        congTrinhBase,
+        new Set(lockedByKey.keys()),
+        thisQdKeys,
+        Boolean(qdId || initial?.id),
+      ),
+    );
     setTmdtOverrides(
       congTrinhBase.map((r) => (r.ct_tmdt ?? "").toString()),
     );
   }
 
   useEffect(() => {
-    resetCongTrinhTuPhuLuc();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- chỉ sync khi phụ lục đổi
-  }, [congTrinhBase]);
+    resetChonTuPhuLuc();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- phụ lục / ngữ cảnh map đổi
+  }, [congTrinhBase, lockedByKey, thisQdKeys]);
+
+  const congTrinhDaChon = useMemo(() => {
+    if (!congTrinhBase.length) {
+      return [{ ct_ten: duAn.ten_du_an } as PhuLucCongTrinh];
+    }
+    return congTrinhBase.filter((_, i) => selected[i]);
+  }, [congTrinhBase, selected, duAn.ten_du_an]);
+
+  const tmdtDaChon = useMemo(
+    () => tmdtOverrides.filter((_, i) => selected[i]),
+    [tmdtOverrides, selected],
+  );
+
+  const soDongMoKhoa = useMemo(() => {
+    let n = 0;
+    for (let i = 0; i < congTrinhBase.length; i++) {
+      const k = normalizeTenDuAn(congTrinhBase[i]?.ct_ten);
+      if (k && lockedByKey.has(k)) continue;
+      n += 1;
+    }
+    return n;
+  }, [congTrinhBase, lockedByKey]);
+
+  const soDongDaChon = selected.filter(Boolean).length;
 
   const loaiHinhDa = useMemo(
     () => resolveLoaiHinhDuAn(duAn.cap_dien_ap, duAn.loai_hinh_du_an),
@@ -232,16 +299,16 @@ export function SoanQdGiaoXnEditor({
       tinhChiPhiL1TuPhuLuc({
         loai,
         cap: duAn.cap_dien_ap,
-        cong_trinh: congTrinhEdit,
-        tmdtOverrides,
+        cong_trinh: congTrinhDaChon,
+        tmdtOverrides: tmdtDaChon,
         loaiHinhDuAn: loaiHinhDa,
         cungDiaBan,
       }),
     [
       loai,
       duAn.cap_dien_ap,
-      congTrinhEdit,
-      tmdtOverrides,
+      congTrinhDaChon,
+      tmdtDaChon,
       loaiHinhDa,
       cungDiaBan,
     ],
@@ -279,12 +346,9 @@ export function SoanQdGiaoXnEditor({
   }, [filteredXn, xiId, duAn.dia_diem, tenPcTinh, tenPcMacDinh]);
 
   function payload() {
-    const congTrinh =
-      congTrinhEdit.length > 0
-        ? congTrinhEdit
-        : congTrinhBase.length > 0
-          ? congTrinhBase
-          : [{ ct_ten: duAn.ten_du_an }];
+    if (congTrinhBase.length > 0 && soDongDaChon === 0) {
+      throw new Error("Chọn ít nhất một công trình để giao lần này");
+    }
     const body: Record<string, unknown> = {
       du_an_id: duAn.id,
       loai,
@@ -294,15 +358,30 @@ export function SoanQdGiaoXnEditor({
       pham_vi: phamVi || null,
       thoi_han: thoiHan || null,
       can_cu: canCu || null,
-      cong_trinh: congTrinh,
+      cong_trinh: congTrinhDaChon,
     };
     // Tạo mới luôn là nháp; khi đã giao không ghi đè trạng thái lúc Lưu nội dung
     if (!qdId) body.trang_thai = "nhap";
     return body;
   }
 
-  async function save(): Promise<{ id: string; mappedCount: number }> {
+  async function confirmGiaoCaPhuLuc(): Promise<boolean> {
+    if (soDongMoKhoa <= 1 || soDongDaChon < soDongMoKhoa) return true;
+    return showConfirm(
+      `Anh đang chọn tất cả ${soDongDaChon} công trình còn lại trong phụ lục Giao A cho một Xí nghiệp.\n\nNếu muốn chia nhiều đơn vị: bỏ tick một phần công trình, lưu QĐ này, rồi lập QĐ khác cho phần còn lại.\n\nTiếp tục giao cả phần còn lại cho đơn vị đang chọn?`,
+      {
+        title: "Giao nhiều công trình cho một đơn vị",
+        variant: "warning",
+        confirmLabel: "Tiếp tục lưu",
+        cancelLabel: "Quay lại chọn",
+      },
+    );
+  }
+
+  async function save(): Promise<{ id: string; mappedCount: number } | null> {
     if (!xiId) throw new Error("Chọn Xí nghiệp nhận từ danh mục");
+    const okSplit = await confirmGiaoCaPhuLuc();
+    if (!okSplit) return null;
     const body = payload();
     if (qdId) {
       const res = await fetch(`/api/qd-giao-xn/${qdId}`, {
@@ -338,7 +417,9 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      const { mappedCount } = await save();
+      const result = await save();
+      if (!result) return;
+      const { mappedCount } = result;
       setOkMsg(
         mappedCount > 1
           ? `Đã lưu dự thảo — liên kết ${mappedCount} dự án (công trình) trong bảng.`
@@ -392,7 +473,9 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      const { id } = await save();
+      const result = await save();
+      if (!result) return;
+      const { id } = result;
       const res = await fetch(`/api/qd-giao-xn/${id}/export/word`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -402,8 +485,8 @@ export function SoanQdGiaoXnEditor({
           so_tien_tam_ung: soTienTamUng || null,
           so_tien_tam_ung_chu: soTienTamUngChu || null,
           so_luong_cong_trinh: soLuongCt || null,
-          tmdt_overrides: showTinhTien ? tmdtOverrides : undefined,
-          cong_trinh: showTinhTien ? congTrinhEdit : undefined,
+          tmdt_overrides: showTinhTien ? tmdtDaChon : undefined,
+          cong_trinh: congTrinhDaChon,
         }),
       });
       if (!res.ok) {
@@ -434,7 +517,9 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      const { id } = await save();
+      const result = await save();
+      if (!result) return;
+      const { id } = result;
       window.open(
         `/du-an/${duAn.id}/giao-xn/soan/in?qdId=${id}`,
         "_blank",
@@ -456,7 +541,9 @@ export function SoanQdGiaoXnEditor({
     setError(null);
     setOkMsg(null);
     try {
-      const { id } = await save();
+      const result = await save();
+      if (!result) return;
+      const { id } = result;
       const form = new FormData();
       form.set("file", file);
       const res = await fetch(`/api/qd-giao-xn/${id}/pdf-ky`, {
@@ -674,7 +761,10 @@ export function SoanQdGiaoXnEditor({
                   type="date"
                   value={ngay}
                   onChange={(e) => setNgay(e.target.value)}
-                  className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${theme.textBody}`}
+                  placeholder="nn/mm/yyyy"
+                  className={`w-full border-0 bg-transparent p-0 text-[13px] leading-snug outline-none ${
+                    ngay ? theme.textBody : "text-slate-400"
+                  }`}
                 />
               </fieldset>
               <fieldset
@@ -774,11 +864,129 @@ export function SoanQdGiaoXnEditor({
               </div>
             </section>
 
+            {congTrinhBase.length > 0 ? (
+              <section className="space-y-2 rounded-lg border border-sky-100 bg-sky-50/50 px-2.5 py-2">
+                <div className="flex flex-wrap items-end justify-between gap-2">
+                  <div>
+                    <SectionHead n={4} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                      Công trình giao lần này
+                    </SectionHead>
+                    <p className={`mt-0.5 text-[11px] ${theme.textMuted}`}>
+                      Tick công trình giao cho Xí nghiệp đang chọn. Dòng đã giao đơn vị
+                      khác bị khóa. Đã chọn {soDongDaChon}/{soDongMoKhoa} còn lại
+                      {soDaChuaGiao > 0
+                        ? ` · ${soDaChuaGiao} dự án cùng Giao A chưa giao`
+                        : ""}
+                      .
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => {
+                        setSelected(
+                          congTrinhBase.map((r) => {
+                            const k = normalizeTenDuAn(r.ct_ten);
+                            return !(k && lockedByKey.has(k));
+                          }),
+                        );
+                      }}
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium disabled:opacity-50 ${theme.btnRecalc}`}
+                    >
+                      Chọn còn lại
+                    </button>
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() =>
+                        setSelected(congTrinhBase.map(() => false))
+                      }
+                      className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium disabled:opacity-50 ${theme.btnRecalc}`}
+                    >
+                      Bỏ chọn
+                    </button>
+                  </div>
+                </div>
+                <div className={`overflow-x-auto rounded-lg border ${theme.tableBorder}`}>
+                  <table className={`min-w-full text-left text-[12px] leading-snug ${theme.textBody}`}>
+                    <thead className={theme.tableHead}>
+                      <tr>
+                        <th className="w-10 px-2 py-2 text-center text-[12px] font-semibold">
+                          Chọn
+                        </th>
+                        <th className="w-10 px-2 py-2 text-center text-[12px] font-semibold">
+                          STT
+                        </th>
+                        <th className="px-2 py-2 text-center text-[12px] font-semibold">
+                          Công trình
+                        </th>
+                        <th className="min-w-[8rem] px-2 py-2 text-center text-[12px] font-semibold">
+                          Trạng thái
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {congTrinhBase.map((row, i) => {
+                        const k = normalizeTenDuAn(row.ct_ten);
+                        const locked = k ? lockedByKey.get(k) : undefined;
+                        const checked = Boolean(selected[i]);
+                        return (
+                          <tr
+                            key={`ct-${i}`}
+                            className={`border-t ${theme.tableRowBorder} ${
+                              locked ? "bg-slate-50/80 text-slate-500" : ""
+                            }`}
+                          >
+                            <td className="px-2 py-1.5 text-center align-middle">
+                              <input
+                                type="checkbox"
+                                checked={locked ? false : checked}
+                                disabled={disabled || Boolean(locked)}
+                                onChange={(e) => {
+                                  const next = [...selected];
+                                  next[i] = e.target.checked;
+                                  setSelected(next);
+                                }}
+                                className="h-3.5 w-3.5 accent-teal-600"
+                                aria-label={`Chọn công trình ${i + 1}`}
+                              />
+                            </td>
+                            <td className="px-2 py-1.5 text-center align-middle tabular-nums">
+                              {i + 1}
+                            </td>
+                            <td className="min-w-[14rem] px-2 py-1.5 align-middle text-justify">
+                              {row.ct_ten || "—"}
+                            </td>
+                            <td className="px-2 py-1.5 align-middle text-[11px]">
+                              {locked
+                                ? `Đã giao${
+                                    locked.xi_nghiep_ten
+                                      ? ` · ${locked.xi_nghiep_ten}`
+                                      : ""
+                                  }${
+                                    locked.so_qd_du_thao?.trim()
+                                      ? ` · QĐ ${locked.so_qd_du_thao.trim()}`
+                                      : ""
+                                  }`
+                                : checked
+                                  ? "Giao lần này"
+                                  : "Chưa chọn"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ) : null}
+
             {showTinhTien ? (
               <section className="space-y-2 rounded-lg border border-violet-100 bg-violet-50/60 px-2.5 py-2">
                 <div className="flex flex-wrap items-end justify-between gap-2">
                   <div>
-                    <SectionHead n={4} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                    <SectionHead n={5} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
                       Giá trị hợp đồng &amp; tạm ứng
                     </SectionHead>
                     <p className={`mt-0.5 text-[11px] ${theme.textMuted}`}>
@@ -803,19 +1011,20 @@ export function SoanQdGiaoXnEditor({
                     disabled={disabled}
                     onClick={() => {
                       setTamUngDirty(false);
-                      resetCongTrinhTuPhuLuc();
+                      setTmdtOverrides(
+                        congTrinhBase.map((r) => (r.ct_tmdt ?? "").toString()),
+                      );
                     }}
                     className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${theme.btnRecalc}`}
                   >
-                    Tính lại từ phụ lục
+                    Tính lại TMĐT từ phụ lục
                   </button>
                 </div>
 
-                {congTrinhEdit.length === 0 ? (
+                {congTrinhDaChon.length === 0 ||
+                (congTrinhBase.length > 0 && soDongDaChon === 0) ? (
                   <p className={`text-xs ${theme.textMuted}`}>
-                    {congTrinhBase.length === 0
-                      ? "Chưa có phụ lục công trình từ Quyết định giao danh mục — quét lại trước khi xuất bảng tiền."
-                      : "Đã xóa hết dòng — bấm «Tính lại từ phụ lục» để khôi phục."}
+                    Chưa chọn công trình — tick ở mục trên để tính tiền.
                   </p>
                 ) : (
                   <div className={`overflow-x-auto rounded-lg border ${theme.tableBorder}`}>
@@ -844,72 +1053,56 @@ export function SoanQdGiaoXnEditor({
                               ? ` (${(ketQuaTien.ty_le_tam_ung * 100).toLocaleString("vi-VN")}%)`
                               : ""}
                           </th>
-                          <th className="w-12 px-1 py-2 text-center text-[12px] font-semibold">
-                            Xóa
-                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {ketQuaTien.rows.map((row, i) => (
-                          <tr
-                            key={`${row.stt}-${i}`}
-                            className={`border-t ${theme.tableRowBorder}`}
-                          >
-                            <td className={`px-2 py-1.5 text-center align-middle tabular-nums ${theme.textBody}`}>
-                              {i + 1}
-                            </td>
-                            <td className="min-w-[14rem] px-2 py-1.5 align-middle text-justify">
-                              {row.ct_ten || "—"}
-                            </td>
-                            <td className="w-[6.75rem] min-w-[6.75rem] px-2 py-1.5 align-middle">
-                              <input
-                                value={tmdtOverrides[i] ?? ""}
-                                onChange={(e) => {
-                                  const next = [...tmdtOverrides];
-                                  next[i] = e.target.value;
-                                  setTmdtOverrides(next);
-                                }}
-                                className={`w-full rounded-md border bg-white px-1.5 py-1 text-center text-[12px] leading-snug tabular-nums outline-none focus:ring-1 ${theme.field} ${theme.textBody}`}
-                                placeholder="0"
-                              />
-                            </td>
-                            <td className="px-2 py-1.5 text-right align-middle tabular-nums">
-                              {row.ct_gia_tri_hd || "—"}
-                            </td>
-                            <td className="px-2 py-1.5 text-right align-middle tabular-nums">
-                              {row.ct_gia_tri_tam_ung || "—"}
-                            </td>
-                            <td className="px-1.5 py-1.5 text-center align-middle">
-                              <button
-                                type="button"
-                                disabled={disabled}
-                                title="Xóa dòng"
-                                aria-label={`Xóa công trình ${i + 1}`}
-                                onClick={() => {
-                                  setCongTrinhEdit((prev) =>
-                                    prev.filter((_, j) => j !== i),
-                                  );
-                                  setTmdtOverrides((prev) =>
-                                    prev.filter((_, j) => j !== i),
-                                  );
-                                }}
-                                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-rose-500 transition hover:bg-rose-100 hover:text-rose-700 disabled:opacity-40"
-                              >
-                                <svg
-                                  className="h-4 w-4"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2.25"
-                                  strokeLinecap="round"
-                                  aria-hidden
-                                >
-                                  <path d="M6 6l12 12M18 6L6 18" />
-                                </svg>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                        {ketQuaTien.rows.map((row, i) => {
+                          const baseIdx = (() => {
+                            let seen = -1;
+                            for (let j = 0; j < congTrinhBase.length; j++) {
+                              if (!selected[j]) continue;
+                              seen += 1;
+                              if (seen === i) return j;
+                            }
+                            return -1;
+                          })();
+                          return (
+                            <tr
+                              key={`${row.stt}-${i}`}
+                              className={`border-t ${theme.tableRowBorder}`}
+                            >
+                              <td className={`px-2 py-1.5 text-center align-middle tabular-nums ${theme.textBody}`}>
+                                {i + 1}
+                              </td>
+                              <td className="min-w-[14rem] px-2 py-1.5 align-middle text-justify">
+                                {row.ct_ten || "—"}
+                              </td>
+                              <td className="w-[6.75rem] min-w-[6.75rem] px-2 py-1.5 align-middle">
+                                <input
+                                  value={
+                                    baseIdx >= 0
+                                      ? (tmdtOverrides[baseIdx] ?? "")
+                                      : ""
+                                  }
+                                  onChange={(e) => {
+                                    if (baseIdx < 0) return;
+                                    const next = [...tmdtOverrides];
+                                    next[baseIdx] = e.target.value;
+                                    setTmdtOverrides(next);
+                                  }}
+                                  className={`w-full rounded-md border bg-white px-1.5 py-1 text-center text-[12px] leading-snug tabular-nums outline-none focus:ring-1 ${theme.field} ${theme.textBody}`}
+                                  placeholder="0"
+                                />
+                              </td>
+                              <td className="px-2 py-1.5 text-right align-middle tabular-nums">
+                                {row.ct_gia_tri_hd || "—"}
+                              </td>
+                              <td className="px-2 py-1.5 text-right align-middle tabular-nums">
+                                {row.ct_gia_tri_tam_ung || "—"}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                       <tfoot>
                         <tr className={`border-t text-[12px] ${theme.tableFoot}`}>
@@ -925,7 +1118,6 @@ export function SoanQdGiaoXnEditor({
                           <td className="px-2 py-2 text-right tabular-nums">
                             {ketQuaTien.tong_gia_tri_tam_ung || "—"}
                           </td>
-                          <td />
                         </tr>
                       </tfoot>
                     </table>

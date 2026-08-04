@@ -63,7 +63,7 @@ flowchart TD
 | Khối | Module con | Vai trò |
 |---|---|---|
 | Đăng nhập | — | Xác thực người dùng, mở phiên làm việc |
-| Chọn phân hệ | TVTK · TN · TVGS | Cửa vào ba tổ nghiệp vụ |
+| Chọn phân hệ | TVTK · TN · TVGS | Cửa vào ba tổ; mỗi thẻ hiện số dự án đã / chưa giao nhiệm vụ |
 | Nghiệp vụ theo phân hệ | Nhập & quét Giao A · Quản lý dự án · Giao nhiệm vụ · Xuất Word | Luồng chính của mỗi tổ |
 | Quản lý hệ thống | Nhật ký · Nhân sự & tổ · Xí nghiệp | Quản trị và truy vết |
 | Tài khoản cá nhân | — | Thông tin cá nhân, đổi mật khẩu |

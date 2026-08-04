@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-08-04 — Hub thống kê, tick công trình, ngày trống Word, danh xưng GD XN
+
+**Version:** `0.1.4`
+
+### Đã chốt / đã làm
+
+- **Hub chọn phân hệ:** mỗi thẻ hiện *Đã giao nhiệm vụ* / *Chưa giao nhiệm vụ* (có QĐ kể cả map); bỏ dòng «Vào phân hệ →».
+- **Tick chọn công trình giao lần này** (110 kV + THA): thay xóa dòng; khóa CT đã giao XN khác; cảnh báo khi chọn hết phần còn lại; map/Word theo danh sách đã tick.
+- **Ngày ban hành** mặc định trống; xuất Word để khoảng trắng ngày/tháng/năm (Doffice), không dùng dấu …
+- **Điều 3 mẫu TVTK 110/THA:** danh xưng Giám đốc XN — **Hà Giang = Bà**, XN khác = **Ông** (tag `{danh_xung_gd_xn}`).
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [page.tsx](d:\AIProject\gnvnpsc\src\app\page.tsx) · [hub-phan-he-stats.ts](d:\AIProject\gnvnpsc\src\lib\hub-phan-he-stats.ts) | Hub + đếm đã/chưa giao |
+| [SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) · [qd-giao-xn-map.ts](d:\AIProject\gnvnpsc\src\lib\qd-giao-xn-map.ts) | Tick CT + ngữ cảnh đã giao |
+| [format-ngay.ts](d:\AIProject\gnvnpsc\src\lib\word\format-ngay.ts) | Ngày trống → khoảng trắng |
+| [danh-xung-gd-xn.ts](d:\AIProject\gnvnpsc\src\lib\danh-xung-gd-xn.ts) · [fill-qd-giao-xn.ts](d:\AIProject\gnvnpsc\src\lib\word\fill-qd-giao-xn.ts) | Ông/Bà theo XN |
+| [qd-giao-nhiem-vu-tvtk_110.docx](d:\AIProject\gnvnpsc\public\templates\qd-giao-nhiem-vu-tvtk_110.docx) · [tvtk_tha.docx](d:\AIProject\gnvnpsc\public\templates\qd-giao-nhiem-vu-tvtk_tha.docx) | Tag danh xưng Điều 3 |
+| [02](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) · [HDSD 02/03](d:\AIProject\gnvnpsc\docs\hdsd\02_giao_nhiem_vu.md) | Workflow / HDSD |
+
+### Việc tiếp
+
+- [ ] Chạy SQL `018` + `019` trên Supabase nếu chưa (map + PDF ký).
+- [ ] Kiểm tra xuất Word: Hà Giang → Bà; XN khác → Ông; ngày trống không còn dấu …
+- [ ] Bổ sung mẫu Word Thí nghiệm / Tư vấn giám sát.
+- [ ] Khi hoàn thiện luồng PDF in, đổi `SHOW_EXPORT_PDF` thành `true`.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất (v0.1.4). Hub đếm đã/chưa giao, tick công trình, ngày trống Word và danh xưng GD XN (Hà Giang = Bà) đã xong. Tiếp: chạy SQL 018/019 nếu thiếu hoặc mẫu Word TN/TVGS.
+
+Chi tiết phiên: [2026-08-04-hub-tick-danh-xung.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-08-04-hub-tick-danh-xung.md)
+
+---
+
 ## 2026-07-31 — Map nhiều DA vào một QĐ, PDF ký, tiền tạm ứng, nhật ký Giao XN
 
 **Version:** `0.1.3`
