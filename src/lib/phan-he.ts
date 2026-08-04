@@ -129,8 +129,9 @@ const themeTvgs: PhanHeTheme = {
   label: "amber",
   primary: "bg-amber-700",
   primaryText: "text-amber-900",
-  headerBg: "bg-amber-700",
-  headerText: "text-white",
+  /** Tiêu đề bảng: xanh nhạt (không chóe, không xám) */
+  headerBg: "bg-sky-100",
+  headerText: "text-sky-950",
   border: "border-amber-200",
   softBg: "bg-amber-50",
   softText: "text-amber-900",

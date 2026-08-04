@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { labelCapDienAp } from "@/lib/cap-dien-ap";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
+import { isPhanHeCode, PHAN_HE } from "@/lib/phan-he";
 import { formatNgayVN } from "@/lib/word/format-ngay";
 import { labelTrangThaiGiaoXn } from "@/lib/trang-thai-giao-xn";
 import type {
@@ -32,6 +33,7 @@ function labelLoaiGiao(
   cardCap?: CapDienAp,
 ): string {
   if (loai === "thi_nghiem") return "Thí nghiệm, hiệu chỉnh";
+  if (loai === "tvgs") return "Tư vấn giám sát";
   const c = cardCap ?? cap;
   if (c === "110kv") return "Tư vấn thiết kế 110kV";
   if (c === "trung_ha_ap") return "Tư vấn thiết kế trung, hạ áp";
@@ -59,6 +61,8 @@ export function GiaoNhiemVuSection({
   xiNghiep,
   existingQds,
 }: Props) {
+  const phanHe = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
+  const loaiMacDinh = PHAN_HE[phanHe].defaultLoaiGiao;
   const byLoai = useMemo(() => {
     const map = new Map<LoaiGiaoXn, QdGiaoXnWithXn>();
     for (const row of existingQds) {
@@ -67,13 +71,19 @@ export function GiaoNhiemVuSection({
     return map;
   }, [existingQds]);
 
-  const existing = byLoai.get("tvtk");
+  const existing =
+    byLoai.get(loaiMacDinh) ??
+    (phanHe === "tvgs"
+      ? byLoai.get("tvtk")
+      : phanHe === "thi_nghiem"
+        ? byLoai.get("thi_nghiem")
+        : byLoai.get("tvtk"));
   const mappedOnly = Boolean(
     existing && existing.du_an_id && existing.du_an_id !== duAn.id,
   );
-  const soanUrl = soanHref(duAn.id, "tvtk", existing);
-  const loaiText = labelLoaiGiao("tvtk", duAn.cap_dien_ap);
-  const needCapForTvtk = !duAn.cap_dien_ap;
+  const soanUrl = soanHref(duAn.id, loaiMacDinh, existing);
+  const loaiText = labelLoaiGiao(loaiMacDinh, duAn.cap_dien_ap);
+  const needCapForTvtk = loaiMacDinh === "tvtk" && !duAn.cap_dien_ap;
   const xnDanhMuc =
     xiNghiep.find((x) => x.id === duAn.xi_nghiep_id)?.ten ?? null;
   const qdPdfKy =

@@ -179,7 +179,7 @@ export function NhapDuAnClient({ phanHe }: Props) {
               >
                 {loading ? (
                   <div
-                    className={`pointer-events-none absolute inset-y-0 left-0 opacity-60 transition-all duration-500 ease-out ${t.softBg}`}
+                    className="pointer-events-none absolute inset-y-0 left-0 bg-gradient-to-r from-sky-400 to-cyan-300 transition-all duration-500 ease-out"
                     style={{ width: `${percent}%` }}
                   />
                 ) : null}

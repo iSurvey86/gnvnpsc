@@ -59,7 +59,7 @@ flowchart TD
 | Cột | Nội dung |
 |-----|----------|
 | STT | Theo trang đang xem |
-| Người thực hiện | Họ tên và email người thao tác |
+| Người thực hiện | Họ tên; dòng phụ là email (riêng tài khoản `admin@gnvnpsc.local` hiện **Admin**) |
 | Phân hệ | Nhóm nghiệp vụ: Xác thực · Dự án · Quyết định Giao A · Giao Xí nghiệp · Hệ thống |
 | Hành động | Đăng nhập · Đăng xuất · Tạo mới · Cập nhật · Xóa · Xuất văn bản · Quét tài liệu · Cấp đăng nhập… kèm thời điểm |
 | Chi tiết | Mô tả việc đã làm, mã đối tượng đầy đủ và các thông tin kèm theo |
@@ -71,6 +71,7 @@ Quy ước trình bày nhật ký:
 - Mã đối tượng hiện đủ, dùng phông đơn cách để đối chiếu khi tra cứu.
 - Nội dung mọi ô căn giữa theo chiều dọc; tiêu đề cột căn giữa.
 - Bộ lọc Phân hệ và Hành động cũng dùng tên đầy đủ tiếng Việt.
+- Checkbox **Hide Admin**: khi bật, ẩn dòng do tài khoản Admin thực hiện — chỉ xem hoạt động non-admin.
 
 **Giao Xí nghiệp được ghi:** tạo dự thảo · lưu dự thảo · xuất Word · tải PDF đã ký · xóa dự thảo (phân hệ «Giao Xí nghiệp»). Xuất Word thường kèm một dòng Lưu ngay trước đó.
 

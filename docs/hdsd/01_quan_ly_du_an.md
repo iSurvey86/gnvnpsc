@@ -13,7 +13,10 @@
 3. Kiểm tra / sửa: mã, tên, địa điểm, quy mô, cấp điện áp.
 4. Cột **Loại hình dự án**:
    - Dòng **110kV**: hệ thống ghi sẵn `110kV`, không cần chọn.
-   - Dòng **trung hạ áp**: **bắt buộc** chọn một trong — **XDM** (xây dựng mới) · **Cải tạo** · **SCMBA** (sửa chữa máy biến áp) · **DMS**.
+   - Dòng **trung hạ áp**: **bắt buộc** chọn loại hình.
+     - Phân hệ **Tư vấn thiết kế**: XDM · Cải tạo · SCMBA · DMS.
+     - Phân hệ **Thí nghiệm**: chỉ **TNHC** (mặc định).
+     - Phân hệ **Tư vấn giám sát**: chỉ **TVGS** (mặc định).
 5. Bấm **Lưu** — hệ thống không cho lưu nếu còn dòng trung hạ áp thiếu loại hình. (Chọn Xí nghiệp khi vào **giao nhiệm vụ**, không chọn trên màn Review.)
 6. Có thể **Thêm dòng** hoặc **Xóa** dòng không cần thiết trước khi lưu.
 7. Nếu không muốn giữ bản quét: bấm **Hủy bản quét**.

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { SoanQdGiaoXnEditor } from "@/components/SoanQdGiaoXnEditor";
-import { isPhanHeCode } from "@/lib/phan-he";
+import { isPhanHeCode, PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 import { loadPhuLucGiaoXnContext } from "@/lib/qd-giao-xn-map";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DuAn, LoaiGiaoXn, QdGiaoA, QdGiaoXn, XiNghiep } from "@/lib/types";
@@ -17,11 +17,17 @@ function oneRel<T>(v: T | T[] | null | undefined): T | null {
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
 
+function parseLoaiGiao(
+  raw: string | undefined,
+  fallback: LoaiGiaoXn,
+): LoaiGiaoXn {
+  if (raw === "tvtk" || raw === "thi_nghiem" || raw === "tvgs") return raw;
+  return fallback;
+}
+
 export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) {
   const { id } = await params;
   const sp = await searchParams;
-  const loai: LoaiGiaoXn =
-    sp.loai === "thi_nghiem" ? "thi_nghiem" : "tvtk";
 
   const supabase = createAdminClient();
   const { data: duAn, error } = await supabase
@@ -32,8 +38,12 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
 
   if (error || !duAn) notFound();
 
+  const phanHe: PhanHeCode = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
+  const loaiMacDinh = PHAN_HE[phanHe].defaultLoaiGiao;
+  const loai: LoaiGiaoXn = parseLoaiGiao(sp.loai, loaiMacDinh);
+
   if (loai === "tvtk" && !(duAn as DuAn).cap_dien_ap) {
-    redirect(`/du-an/${id}/giao-xn`);
+    redirect(`/du-an/${id}/giao-xn?phan_he=${phanHe}`);
   }
 
   if (!sp.qdId) {
@@ -107,8 +117,12 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
     }
   }
 
-  const phanHe = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
-  const loaiHieuLuc = (initial?.loai ?? loai) as LoaiGiaoXn;
+  const loaiHieuLuc: LoaiGiaoXn =
+    phanHe === "tvgs"
+      ? "tvgs"
+      : phanHe === "thi_nghiem"
+        ? "thi_nghiem"
+        : ((initial?.loai ?? loai) as LoaiGiaoXn);
   const phuLucCtx = await loadPhuLucGiaoXnContext(supabase, {
     qdGiaoAId: (duAn.qd_giao_a_id as string | null) ?? null,
     phanHe,

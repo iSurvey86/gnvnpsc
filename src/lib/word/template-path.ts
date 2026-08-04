@@ -9,9 +9,8 @@ export function resolveQdGiaoXnTemplateFile(
   if (loai === "thi_nghiem") {
     return "qd-giao-nhiem-vu-tnhc.docx";
   }
-  // TVGS: tạm dùng mẫu TNHC đến khi có file Word riêng
   if (loai === "tvgs") {
-    return "qd-giao-nhiem-vu-tnhc.docx";
+    return "qd-giao-nhiem-vu-tvgs.docx";
   }
   if (cap === "trung_ha_ap") {
     return "qd-giao-nhiem-vu-tvtk_tha.docx";

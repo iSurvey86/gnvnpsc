@@ -30,10 +30,14 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 
 ### Lập / soạn quyết định
 
-1. Bấm **+ Lập** hoặc **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát trầm).
+1. Bấm **+ Lập** hoặc **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát, **TVGS xanh cyan**).
 2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
 3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
-4. **Trung hạ áp:** bảng chi phí lần 01 (L1) và tạm ứng (số + bằng chữ) tự tính từ phụ lục — có thể sửa tay.
+4. **Tính tiền:**
+   - TVTK THA: GHĐ theo loại hình (XDM/Cải tạo 3,3% · SCMBA/DMS 1,5%); tạm ứng 15%/16% theo địa bàn.
+   - TVGS: GHĐ **1%** × TMĐT (mọi cấp); **không** tạm ứng; có ô **Tiền bằng số / bằng chữ**.
+   - Cột **Giá trị HĐ** (và tạm ứng trên bảng) hiển thị **đồng** (vd `180.930.000`), không dùng dạng triệu có dấu phẩy.
+   - TNHC: tính sau.
 5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Tải PDF đã ký** (sau khi ký ngoài). Nút **Xuất PDF** đang tạm ẩn.
 6. Sau khi **Lưu**: danh mục dự án hiện **Đã có dự thảo** dưới tên Xí nghiệp. Các dự án khác **cùng Giao A** có tên khớp công trình còn lại trên bảng soạn cũng được gắn vào quyết định này (nhãn **Đã có trong QĐ**) — không cần / không được lập quyết định riêng. Nhật ký ghi **Tạo mới** / **Cập nhật** (phân hệ Giao Xí nghiệp).
 7. Sau khi **Tải PDF đã ký**: trạng thái **Đã giao**, bỏ dấu Dự thảo; bấm nhãn trên danh mục để xem PDF. Nhật ký ghi cập nhật «Tải PDF đã ký».
@@ -66,7 +70,7 @@ Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ 
 
 | Nút | Kết quả |
 |-----|---------|
-| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. Điều 3: Giám đốc XN Hà Giang = Bà, XN khác = Ông. |
+| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Tên tệp: `GNV-[viết tắt XN]-[mã dự án]-[yyyyMMdd]-[HHmmss].docx` (giờ VN). Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. Điều 3: Giám đốc XN Hà Giang = Bà, XN khác = Ông. Mẫu TVGS: `qd-giao-nhiem-vu-tvgs.docx`. |
 
 ### Gợi ý thao tác
 

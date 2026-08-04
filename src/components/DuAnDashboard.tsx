@@ -369,95 +369,92 @@ export function DuAnDashboard({
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-1 flex flex-col gap-3 xl:flex-row">
-        <div className={`relative flex w-full items-center rounded-lg border p-2 shadow-sm xl:w-[28%] ${t.searchBorder} ${t.searchBg}`}>
-          <div className={`pointer-events-none absolute left-4 ${t.softText}`}>
-            <SearchIcon />
-          </div>
-          <input
-            type="text"
-            placeholder="Tìm kiếm chung (tên, mã, địa điểm)..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full rounded border bg-white py-2 pr-8 pl-8 text-[13px] font-normal text-gray-800 shadow-sm placeholder:font-light placeholder-gray-500 transition-all focus:ring-2 focus:outline-none ${t.searchBorder}`}
-          />
-          {searchTerm ? (
-            <button
-              type="button"
-              onClick={() => setSearchTerm("")}
-              className="absolute right-4 cursor-pointer text-rose-400 transition hover:text-rose-600"
-              title="Xóa tìm kiếm"
-            >
-              <XIcon />
-            </button>
-          ) : null}
+      {/* Tìm kiếm + bộ lọc — một dòng */}
+      <div className={`relative mb-1 flex items-center rounded-lg border p-2 shadow-sm ${t.filterBorder} ${t.filterBg}`}>
+        <div className={`pointer-events-none absolute left-4 hidden lg:block ${t.softText}`}>
+          <FilterIcon />
         </div>
-
-        <div className={`relative flex flex-1 items-center rounded-lg border p-2 shadow-sm ${t.filterBorder} ${t.filterBg}`}>
-          <div className={`pointer-events-none absolute left-4 hidden lg:block ${t.softText}`}>
-            <FilterIcon />
-          </div>
-          <div className="flex w-full gap-2 overflow-x-auto pb-1 pl-0 lg:pb-0 lg:pl-8">
+        <div className="flex w-full gap-2 overflow-x-auto pb-1 pl-0 lg:pb-0 lg:pl-8">
+          <div className="relative min-w-[200px] flex-[1.4]">
+            <div className={`pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 ${t.softText}`}>
+              <SearchIcon />
+            </div>
             <input
               type="text"
-              placeholder="Số QĐ Giao A..."
-              value={filterQdGiaoA}
-              onChange={(e) => setFilterQdGiaoA(e.target.value)}
-              className={`min-w-[120px] flex-1 rounded border bg-white px-3 py-2 text-[13px] font-normal text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:outline-none ${t.filterBorder}`}
+              placeholder="Tìm kiếm chung (tên, mã, địa điểm)..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded border border-sky-300 bg-white py-2 pr-8 pl-8 text-[13px] font-normal text-gray-800 shadow-sm placeholder:font-light placeholder-gray-500 focus:border-sky-400 focus:outline-none"
             />
-            <input
-              type="text"
-              placeholder="Địa điểm..."
-              value={filterDiaDiem}
-              onChange={(e) => setFilterDiaDiem(e.target.value)}
-              className={`min-w-[140px] flex-1 rounded border bg-white px-3 py-2 text-[13px] font-normal text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:outline-none ${t.filterBorder}`}
-            />
-            <select
-              value={filterLoaiHinh}
-              onChange={(e) => setFilterLoaiHinh(e.target.value)}
-              className={`min-w-[150px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-normal text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
-            >
-              <option value="">Loại hình tư vấn</option>
-              {LOAI_HINH_TU_VAN_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterLoaiHinhDuAn}
-              onChange={(e) => setFilterLoaiHinhDuAn(e.target.value)}
-              className={`min-w-[140px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-normal text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
-            >
-              <option value="">Loại hình dự án</option>
-              {LOAI_HINH_DU_AN_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.short}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterLoaiXn}
-              onChange={(e) => setFilterLoaiXn(e.target.value)}
-              className={`min-w-[160px] cursor-pointer rounded border bg-white px-2 py-2 text-[13px] font-normal text-gray-600 shadow-sm focus:outline-none ${t.filterBorder}`}
-            >
-              <option value="">Trạng thái giao XN</option>
-              <option value="chua">Chưa giao XN</option>
-              <option value="tvtk">Đã có TVTK</option>
-              <option value="thi_nghiem">Đã có Thí nghiệm</option>
-            </select>
-            {hasAdv ? (
+            {searchTerm ? (
               <button
                 type="button"
-                onClick={clearFilters}
-                className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-red-200 bg-red-50 px-3 text-red-500 transition hover:bg-red-100 hover:text-red-700"
-                title="Xóa lọc nâng cao"
+                onClick={() => setSearchTerm("")}
+                className="absolute top-1/2 right-2 -translate-y-1/2 cursor-pointer text-rose-400 transition hover:text-rose-600"
+                title="Xóa tìm kiếm"
               >
                 <XIcon />
               </button>
             ) : null}
           </div>
+          <input
+            type="text"
+            placeholder="Số QĐ Giao A..."
+            value={filterQdGiaoA}
+            onChange={(e) => setFilterQdGiaoA(e.target.value)}
+            className="min-w-[120px] flex-1 rounded border border-teal-300 bg-white px-3 py-2 text-[13px] font-normal text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-teal-400 focus:outline-none"
+          />
+          <input
+            type="text"
+            placeholder="Địa điểm..."
+            value={filterDiaDiem}
+            onChange={(e) => setFilterDiaDiem(e.target.value)}
+            className="min-w-[120px] flex-1 rounded border border-emerald-300 bg-white px-3 py-2 text-[13px] font-normal text-gray-800 shadow-sm placeholder:font-normal placeholder-gray-500 focus:border-emerald-400 focus:outline-none"
+          />
+          <select
+            value={filterLoaiHinh}
+            onChange={(e) => setFilterLoaiHinh(e.target.value)}
+            className="min-w-[140px] cursor-pointer rounded border border-violet-300 bg-white px-2 py-2 text-[13px] font-normal text-gray-600 shadow-sm focus:border-violet-400 focus:outline-none"
+          >
+            <option value="">Loại hình tư vấn</option>
+            {LOAI_HINH_TU_VAN_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterLoaiHinhDuAn}
+            onChange={(e) => setFilterLoaiHinhDuAn(e.target.value)}
+            className="min-w-[130px] cursor-pointer rounded border border-amber-300 bg-white px-2 py-2 text-[13px] font-normal text-gray-600 shadow-sm focus:border-amber-400 focus:outline-none"
+          >
+            <option value="">Loại hình dự án</option>
+            {LOAI_HINH_DU_AN_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.short}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterLoaiXn}
+            onChange={(e) => setFilterLoaiXn(e.target.value)}
+            className="min-w-[150px] cursor-pointer rounded border border-rose-300 bg-white px-2 py-2 text-[13px] font-normal text-gray-600 shadow-sm focus:border-rose-400 focus:outline-none"
+          >
+            <option value="">Trạng thái giao XN</option>
+            <option value="chua">Chưa giao XN</option>
+            <option value="tvtk">Đã có TVTK</option>
+            <option value="thi_nghiem">Đã có Thí nghiệm</option>
+          </select>
+          {hasAdv ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="flex shrink-0 cursor-pointer items-center justify-center rounded border border-red-200 bg-red-50 px-3 text-red-500 transition hover:bg-red-100 hover:text-red-700"
+              title="Xóa lọc nâng cao"
+            >
+              <XIcon />
+            </button>
+          ) : null}
         </div>
       </div>
 

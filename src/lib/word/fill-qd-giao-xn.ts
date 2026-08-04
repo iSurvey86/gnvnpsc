@@ -47,6 +47,9 @@ export type QdGiaoXnExportInput = {
   ten_goi_thau?: string | null;
   so_tien_tam_ung?: string | null;
   so_tien_tam_ung_chu?: string | null;
+  /** TVGS: tổng GHĐ bằng số (đồng) / bằng chữ */
+  so_tien_hd?: string | null;
+  so_tien_hd_chu?: string | null;
   so_luong_cong_trinh?: string | null;
   ghi_chu_bo_sung?: string | null;
   /** Ghi đè TMĐT (triệu đồng) theo thứ tự dòng phụ lục */
@@ -218,6 +221,8 @@ export function buildWordTagData(opts: {
         : "Thí nghiệm hiệu chỉnh"),
     so_tien_tam_ung: draft.so_tien_tam_ung?.trim() || empty,
     so_tien_tam_ung_chu: draft.so_tien_tam_ung_chu?.trim() || empty,
+    so_tien_hd: draft.so_tien_hd?.trim() || empty,
+    so_tien_hd_chu: draft.so_tien_hd_chu?.trim() || empty,
     tong_tmdt:
       mapped?.tong_tmdt ||
       phuLuc?.tong_tmdt?.toString().trim() ||

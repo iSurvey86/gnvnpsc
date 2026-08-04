@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { logHoatDong, type NhatKyHoatDong } from "@/lib/activity-log";
+import { ADMIN_EMAIL } from "@/lib/auth-defaults";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSessionProfile } from "@/lib/session";
 
@@ -20,6 +21,9 @@ export async function GET(request: Request) {
     const q = (url.searchParams.get("q") || "").trim().toLowerCase();
     const phanHe = url.searchParams.get("phan_he") || "ALL";
     const hanhDong = url.searchParams.get("hanh_dong") || "ALL";
+    const hideAdmin =
+      url.searchParams.get("hide_admin") === "1" ||
+      url.searchParams.get("hide_admin") === "true";
     const page = Math.max(1, Number(url.searchParams.get("page") || 1));
     const pageSize = Math.min(
       100,
@@ -29,6 +33,19 @@ export async function GET(request: Request) {
     const to = from + pageSize - 1;
 
     const admin = createAdminClient();
+
+    const adminEmails = new Set<string>([ADMIN_EMAIL.toLowerCase()]);
+    if (hideAdmin) {
+      const { data: adminNs } = await admin
+        .from("nhan_su")
+        .select("email")
+        .eq("vai_tro", "admin");
+      for (const row of adminNs ?? []) {
+        const em = (row.email as string | null)?.trim().toLowerCase();
+        if (em) adminEmails.add(em);
+      }
+    }
+
     let query = admin
       .from("nhat_ky_hoat_dong")
       .select("*", { count: "exact" })
@@ -36,6 +53,14 @@ export async function GET(request: Request) {
 
     if (phanHe !== "ALL") query = query.eq("phan_he", phanHe);
     if (hanhDong !== "ALL") query = query.eq("hanh_dong", hanhDong);
+
+    if (hideAdmin && adminEmails.size > 0) {
+      // PostgREST in-list: loại email admin (kể cả tài khoản ADMIN_EMAIL)
+      const list = [...adminEmails]
+        .map((e) => `"${e.replace(/"/g, "")}"`)
+        .join(",");
+      query = query.not("email", "in", `(${list})`);
+    }
 
     const { data, error, count } = await query.range(from, to);
     if (error) throw new Error(error.message);

@@ -6,11 +6,13 @@ import { XiNghiepPicker } from "@/components/XiNghiepPicker";
 import { CAP_DIEN_AP_OPTIONS } from "@/lib/cap-dien-ap";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
 import {
-  LOAI_HINH_THA_OPTIONS,
   isLoaiHinhDuAn,
   laDuAn110kv,
+  loaiHinhThaOptionsTheoPhanHe,
+  resolveLoaiHinhDuAnVoiMacDinh,
 } from "@/lib/loai-hinh-du-an";
 import type { CapDienAp, DuAn, LoaiHinhDuAn, XiNghiep } from "@/lib/types";
+import type { PhanHeCode } from "@/lib/phan-he";
 
 type Props = {
   duAn: DuAn;
@@ -22,15 +24,23 @@ const field =
 
 export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
   const router = useRouter();
+  const phanHe = (duAn.phan_he ?? "tvtk") as PhanHeCode;
   const [maDuAn, setMaDuAn] = useState(duAn.ma_du_an ?? "");
   const [tenDuAn, setTenDuAn] = useState(duAn.ten_du_an);
   const [diaDiem, setDiaDiem] = useState(duAn.dia_diem ?? "");
   const [capDienAp, setCapDienAp] = useState<CapDienAp | "">(
     duAn.cap_dien_ap ?? "",
   );
-  const [loaiHinh, setLoaiHinh] = useState<LoaiHinhDuAn | "">(
-    duAn.loai_hinh_du_an === "110kv" ? "" : (duAn.loai_hinh_du_an ?? ""),
-  );
+  const [loaiHinh, setLoaiHinh] = useState<LoaiHinhDuAn | "">(() => {
+    if (duAn.loai_hinh_du_an === "110kv") return "";
+    return (
+      resolveLoaiHinhDuAnVoiMacDinh(
+        duAn.cap_dien_ap,
+        duAn.loai_hinh_du_an,
+        duAn.phan_he,
+      ) ?? ""
+    );
+  });
   const la110kv = laDuAn110kv(capDienAp);
   const [xiId, setXiId] = useState<string | null>(duAn.xi_nghiep_id ?? null);
   const [quyMo, setQuyMo] = useState(duAn.quy_mo ?? "");
@@ -45,7 +55,7 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
       return;
     }
     if (!la110kv && !isLoaiHinhDuAn(loaiHinh)) {
-      setError("Dự án trung hạ áp phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS)");
+      setError("Dự án trung hạ áp phải chọn loại hình");
       return;
     }
     setSaving(true);
@@ -118,9 +128,17 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
             <FieldLabel>Cấp điện áp</FieldLabel>
             <select
               value={capDienAp}
-              onChange={(e) =>
-                setCapDienAp((e.target.value || "") as CapDienAp | "")
-              }
+              onChange={(e) => {
+                const next = (e.target.value || "") as CapDienAp | "";
+                setCapDienAp(next);
+                if (laDuAn110kv(next)) {
+                  setLoaiHinh("");
+                } else {
+                  setLoaiHinh(
+                    resolveLoaiHinhDuAnVoiMacDinh(next, loaiHinh, phanHe) ?? "",
+                  );
+                }
+              }}
               className={`${field} cursor-pointer`}
             >
               <option value="">— Chưa chọn —</option>
@@ -156,7 +174,7 @@ export function SuaDuAnForm({ duAn, xiNghiep }: Props) {
                 }`}
               >
                 <option value="">— Chọn bắt buộc —</option>
-                {LOAI_HINH_THA_OPTIONS.map((o) => (
+                {loaiHinhThaOptionsTheoPhanHe(phanHe).map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>

@@ -1,10 +1,11 @@
+import type { CapDienAp } from "@/lib/cap-dien-ap";
 import type {
-  CapDienAp,
   LoaiGiaoXn,
   LoaiHinhDuAn,
   PhuLucCongTrinh,
 } from "@/lib/types";
 import { removeVietnameseTones } from "@/lib/ma-du-an";
+import { formatVndTuTrieu } from "@/lib/so-tien-bang-chu";
 import {
   tinhFromDiaDiem,
   tinhFromTenPcTinh,
@@ -12,6 +13,8 @@ import {
 
 /** XDM / Cải tạo — giá trị HĐ = 3,3% × TMĐT */
 export const TY_LE_GHD_XDM_CAI_TAO = 0.033;
+/** TVGS (mọi cấp) — giá trị HĐ = 1% × TMĐT; không tạm ứng */
+export const TY_LE_GHD_TVGS = 0.01;
 /** SCMBA / DMS — giá trị HĐ = 1,5% × TMĐT */
 export const TY_LE_GHD_SCMBA_DMS = 0.015;
 
@@ -19,9 +22,9 @@ export const TY_LE_GHD_SCMBA_DMS = 0.015;
 export const TY_LE_GHD_CQT = TY_LE_GHD_XDM_CAI_TAO;
 export const TY_LE_L1_TVTK_THA = TY_LE_GHD_XDM_CAI_TAO;
 
-/** Cùng tỉnh (Chủ đầu tư ↔ Xí nghiệp) → tạm ứng 15% × GHĐ */
+/** TVTK THA: cùng tỉnh → tạm ứng 15% × GHĐ */
 export const TY_LE_TAM_UNG_CUNG_TINH = 0.15;
-/** Khác tỉnh → tạm ứng 16% × GHĐ */
+/** TVTK THA: khác tỉnh → tạm ứng 16% × GHĐ */
 export const TY_LE_TAM_UNG_KHAC_TINH = 0.16;
 
 /** Format số triệu đồng kiểu VN: 15.500,123 (làm tròn 3 chữ số thập phân nếu cần) */
@@ -31,6 +34,14 @@ export function formatTrieuDong(n: number | null | undefined): string {
   const [intPart, decPart] = rounded.toFixed(3).replace(/\.?0+$/, "").split(".");
   const withDots = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   return decPart ? `${withDots},${decPart}` : withDots;
+}
+
+/**
+ * Triệu đồng → chuỗi đồng (dấu chấm nghìn), khớp mẫu Word «(đồng)».
+ * Ví dụ: 180,93 triệu → «180.930.000».
+ */
+export function formatDongTuTrieu(trieu: number | null | undefined): string {
+  return formatVndTuTrieu(trieu);
 }
 
 /**
@@ -57,37 +68,56 @@ export function parseTrieuDong(raw: string | number | null | undefined): number 
   return Number.isFinite(n) ? n : null;
 }
 
-/** Tỷ lệ Giá trị hợp đồng theo loại hình dự án (chỉ THA). */
+/** Tỷ lệ Giá trị hợp đồng theo loại hình (TVTK THA) hoặc loại hình DA TVGS. */
 export function tyLeGiaTriHopDong(
   loaiHinh: LoaiHinhDuAn | string | null | undefined,
 ): number | null {
-  if (loaiHinh === "xdm" || loaiHinh === "cai_tao" || loaiHinh === "cqt")
+  if (loaiHinh === "tvgs") return TY_LE_GHD_TVGS;
+  if (
+    loaiHinh === "xdm" ||
+    loaiHinh === "cai_tao" ||
+    loaiHinh === "cqt"
+  ) {
     return TY_LE_GHD_XDM_CAI_TAO;
+  }
   if (loaiHinh === "scmba" || loaiHinh === "dms") return TY_LE_GHD_SCMBA_DMS;
   return null;
 }
 
 /**
- * @deprecated Dùng tyLeGiaTriHopDong(loaiHinh) — mặc định XDM/Cải tạo 3,3% khi chưa biết loại hình.
+ * @deprecated Dùng shouldTinhTienGiao + tyLeGiaTriHopDong.
  */
 export function tyLeChiPhiL1(
   loai: LoaiGiaoXn,
   cap: CapDienAp | null | undefined,
   loaiHinh?: LoaiHinhDuAn | null,
 ): number | null {
+  if (loai === "tvgs") return TY_LE_GHD_TVGS;
   if (loai !== "tvtk" || cap !== "trung_ha_ap") return null;
   return tyLeGiaTriHopDong(loaiHinh) ?? TY_LE_GHD_XDM_CAI_TAO;
 }
 
+/** Có tính GHĐ khi soạn & xuất Word? (TNHC: tính sau) */
 export function shouldTinhTienGiao(
   loai: LoaiGiaoXn,
   cap: CapDienAp | null | undefined,
 ): boolean {
+  if (loai === "tvgs") return true;
   return loai === "tvtk" && cap === "trung_ha_ap";
 }
 
 export function tyLeTamUngTheoDiaBan(cungDiaBan: boolean): number {
   return cungDiaBan ? TY_LE_TAM_UNG_CUNG_TINH : TY_LE_TAM_UNG_KHAC_TINH;
+}
+
+/** Tỷ lệ tạm ứng lần 1 — TVGS không tạm ứng; TVTK THA theo địa bàn. */
+export function tyLeTamUngGiaoXn(
+  loai: LoaiGiaoXn,
+  cungDiaBan: boolean,
+): number | null {
+  if (loai === "tvgs") return null;
+  if (loai === "tvtk") return tyLeTamUngTheoDiaBan(cungDiaBan);
+  return null;
 }
 
 /**
@@ -141,9 +171,10 @@ export type KetQuaTinhTien = {
 };
 
 /**
- * Tính Giá trị HĐ + tạm ứng theo dòng từ phụ lục (TVTK THA).
- * - GHĐ: XDM/Cải tạo 3,3% × TMĐT; SCMBA/DMS 1,5% × TMĐT
- * - Tạm ứng: cùng tỉnh 15% × GHĐ; khác tỉnh 16% × GHĐ
+ * Tính Giá trị HĐ (+ tạm ứng nếu có) theo dòng từ phụ lục.
+ * - TVTK THA: GHĐ theo loại hình (3,3% / 1,5%); tạm ứng 15%/16% theo địa bàn
+ * - TVGS (mọi cấp): GHĐ 1% × TMĐT; không tạm ứng
+ * - TNHC: chưa áp dụng (tính sau)
  */
 export function tinhChiPhiL1TuPhuLuc(opts: {
   loai: LoaiGiaoXn;
@@ -154,12 +185,21 @@ export function tinhChiPhiL1TuPhuLuc(opts: {
   cungDiaBan?: boolean;
 }): KetQuaTinhTien {
   const apDung = shouldTinhTienGiao(opts.loai, opts.cap);
-  const ty_le = apDung
-    ? (tyLeGiaTriHopDong(opts.loaiHinhDuAn) ?? TY_LE_GHD_CQT)
-    : null;
   const cung_dia_ban = Boolean(opts.cungDiaBan);
+
+  let ty_le: number | null = null;
+  if (apDung) {
+    if (opts.loai === "tvgs" || opts.loaiHinhDuAn === "tvgs") {
+      ty_le = TY_LE_GHD_TVGS;
+    } else {
+      ty_le = tyLeGiaTriHopDong(opts.loaiHinhDuAn) ?? TY_LE_GHD_CQT;
+    }
+  }
+
   const ty_le_tam_ung =
-    ty_le != null ? tyLeTamUngTheoDiaBan(cung_dia_ban) : null;
+    ty_le != null && opts.loai !== "tvgs" && opts.loaiHinhDuAn !== "tvgs"
+      ? tyLeTamUngGiaoXn(opts.loai, cung_dia_ban)
+      : null;
 
   const rows: DongTinhTien[] = opts.cong_trinh.map((r, i) => {
     const override = opts.tmdtOverrides?.[i];
@@ -174,10 +214,10 @@ export function tinhChiPhiL1TuPhuLuc(opts: {
     let tuStr = "";
     if (ty_le != null && tmdtSo != null) {
       ghdSo = tmdtSo * ty_le;
-      ghdStr = formatTrieuDong(ghdSo);
+      ghdStr = formatDongTuTrieu(ghdSo);
       if (ty_le_tam_ung != null) {
         tuSo = ghdSo * ty_le_tam_ung;
-        tuStr = formatTrieuDong(tuSo);
+        tuStr = formatDongTuTrieu(tuSo);
       }
     }
     return {
@@ -224,11 +264,11 @@ export function tinhChiPhiL1TuPhuLuc(opts: {
     rows,
     tong_tmdt: tongTmdtSo != null ? formatTrieuDong(tongTmdtSo) : "",
     tong_tmdt_so: tongTmdtSo,
-    tong_chi_phi_l1: tongGhdSo != null ? formatTrieuDong(tongGhdSo) : "",
+    tong_chi_phi_l1: tongGhdSo != null ? formatDongTuTrieu(tongGhdSo) : "",
     tong_chi_phi_l1_so: tongGhdSo,
-    tong_gia_tri_hd: tongGhdSo != null ? formatTrieuDong(tongGhdSo) : "",
+    tong_gia_tri_hd: tongGhdSo != null ? formatDongTuTrieu(tongGhdSo) : "",
     tong_gia_tri_hd_so: tongGhdSo,
-    tong_gia_tri_tam_ung: tongTuSo != null ? formatTrieuDong(tongTuSo) : "",
+    tong_gia_tri_tam_ung: tongTuSo != null ? formatDongTuTrieu(tongTuSo) : "",
     tong_gia_tri_tam_ung_so: tongTuSo,
   };
 }

@@ -28,6 +28,14 @@ const templates = [
     chip: "bg-indigo-50 text-indigo-800",
     btn: "bg-indigo-600 hover:bg-indigo-700",
   },
+  {
+    file: "qd-giao-nhiem-vu-tvgs.docx",
+    label: "Tư vấn giám sát",
+    short: "TVGS",
+    tone: "border-amber-200 from-amber-50 to-orange-50 text-amber-950",
+    chip: "bg-amber-50 text-amber-900",
+    btn: "bg-amber-600 hover:bg-amber-700",
+  },
 ];
 
 export default async function MauWordPage() {

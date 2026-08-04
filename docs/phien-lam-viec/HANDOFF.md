@@ -5,6 +5,45 @@
 
 ---
 
+## 2026-08-04 — TVGS tiền/GHĐ đồng, loại hình, mẫu Word, tên tệp xuất
+
+**Version:** `0.1.5`
+
+### Đã chốt / đã làm
+
+- **Loại hình THA:** bỏ CQT; thêm **XDM** · **Cải tạo** (3,3%) + SCMBA/DMS (1,5%). SQL `020`.
+- **TNHC / TVGS:** loại hình chỉ **TNHC** / **TVGS** theo phân hệ (mặc định Review). SQL `021`.
+- **TVGS tiền:** GHĐ = **1% × TMĐT**; **không tạm ứng**; có **Tiền bằng số / bằng chữ**.
+- **Hiển thị GHĐ:** số **đồng** (vd `180.930.000`) trên UI + Word.
+- **Mẫu Word TVGS:** `qd-giao-nhiem-vu-tvgs.docx`; theme soạn **cyan**; routing `loai=tvgs`.
+- **Tên tệp xuất:** `GNV-[viết tắt XN]-[mã DA]-[yyyyMMdd]-[HHmmss].docx` (giờ VN).
+- **XN Điện Biên** seed (`022` / `004`); bỏ cột Loại hình DA + Giao XN trên bảng Quản lý dự án.
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [020](d:\AIProject\gnvnpsc\scripts\sql\020_loai_hinh_xdm_cai_tao.sql) · [021](d:\AIProject\gnvnpsc\scripts\sql\021_loai_hinh_tnhc_tvgs.sql) · [022](d:\AIProject\gnvnpsc\scripts\sql\022_xi_nghiep_dien_bien.sql) | SQL (**chạy Supabase nếu chưa**) |
+| [tinh-tien-giao-xn.ts](d:\AIProject\gnvnpsc\src\lib\tinh-tien-giao-xn.ts) · [SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) | TVGS + GHĐ đồng |
+| [template-path.ts](d:\AIProject\gnvnpsc\src\lib\word\template-path.ts) · [qd-giao-nhiem-vu-tvgs.docx](d:\AIProject\gnvnpsc\public\templates\qd-giao-nhiem-vu-tvgs.docx) | Mẫu Word TVGS |
+| [export/word/route.ts](d:\AIProject\gnvnpsc\src\app\api\qd-giao-xn\[id]\export\word\route.ts) | Tên tệp `GNV-…` |
+| [soan-qd-theme.ts](d:\AIProject\gnvnpsc\src\lib\soan-qd-theme.ts) · [loai-hinh-du-an.ts](d:\AIProject\gnvnpsc\src\lib\loai-hinh-du-an.ts) | Theme · loại hình |
+| [02](d:\AIProject\gnvnpsc\workflows\02_giao_nhiem_vu.md) · [HDSD 02](d:\AIProject\gnvnpsc\docs\hdsd\02_giao_nhiem_vu.md) · [TAG_MAP](d:\AIProject\gnvnpsc\docs\templates\TAG_MAP.md) | Tài liệu |
+
+### Việc tiếp
+
+- [ ] Chạy SQL `020` + `021` + `022` (và `018`/`019` nếu chưa) trên Supabase.
+- [ ] TNHC: chốt công thức tiền + gắn tag mẫu Word khi có nghiệp vụ.
+- [ ] Khi hoàn thiện luồng PDF in, đổi `SHOW_EXPORT_PDF` thành `true`.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF mới nhất (v0.1.5). TVGS: GHĐ 1% không tạm ứng, số đồng, mẫu `qd-giao-nhiem-vu-tvgs.docx`, tên tệp GNV-…. Chạy SQL 020–022 nếu thiếu. Tiếp: tiền TNHC hoặc kiểm tra xuất Word TVGS trên dữ liệu thật.
+
+Chi tiết phiên: [2026-08-04-tvgs-ghd-dong-mau-word.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-08-04-tvgs-ghd-dong-mau-word.md)
+
+---
+
 ## 2026-08-04 — Hub thống kê, tick công trình, ngày trống Word, danh xưng GD XN
 
 **Version:** `0.1.4`

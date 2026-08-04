@@ -107,8 +107,11 @@ Khi soạn từ **một** dự án, mục **Công trình giao lần này** liệ
 | Số quyết định trống | Xuất Word chèn khoảng trắng để điền tay / Doffice |
 | Ngày ban hành trống | Xuất Word: «ngày … tháng … năm …» thành khoảng trắng (không dấu chấm) để Doffice điền |
 | Danh xưng Giám đốc XN (Điều 3) | Xí nghiệp DVĐL **Hà Giang** → Bà; các Xí nghiệp khác → Ông |
-| Tư vấn thiết kế trung hạ áp | Chi phí bước 1 = tổng mức đầu tư × hệ số theo loại hình; tạm ứng kèm số tiền bằng chữ |
+| Tư vấn thiết kế trung hạ áp | Chi phí bước 1 / GHĐ theo loại hình (XDM·Cải tạo 3,3% · SCMBA·DMS 1,5%); tạm ứng 15%/16% theo địa bàn; số tiền **đồng** |
 | Tư vấn thiết kế 110 kV | Không tính chi phí bước 1 / tạm ứng |
+| Tư vấn giám sát | Giá trị HĐ = TMĐT × **1%** → hiển thị/xuất **đồng**; không tạm ứng; tiền bằng số/chữ; mẫu `qd-giao-nhiem-vu-tvgs.docx` |
+| Thí nghiệm | Tính sau |
+| Tên tệp Word | `GNV-[viết tắt XN]-[mã DA]-[yyyyMMdd]-[HHmmss].docx` |
 | Xuất PDF | Tạm ẩn nút; giữ logic để bật lại sau |
 | Tải PDF đã ký | Nút trên trang soạn — lưu tệp, chuyển «Đã giao», bỏ dấu Dự thảo |
 | Xóa dự thảo | Chỉ khi còn Nháp; đã giao thì chỉ Admin được xóa để dọn dữ liệu sai |
@@ -131,6 +134,6 @@ Khi soạn từ **một** dự án, mục **Công trình giao lần này** liệ
 | Theme phân hệ | `phan-he.ts` · `soan-qd-theme.ts` |
 | Mặc định chủ đầu tư / XN | `soan-qd-defaults.ts` |
 | Tiền bước 1 / số thành chữ | `tinh-tien-giao-xn.ts` · `so-tien-bang-chu.ts` |
-| Word | `fill-qd-giao-xn.ts` · `format-ngay.ts` · mẫu trong `public/templates/` |
+| Word | `fill-qd-giao-xn.ts` · `format-ngay.ts` · `template-path.ts` · mẫu `public/templates/` (gồm `qd-giao-nhiem-vu-tvgs.docx`) |
 | PDF Giao A | `GET /api/giao-a/[id]/pdf` |
-| SQL | `008_phu_luc_giao_a.sql` · `009_ten_pc_tinh.sql` · `012_phan_he_truy_vet.sql` · `019_qd_giao_xn_du_an.sql` |
+| SQL | `008` · `009` · `012` · `018` · `019` · `020_loai_hinh_xdm_cai_tao.sql` · `021_loai_hinh_tnhc_tvgs.sql` · `022_xi_nghiep_dien_bien.sql` |

@@ -11,10 +11,10 @@ import { CAP_DIEN_AP_OPTIONS } from "@/lib/cap-dien-ap";
 import { formatNgayVN } from "@/lib/word/format-ngay";
 import { normalizeDiaDiem } from "@/lib/dia-diem";
 import {
-  LOAI_HINH_THA_OPTIONS,
   isLoaiHinhDuAn,
   laDuAn110kv,
-  resolveLoaiHinhDuAn,
+  loaiHinhThaOptionsTheoPhanHe,
+  resolveLoaiHinhDuAnVoiMacDinh,
 } from "@/lib/loai-hinh-du-an";
 import {
   findTrungTenByRow,
@@ -48,10 +48,10 @@ type RowResolution =
 type ExitChoice = "o_lai" | "luu_roi_roi" | "huy_roi_roi";
 
 const cellInput =
-  "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none text-[13px] font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors";
+  "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none text-[13px] font-medium text-gray-800 outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors";
 
 const cellTextarea =
-  "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none leading-relaxed text-[13px] text-justify text-gray-800 font-semibold outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors resize-none overflow-hidden [field-sizing:content] min-h-[2.5rem]";
+  "w-full px-1.5 py-1.5 border-0 bg-transparent rounded-none leading-relaxed text-[13px] text-justify text-gray-800 font-medium outline-none focus:ring-2 focus:ring-inset focus:ring-violet-400/40 focus:bg-violet-50/50 transition-colors resize-none overflow-hidden [field-sizing:content] min-h-[2.5rem]";
 
 export function ReviewGiaoAClient({
   qd,
@@ -71,6 +71,11 @@ export function ReviewGiaoAClient({
       ...r,
       dia_diem: normalizeDiaDiem(r.dia_diem),
       phan_he: r.phan_he ?? phanHe,
+      loai_hinh_du_an: resolveLoaiHinhDuAnVoiMacDinh(
+        r.cap_dien_ap,
+        r.loai_hinh_du_an,
+        r.phan_he ?? phanHe,
+      ),
     })),
   );
   const [pool, setPool] = useState<DuAnTrungRef[]>([]);
@@ -103,6 +108,11 @@ export function ReviewGiaoAClient({
       ...r,
       dia_diem: normalizeDiaDiem(r.dia_diem),
       phan_he: r.phan_he ?? phanHe,
+      loai_hinh_du_an: resolveLoaiHinhDuAnVoiMacDinh(
+        r.cap_dien_ap,
+        r.loai_hinh_du_an,
+        r.phan_he ?? phanHe,
+      ),
     }));
     setRows(normalized);
   }, [initialDuAn, nam, phanHe]);
@@ -173,9 +183,10 @@ export function ReviewGiaoAClient({
         if (r.id !== id) return r;
         const next = { ...r, ...patch };
         if (patch.cap_dien_ap !== undefined) {
-          next.loai_hinh_du_an = resolveLoaiHinhDuAn(
+          next.loai_hinh_du_an = resolveLoaiHinhDuAnVoiMacDinh(
             next.cap_dien_ap,
             next.loai_hinh_du_an,
+            phanHe,
           );
         }
         if (
@@ -358,7 +369,7 @@ export function ReviewGiaoAClient({
           !isLoaiHinhDuAn(row.loai_hinh_du_an)
         ) {
           throw new Error(
-            "Dự án trung hạ áp phải chọn loại hình (XDM / Cải tạo / SCMBA / DMS) trước khi lưu",
+            "Dự án trung hạ áp phải chọn loại hình trước khi lưu",
           );
         }
         const res = resolutions?.get(row.id);
@@ -374,9 +385,10 @@ export function ReviewGiaoAClient({
               quy_mo: row.quy_mo,
               ghi_chu: row.ghi_chu,
               cap_dien_ap: row.cap_dien_ap,
-              loai_hinh_du_an: resolveLoaiHinhDuAn(
+              loai_hinh_du_an: resolveLoaiHinhDuAnVoiMacDinh(
                 row.cap_dien_ap,
                 row.loai_hinh_du_an,
+                phanHe,
               ),
               huong_giao: row.huong_giao,
               xi_nghiep_id: row.xi_nghiep_id ?? null,
@@ -410,9 +422,10 @@ export function ReviewGiaoAClient({
               quy_mo: row.quy_mo,
               ghi_chu: row.ghi_chu,
               cap_dien_ap: row.cap_dien_ap,
-              loai_hinh_du_an: resolveLoaiHinhDuAn(
+              loai_hinh_du_an: resolveLoaiHinhDuAnVoiMacDinh(
                 row.cap_dien_ap,
                 row.loai_hinh_du_an,
+                phanHe,
               ),
               huong_giao: row.huong_giao,
               xi_nghiep_id: row.xi_nghiep_id ?? null,
@@ -502,18 +515,26 @@ export function ReviewGiaoAClient({
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "Thêm thất bại");
       const created = json.data as DuAn;
-      setRows((prev) => [...prev, created]);
+      const withDefault: DuAn = {
+        ...created,
+        loai_hinh_du_an: resolveLoaiHinhDuAnVoiMacDinh(
+          created.cap_dien_ap,
+          created.loai_hinh_du_an,
+          phanHe,
+        ),
+      };
+      setRows((prev) => [...prev, withDefault]);
       setPool((prev) => [
         ...prev,
         {
-          id: created.id,
-          ten_du_an: created.ten_du_an,
-          ma_du_an: created.ma_du_an,
-          qd_giao_a_id: created.qd_giao_a_id,
+          id: withDefault.id,
+          ten_du_an: withDefault.ten_du_an,
+          ma_du_an: withDefault.ma_du_an,
+          qd_giao_a_id: withDefault.qd_giao_a_id,
         },
       ]);
       setMessage("Đã thêm dòng dự án");
-    } catch (err) {
+      setCoThayDoi(true);    } catch (err) {
       setError(err instanceof Error ? err.message : "Lỗi thêm");
     } finally {
       setAdding(false);
@@ -687,12 +708,12 @@ export function ReviewGiaoAClient({
           </p>
         </div>
         <div className="max-h-[650px] overflow-auto">
-          <table className="relative w-full min-w-[980px] border-collapse text-left text-[13px] [&_td]:border-r [&_td]:border-b [&_td]:border-violet-100/80 [&_td:last-child]:border-r-0 [&_th]:border-r [&_th]:border-b [&_th]:border-violet-200 [&_th:last-child]:border-r-0 [&_tbody_tr:last-child_td]:border-b-0">
+          <table className="relative w-full min-w-[1000px] border-collapse text-left text-[13px] [&_td]:border-r [&_td]:border-b [&_td]:border-violet-100/80 [&_td:last-child]:border-r-0 [&_th]:border-r [&_th]:border-b [&_th]:border-violet-200 [&_th:last-child]:border-r-0 [&_tbody_tr:last-child_td]:border-b-0">
             <colgroup>
               <col className="w-11" />
-              <col className="w-[128px]" />
+              <col className="w-[200px]" />
               <col className="w-[260px]" />
-              <col className="w-[120px]" />
+              <col className="w-[88px]" />
               <col />
               <col className="w-[108px]" />
               <col className="w-[128px]" />
@@ -733,13 +754,13 @@ export function ReviewGiaoAClient({
                       key={row.id}
                       className="transition hover:bg-violet-50/40 odd:bg-white even:bg-[#faf8ff]"
                     >
-                      <td className="px-2 py-3 text-center align-middle font-bold text-gray-500">
+                      <td className="px-2 py-3 text-center align-middle font-medium text-gray-500">
                         {index + 1}
                       </td>
-                      <td className="px-2 py-2 align-middle">
+                      <td className="px-1.5 py-2 align-middle whitespace-nowrap">
                         <input
                           type="text"
-                          className={`${cellInput} font-mono text-[11px] font-medium text-gray-600`}
+                          className={`${cellInput} font-mono text-[12px] font-medium text-gray-700`}
                           value={row.ma_du_an ?? ""}
                           onChange={(e) =>
                             updateLocal(row.id, { ma_du_an: e.target.value })
@@ -786,10 +807,10 @@ export function ReviewGiaoAClient({
                           </p>
                         ) : null}
                       </td>
-                      <td className="px-2 py-2 align-middle">
+                      <td className="px-1 py-2 align-middle">
                         <input
                           type="text"
-                          className={`${cellInput} text-center`}
+                          className={`${cellInput} px-1 text-center text-[12px]`}
                           value={row.dia_diem ?? ""}
                         onChange={(e) =>
                           updateLocal(row.id, {
@@ -801,7 +822,7 @@ export function ReviewGiaoAClient({
                       </td>
                       <td className="px-2 py-2 align-middle">
                         <textarea
-                          className={`${cellTextarea} font-medium text-violet-950`}
+                          className={`${cellTextarea} text-violet-950`}
                           value={row.quy_mo ?? ""}
                           onChange={(e) =>
                             updateLocal(row.id, { quy_mo: e.target.value })
@@ -854,7 +875,7 @@ export function ReviewGiaoAClient({
                             title="Bắt buộc với dự án trung hạ áp — liên quan chi phí sau này"
                           >
                             <option value="">Chọn *</option>
-                            {LOAI_HINH_THA_OPTIONS.map((o) => (
+                            {loaiHinhThaOptionsTheoPhanHe(phanHe).map((o) => (
                               <option key={o.value} value={o.value}>
                                 {o.short}
                               </option>

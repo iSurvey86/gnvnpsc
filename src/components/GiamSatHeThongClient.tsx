@@ -3,12 +3,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { NhanSu } from "@/lib/types";
 import type { NhatKyHoatDong } from "@/lib/activity-log";
+import { ADMIN_EMAIL } from "@/lib/auth-defaults";
 
 type Tab = "logs" | "accounts";
 
 type Props = {
   isAdmin: boolean;
 };
+
+/** Hiển thị email trong nhật ký: admin@… → «Admin» */
+function nhanEmailNhatKy(email: string | null | undefined): string {
+  if (!email) return "—";
+  if (email.trim().toLowerCase() === ADMIN_EMAIL.toLowerCase()) return "Admin";
+  return email;
+}
 
 const PHAN_HE_OPTS = [
   "ALL",
@@ -112,6 +120,8 @@ const TEN_LOAI_HINH_DU_AN: Record<string, string> = {
   cai_tao: "Cải tạo",
   scmba: "SCMBA — Sửa chữa máy biến áp",
   dms: "DMS",
+  tnhc: "TNHC — Thí nghiệm hiệu chỉnh",
+  tvgs: "TVGS — Tư vấn giám sát",
 };
 
 function tenPhanHeLog(p: string): string {
@@ -244,6 +254,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
   const [q, setQ] = useState("");
   const [phanHe, setPhanHe] = useState<string>("ALL");
   const [hanhDong, setHanhDong] = useState<string>("ALL");
+  const [hideAdmin, setHideAdmin] = useState(false);
   const [page, setPage] = useState(1);
   const [logs, setLogs] = useState<NhatKyHoatDong[]>([]);
   const [total, setTotal] = useState(0);
@@ -268,6 +279,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
         hanh_dong: hanhDong,
       });
       if (q.trim()) params.set("q", q.trim());
+      if (hideAdmin) params.set("hide_admin", "1");
       const res = await fetch(`/api/nhat-ky?${params}`);
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || "Lỗi tải nhật ký");
@@ -278,7 +290,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
     } finally {
       setBusy(false);
     }
-  }, [page, phanHe, hanhDong, q]);
+  }, [page, phanHe, hanhDong, q, hideAdmin]);
 
   const loadAccounts = useCallback(async () => {
     setBusy(true);
@@ -342,7 +354,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
         i + 1,
         r.thoi_gian,
         r.ho_ten ?? "",
-        r.email ?? "",
+        nhanEmailNhatKy(r.email),
         r.phan_he,
         r.hanh_dong,
         (r.chi_tiet_ngan ?? "").replace(/"/g, '""'),
@@ -426,6 +438,21 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
                 </option>
               ))}
             </select>
+            <label
+              className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-teal-200 bg-white px-3 py-2 text-xs font-semibold text-teal-900 select-none hover:bg-teal-50"
+              title="Ẩn thao tác của tài khoản Admin — chỉ xem người dùng thường"
+            >
+              <input
+                type="checkbox"
+                checked={hideAdmin}
+                onChange={(e) => {
+                  setPage(1);
+                  setHideAdmin(e.target.checked);
+                }}
+                className="h-3.5 w-3.5 rounded border-teal-300 text-teal-700 focus:ring-teal-200"
+              />
+              Hide Admin
+            </label>
             <button
               type="button"
               onClick={() => exportCsv()}
@@ -491,7 +518,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
                             className="truncate text-[11px] font-light text-teal-700/70"
                             title={r.email ?? undefined}
                           >
-                            {r.email}
+                            {nhanEmailNhatKy(r.email)}
                           </p>
                         </td>
                         <td className="px-2 py-1.5 text-center align-middle">

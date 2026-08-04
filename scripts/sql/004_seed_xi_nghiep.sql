@@ -1,10 +1,11 @@
--- Seed danh mục Xí nghiệp (16 đơn vị)
+-- Seed danh mục Xí nghiệp (17 đơn vị)
 -- Chạy trên Supabase SQL Editor. An toàn chạy lại (upsert theo ma).
 
 insert into public.xi_nghiep (ma, ten, phu_hop_tvtk, phu_hop_thi_nghiem, active)
 values
   ('DVDL-BN',  'Xí nghiệp DVĐL Bắc Ninh',                          true,  true,  true),
   ('DVDL-CB',  'Xí nghiệp DVĐL Cao Bằng',                          true,  true,  true),
+  ('DVDL-DB',  'Xí nghiệp DVĐL Điện Biên',                         true,  true,  true),
   ('DVDL-HT',  'Xí nghiệp DVĐL Hà Tĩnh',                           true,  true,  true),
   ('DVDL-HY',  'Xí nghiệp DVĐL Hưng Yên',                          true,  true,  true),
   ('DVDL-LC',  'Xí nghiệp DVĐL Lai Châu',                          true,  true,  true),

@@ -16,11 +16,58 @@ import {
   renderQdGiaoXnDocx,
   type QdGiaoXnExportInput,
 } from "@/lib/word/fill-qd-giao-xn";
-import { resolveQdGiaoXnTemplateFile } from "@/lib/word/template-path";
 
 export const runtime = "nodejs";
 
 type Ctx = { params: Promise<{ id: string }> };
+
+/** yyyyMMdd-HHmmss theo giờ VN. */
+function formatExportStamp(d: Date): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+  return `${get("year")}${get("month")}${get("day")}-${get("hour")}${get("minute")}${get("second")}`;
+}
+
+/** Viết tắt XN: DVDL-SL → XNDVSL; TV → XNTV. */
+function vietTatXiNghiep(
+  ma: string | null | undefined,
+  ten: string | null | undefined,
+): string {
+  const m = ma?.trim().toUpperCase();
+  if (m) {
+    const dvdl = /^DVDL-(.+)$/.exec(m);
+    if (dvdl) {
+      return `XNDV${dvdl[1].replace(/[^A-Z0-9]/g, "")}`;
+    }
+    return `XN${m.replace(/[^A-Z0-9]/g, "")}`;
+  }
+  const t = ten?.trim();
+  if (t) {
+    return (
+      "XN" +
+      t
+        .replace(/Xí nghiệp\s*/i, "")
+        .replace(/[^A-Za-zÀ-ỹ0-9]/g, "")
+        .slice(0, 8)
+        .toUpperCase()
+    );
+  }
+  return "XN";
+}
+
+function safeFilePart(raw: string, max = 48): string {
+  return raw.replace(/[^\w.-]+/g, "_").replace(/_+/g, "_").slice(0, max);
+}
 
 type ExportBody = Partial<{
   ten_pc_tinh: string | null;
@@ -33,6 +80,8 @@ type ExportBody = Partial<{
   ten_goi_thau: string | null;
   so_tien_tam_ung: string | null;
   so_tien_tam_ung_chu: string | null;
+  so_tien_hd: string | null;
+  so_tien_hd_chu: string | null;
   so_luong_cong_trinh: string | null;
   ghi_chu_bo_sung: string | null;
   tmdt_overrides: Array<string | null | undefined>;
@@ -115,8 +164,10 @@ async function exportWord(id: string, extras: ExportBody = {}) {
   });
 
   const buffer = renderQdGiaoXnDocx({ loai, cap, data });
-  const file = resolveQdGiaoXnTemplateFile(loai, cap);
-  const outName = `QD-giao-XN-${(duAn.ma_du_an || id).toString().slice(0, 40)}-${file.replace("qd-giao-nhiem-vu-", "").replace(".docx", "")}.docx`;
+  const xnVt = safeFilePart(vietTatXiNghiep(xn?.ma, xn?.ten), 16);
+  const maSafe = safeFilePart(String(duAn.ma_du_an || id), 48);
+  const stamp = formatExportStamp(new Date());
+  const outName = `GNV-${xnVt}-${maSafe}-${stamp}.docx`;
 
   await logHoatDong({
     phanHe: "GIAO_XN",

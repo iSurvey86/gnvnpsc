@@ -4,13 +4,15 @@ export type ScanStatus = "pending" | "processing" | "done" | "error";
 export type LoaiGiaoXn = "tvtk" | "thi_nghiem" | "tvgs";
 export type TrangThaiQdXn = "nhap" | "trinh_gd" | "da_ban_hanh";
 export type CapDienAp = "110kv" | "trung_ha_ap";
-/** Loại hình dự án — 110kV tự đặt; trung hạ áp: XDM / Cải tạo / SCMBA / DMS */
+/** Loại hình dự án — 110kV tự đặt; THA: XDM/Cải tạo/SCMBA/DMS; TNHC/TVGS theo phân hệ */
 export type LoaiHinhDuAn =
   | "110kv"
   | "xdm"
   | "cai_tao"
   | "scmba"
-  | "dms";
+  | "dms"
+  | "tnhc"
+  | "tvgs";
 /** Hướng giao PCM: TVTK / Thí nghiệm / cả hai */
 export type HuongGiao = "tvtk" | "tn" | "tvtk_tn";
 export type { PhanHeCode };

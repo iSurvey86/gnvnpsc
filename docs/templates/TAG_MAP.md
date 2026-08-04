@@ -13,6 +13,7 @@
 | `loai = tvtk` và `cap_dien_ap = 110kv` | `qd-giao-nhiem-vu-tvtk_110.docx` |
 | `loai = tvtk` và `cap_dien_ap = trung_ha_ap` | `qd-giao-nhiem-vu-tvtk_tha.docx` |
 | `loai = thi_nghiem` | `qd-giao-nhiem-vu-tnhc.docx` |
+| `loai = tvgs` | `qd-giao-nhiem-vu-tvgs.docx` |
 
 ## Tag dùng chung (header + căn cứ + điều)
 
@@ -48,20 +49,21 @@ Trên mẫu: `{#cong_trinh}` … `{/cong_trinh}`.
 |-----|---------|
 | `{ct_danh_dau_tvtk}` | Đánh dấu cột gói TVTK (vd `X`) |
 | `{ct_danh_dau_tvgs}` | Đánh dấu cột gói TVGS |
-| `{ct_gia_tri_hd}` | Giá trị HĐ tạm tính (= L1) |
-| `{ct_chi_phi_l1}` | Chi phí lần 01 = TMĐT × **3,3%** (triệu đồng) |
-| `{tong_gia_tri_hd}` | Tổng giá trị HĐ (= tổng L1) |
-| `{tong_chi_phi_l1}` | Tổng chi phí L1 |
+| `{ct_gia_tri_hd}` | Giá trị HĐ tạm tính — **đồng** (TMĐT × tỷ lệ × 1.000.000) |
+| `{ct_chi_phi_l1}` | Chi phí lần 01 — **đồng** (cùng số với GHĐ THA) |
+| `{tong_gia_tri_hd}` | Tổng giá trị HĐ — **đồng** |
+| `{tong_chi_phi_l1}` | Tổng chi phí L1 — **đồng** |
 | `{ten_goi_thau}` | Tên gói thầu (thân QĐ) |
 | `{so_tien_tam_ung}` / `{so_tien_tam_ung_chu}` | Tạm ứng (nhập tay) |
 
-**Quy tắc tính (pha 1):**
+**Quy tắc tính:**
 
-| Loại | Tiền |
-|------|------|
-| TVTK 110kV | Không tính — để trống L1 / HĐ |
-| TVTK trung hạ áp | `L1 = TMĐT × 3,3%` (đơn vị triệu đồng) |
-| Thí nghiệm | Chưa áp dụng (pha sau) |
+| Loại | Giá trị HĐ | Tạm ứng lần 1 |
+|------|------------|---------------|
+| TVTK 110kV | Không tính | — |
+| TVTK trung hạ áp | XDM/Cải tạo 3,3% · SCMBA/DMS 1,5% × TMĐT | 15% cùng tỉnh / 16% khác tỉnh × GHĐ |
+| TVGS (mọi cấp) | **1%** × TMĐT → điền **đồng** (`{ct_gia_tri_hd}` / `{tong_gia_tri_hd}`) | **Không** |
+| TNHC | Tính sau | Tính sau |
 
 Code: [`src/lib/tinh-tien-giao-xn.ts`](d:\AIProject\gnvnpsc\src\lib\tinh-tien-giao-xn.ts) · điền Word: [`fill-qd-giao-xn.ts`](d:\AIProject\gnvnpsc\src\lib\word\fill-qd-giao-xn.ts).
 

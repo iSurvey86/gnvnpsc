@@ -28,7 +28,7 @@ flowchart TD
   Review["Màn Review — sửa mã, tên, địa điểm, quy mô, cấp điện áp, loại hình dự án"]
   Cap{"Cấp điện áp của dự án?"}
   Mac110["Loại hình tự đặt là 110kV — không phải chọn"]
-  ChonLoai["Chọn loại hình bắt buộc: XDM / Cải tạo / SCMBA / DMS"]
+  ChonLoai["Chọn loại hình — TVTK: XDM/Cải tạo/SCMBA/DMS; TNHC hoặc TVGS theo phân hệ"]
   Quyet{"Người dùng chọn gì?"}
   Trung{"Có dự án trùng tên trong phân hệ?"}
   HoiTrung["Hỏi từng dòng: cập nhật bản cũ hoặc tạo mới"]
@@ -89,7 +89,10 @@ flowchart TD
 - Một Quyết định Giao A có thể sinh nhiệm vụ cho nhiều tổ: tổ sau dùng chung hồ sơ Giao A đã lưu (không tải lại PDF), chỉ tạo danh mục dự án riêng cho tổ mình.
 - **Loại hình dự án** dùng cho chi phí sau này, phụ thuộc cấp điện áp:
   - Dự án **110kV** — loại hình luôn là 110kV, hệ thống tự đặt, người nhập không chọn.
-  - Dự án **trung hạ áp** — bắt buộc chọn một trong: XDM (xây dựng mới) · Cải tạo · SCMBA (sửa chữa máy biến áp) · DMS.
+  - Dự án **trung hạ áp** — bắt buộc chọn loại hình:
+    - TVTK: XDM · Cải tạo · SCMBA · DMS.
+    - Thí nghiệm: chỉ **TNHC**.
+    - Tư vấn giám sát: chỉ **TVGS**.
   - Không chọn Xí nghiệp trên màn Review — chọn khi vào **giao nhiệm vụ**.
   - Đổi cấp điện áp từ 110kV sang trung hạ áp thì phải chọn lại loại hình.
   - Khác với «Loại hình tư vấn» (suy ra từ cấp điện áp / hướng giao).

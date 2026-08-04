@@ -4,12 +4,16 @@ import {
   GiaoNhiemVuSection,
   type QdGiaoXnWithXn,
 } from "@/components/GiaoNhiemVuSection";
+import { isPhanHeCode, PHAN_HE, parsePhanHe, type PhanHeCode } from "@/lib/phan-he";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { DuAn, QdGiaoA, XiNghiep } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ phan_he?: string }>;
+};
 
 function oneQd(
   v: QdGiaoXnWithXn | QdGiaoXnWithXn[] | null | undefined,
@@ -18,8 +22,9 @@ function oneQd(
   return Array.isArray(v) ? (v[0] ?? null) : v;
 }
 
-export default async function SoanGiaoXnPage({ params }: Props) {
+export default async function SoanGiaoXnPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const sp = await searchParams;
   const supabase = createAdminClient();
 
   const { data: duAn, error } = await supabase
@@ -29,6 +34,11 @@ export default async function SoanGiaoXnPage({ params }: Props) {
     .maybeSingle();
 
   if (error || !duAn) notFound();
+
+  const phanHe: PhanHeCode = isPhanHeCode(duAn.phan_he)
+    ? duAn.phan_he
+    : parsePhanHe(sp.phan_he, "tvtk");
+  const cfg = PHAN_HE[phanHe];
 
   let qd: QdGiaoA | null = null;
   if (duAn.qd_giao_a_id) {
@@ -77,10 +87,10 @@ export default async function SoanGiaoXnPage({ params }: Props) {
     <div className="relative flex min-h-screen flex-col bg-[#f3f4f6] antialiased">
       <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-teal-100 bg-gradient-to-r from-teal-50 via-emerald-50/60 to-sky-50 px-6 py-4 shadow-sm md:px-10">
         <h1 className="min-w-0 truncate text-[17px] font-black tracking-tight text-teal-900 uppercase">
-          Giao nhiệm vụ tư vấn thiết kế
+          Giao nhiệm vụ {cfg.title.toLowerCase()}
         </h1>
         <Link
-          href="/tvtk"
+          href={cfg.href}
           className="shrink-0 rounded-xl border border-teal-200 bg-white/80 px-4 py-2 text-xs font-bold text-teal-800 shadow-sm transition hover:bg-white"
         >
           ← Quản lý dự án
