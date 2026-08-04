@@ -22,57 +22,43 @@ import {
 } from "@/lib/loai-hinh-tu-van";
 import {
   LOAI_HINH_DU_AN_OPTIONS,
-  labelLoaiHinhDuAn,
   resolveLoaiHinhDuAn,
-  shortLoaiHinhDuAn,
 } from "@/lib/loai-hinh-du-an";
-import {
-  laDaGiaoXn,
-  labelTrangThaiGiaoXn,
-} from "@/lib/trang-thai-giao-xn";
 import type { CapDienAp, HuongGiao, LoaiHinhDuAn } from "@/lib/types";
 import { PHAN_HE, type PhanHeCode } from "@/lib/phan-he";
 
 type ColKey =
   | "stt"
   | "ten"
-  | "loaiDa"
   | "loaiTv"
   | "diaDiem"
   | "giaoA"
-  | "giaoXn"
   | "thaoTac";
 
 const COL_ORDER: ColKey[] = [
   "stt",
   "ten",
-  "loaiDa",
   "loaiTv",
   "diaDiem",
   "giaoA",
-  "giaoXn",
   "thaoTac",
 ];
 
 const COL_DEFAULT: Record<ColKey, number> = {
   stt: 48,
-  ten: 420,
-  loaiDa: 72,
-  loaiTv: 72,
-  diaDiem: 88,
-  giaoA: 128,
-  giaoXn: 148,
+  ten: 480,
+  loaiTv: 88,
+  diaDiem: 100,
+  giaoA: 140,
   thaoTac: 64,
 };
 
 const COL_MIN: Record<ColKey, number> = {
   stt: 40,
-  ten: 180,
-  loaiDa: 56,
+  ten: 200,
   loaiTv: 56,
   diaDiem: 64,
   giaoA: 96,
-  giaoXn: 100,
   thaoTac: 52,
 };
 
@@ -160,25 +146,9 @@ function effectiveQds(r: DuAnRow): QdXnRef[] {
   return [...byId.values()];
 }
 
-function soanQdHref(r: DuAnRow, x: QdXnRef): string {
-  const ownerId = x.du_an_id && x.mapped ? x.du_an_id : r.id;
-  return `/du-an/${ownerId}/giao-xn/soan?loai=${encodeURIComponent(x.loai)}&qdId=${x.id}`;
-}
-
 function one<T>(v: T | T[] | null | undefined): T | null {
   if (v == null) return null;
   return Array.isArray(v) ? (v[0] ?? null) : v;
-}
-
-/**
- * Hiển thị gọn trên cột «Giao Xí nghiệp»: bỏ tiền tố «Xí nghiệp »
- * vì đã có ở tiêu đề cột. DB vẫn giữ tên đầy đủ.
- * vd. «Xí nghiệp DVĐL Nghệ An» → «DVĐL Nghệ An»
- */
-function shortTenXiNghiep(ten: string | null | undefined): string {
-  const s = (ten ?? "").trim();
-  if (!s) return "—";
-  return s.replace(/^xí\s*nghiệp\s+/i, "").trim() || s;
 }
 
 export function DuAnDashboard({
@@ -526,17 +496,6 @@ export function DuAnDashboard({
                     <>
                       Loại hình
                       <br />
-                      dự án
-                    </>
-                  }
-                  colKey="loaiDa"
-                  onResizeStart={startResize}
-                />
-                <ResizableTh
-                  label={
-                    <>
-                      Loại hình
-                      <br />
                       tư vấn
                     </>
                   }
@@ -554,11 +513,6 @@ export function DuAnDashboard({
                   onResizeStart={startResize}
                 />
                 <ResizableTh
-                  label="Giao Xí nghiệp"
-                  colKey="giaoXn"
-                  onResizeStart={startResize}
-                />
-                <ResizableTh
                   label="Thao tác"
                   colKey="thaoTac"
                   onResizeStart={startResize}
@@ -570,7 +524,7 @@ export function DuAnDashboard({
               {loading ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={6}
                     className="px-4 py-12 text-center font-medium text-gray-500"
                   >
                     Đang tải dữ liệu dự án...
@@ -578,7 +532,7 @@ export function DuAnDashboard({
                 </tr>
               ) : loadError ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
+                  <td colSpan={6} className="px-4 py-12 text-center">
                     <div className="flex flex-col items-center space-y-3">
                       <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-red-600">
                         <p className="mb-1 font-bold">
@@ -601,7 +555,7 @@ export function DuAnDashboard({
               ) : current.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={6}
                     className="px-4 py-12 text-center font-medium text-gray-500"
                   >
                     {rows.length === 0 ? (
@@ -622,14 +576,9 @@ export function DuAnDashboard({
               ) : (
                 current.map((r, idx) => {
                   const giaoA = one(r.qd_giao_a);
-                  const xns = effectiveQds(r);
                   const loaiHinh = resolveLoaiHinhTuVan(
                     r.huong_giao,
                     r.cap_dien_ap,
-                  );
-                  const loaiHinhDa = resolveLoaiHinhDuAn(
-                    r.cap_dien_ap,
-                    r.loai_hinh_du_an,
                   );
                   const stt = (page - 1) * pageSize + idx + 1;
                   return (
@@ -650,20 +599,6 @@ export function DuAnDashboard({
                         <p className="mt-0.5 text-justify text-xs font-light text-gray-500">
                           {r.ma_du_an || "—"}
                         </p>
-                      </td>
-                      <td className="px-1.5 py-3 text-center align-middle">
-                        {loaiHinhDa ? (
-                          <span
-                            className={`inline-block rounded px-1.5 py-0.5 text-[11px] font-normal ${t.chip}`}
-                            title={labelLoaiHinhDuAn(loaiHinhDa)}
-                          >
-                            {shortLoaiHinhDuAn(loaiHinhDa)}
-                          </span>
-                        ) : (
-                          <span className="text-rose-500" title="Chưa chọn">
-                            —
-                          </span>
-                        )}
                       </td>
                       <td className="px-1.5 py-3 text-center align-middle">
                         {loaiHinh.length ? (
@@ -712,84 +647,6 @@ export function DuAnDashboard({
                         ) : (
                           <span className="text-gray-400">—</span>
                         )}
-                      </td>
-                      <td className="px-2 py-3 text-center align-middle">
-                        <div className="flex flex-col items-center gap-1">
-                          {xns.length === 0 ? (
-                            one(r.xi_nghiep) ? (
-                              <span
-                                className="max-w-[9rem] text-sm leading-snug font-normal text-violet-800"
-                                title={`${one(r.xi_nghiep)?.ten ?? ""} — chưa lập QĐ`}
-                              >
-                                {shortTenXiNghiep(one(r.xi_nghiep)?.ten)}
-                                <span className="mt-0.5 block text-[11px] font-light text-violet-500">
-                                  Chưa lập QĐ
-                                </span>
-                              </span>
-                            ) : (
-                              <span className="rounded px-1.5 py-0.5 text-[11px] font-normal text-violet-700 bg-violet-50">
-                                Chưa giao
-                              </span>
-                            )
-                          ) : (
-                            xns.map((x) => {
-                              const xn = one(x.xi_nghiep);
-                              const tenDayDu =
-                                xn?.ten?.trim() || "Chưa chọn XN";
-                              const tt = labelTrangThaiGiaoXn(x.trang_thai);
-                              const daGiao = laDaGiaoXn(x.trang_thai);
-                              const mappedOnly = Boolean(x.mapped);
-                              const statusText = mappedOnly
-                                ? x.so_qd_du_thao?.trim()
-                                  ? `Trong QĐ ${x.so_qd_du_thao.trim()}`
-                                  : "Đã có trong QĐ"
-                                : tt;
-                              return (
-                                <span
-                                  key={x.id}
-                                  className="max-w-[9rem] text-sm leading-snug font-normal"
-                                >
-                                  <Link
-                                    href={soanQdHref(r, x)}
-                                    className={`hover:underline ${t.primaryText}`}
-                                    title={
-                                      mappedOnly
-                                        ? `${tenDayDu} · ${statusText} · ${tt} — mở quyết định đã lập`
-                                        : `${tenDayDu} · ${tt}`
-                                    }
-                                  >
-                                    {shortTenXiNghiep(tenDayDu)}
-                                  </Link>
-                                  {x.pdf_ky_storage_path ? (
-                                    <a
-                                      href={`/api/qd-giao-xn/${x.id}/pdf-ky`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className={`mt-0.5 block text-[11px] font-light hover:underline ${
-                                        daGiao
-                                          ? "text-emerald-700"
-                                          : "text-amber-700"
-                                      }`}
-                                    >
-                                      {statusText}
-                                    </a>
-                                  ) : (
-                                    <Link
-                                      href={soanQdHref(r, x)}
-                                      className={`mt-0.5 block text-[11px] font-light hover:underline ${
-                                        daGiao
-                                          ? "text-emerald-600"
-                                          : "text-amber-600"
-                                      }`}
-                                    >
-                                      {statusText}
-                                    </Link>
-                                  )}
-                                </span>
-                              );
-                            })
-                          )}
-                        </div>
                       </td>
                       <td className="px-1 py-3 text-center align-middle">
                         <div className="inline-flex items-center justify-center gap-0.5">

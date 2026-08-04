@@ -20,5 +20,5 @@
 
 ## Sau khi lưu
 
-- Quay **Quản lý dự án** để xem danh sách (cột Loại hình DA).
+- Quay **Quản lý dự án** để xem danh sách (bộ lọc vẫn có loại hình dự án / trạng thái giao XN).
 - Bấm tên dự án để **giao nhiệm vụ**; bấm Sửa để chỉnh thông tin chung (gồm loại hình dự án).
