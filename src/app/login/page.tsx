@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { resolveLoginIdentifier } from "@/lib/auth-defaults";
+import { APP_VERSION } from "@/lib/app-version";
 import { createClient } from "@/lib/supabase/client";
 
 const REMEMBER_KEY = "gnvnpsc_login_remember";
@@ -292,7 +293,7 @@ export default function LoginPage() {
 
         <footer className="px-4 py-3 text-center text-[10px] leading-relaxed text-slate-400">
           <p>© 2026 NPSC System — Phát triển bởi Phòng Kinh doanh</p>
-          <p className="mt-0.5">Phiên bản 0.1.0</p>
+          <p className="mt-0.5">Phiên bản {APP_VERSION}</p>
         </footer>
       </div>
     </div>
