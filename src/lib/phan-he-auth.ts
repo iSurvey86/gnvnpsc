@@ -29,6 +29,12 @@ export function toActor(profile: SessionProfile): ActorInfo {
   };
 }
 
+/** Xóa hồ sơ Giao A trên danh sách — chỉ Admin hoặc Trưởng phòng. */
+export function canXoaHoSoGiaoA(profile: SessionProfile): boolean {
+  if (profile.isAdmin) return true;
+  return isTruongPhong(profile.nhanSu?.chuc_danh);
+}
+
 export async function requireSession(): Promise<SessionProfile> {
   const profile = await getSessionProfile();
   if (!profile) {

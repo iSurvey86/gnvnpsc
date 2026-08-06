@@ -2,45 +2,75 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 
-const MODULES = [
+type Module = {
+  href: string;
+  label: string;
+  match: (p: string) => boolean;
+  active: string;
+  idle: string;
+};
+
+const ADMIN_MODULES: Module[] = [
   {
     href: "/he-thong/giam-sat",
     label: "Nhật ký hoạt động",
-    match: (p: string) =>
-      p === "/he-thong" || p.startsWith("/he-thong/giam-sat"),
+    match: (p) => p === "/he-thong" || p.startsWith("/he-thong/giam-sat"),
     active: "bg-indigo-600 text-white shadow-sm",
     idle: "bg-indigo-50 text-indigo-800 hover:bg-indigo-100",
   },
   {
     href: "/he-thong/nhan-su",
     label: "Danh sách tài khoản",
-    match: (p: string) => p.startsWith("/he-thong/nhan-su"),
+    match: (p) => p.startsWith("/he-thong/nhan-su"),
     active: "bg-amber-600 text-white shadow-sm",
     idle: "bg-amber-50 text-amber-900 hover:bg-amber-100",
   },
   {
     href: "/he-thong/xi-nghiep",
     label: "Danh sách Xí nghiệp",
-    match: (p: string) => p.startsWith("/he-thong/xi-nghiep"),
+    match: (p) => p.startsWith("/he-thong/xi-nghiep"),
     active: "bg-emerald-600 text-white shadow-sm",
     idle: "bg-emerald-50 text-emerald-900 hover:bg-emerald-100",
   },
-] as const;
+];
+
+/** User thường: không nhật ký; tài khoản xem tại nhan-su (chỉ đọc). */
+const USER_MODULES: Module[] = [
+  {
+    href: "/he-thong/nhan-su",
+    label: "Danh sách tài khoản",
+    match: (p) => p.startsWith("/he-thong/nhan-su"),
+    active: "bg-amber-600 text-white shadow-sm",
+    idle: "bg-amber-50 text-amber-900 hover:bg-amber-100",
+  },
+  {
+    href: "/he-thong/xi-nghiep",
+    label: "Danh sách Xí nghiệp",
+    match: (p) => p.startsWith("/he-thong/xi-nghiep"),
+    active: "bg-emerald-600 text-white shadow-sm",
+    idle: "bg-emerald-50 text-emerald-900 hover:bg-emerald-100",
+  },
+];
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
   /** Nút phụ bên phải (vd. + Thêm mới) — sau các tab chuyển mục */
-  actions?: React.ReactNode;
+  actions?: ReactNode;
   subtitle?: string;
+  /** Admin: đủ 3 mục; user: chỉ Tài khoản + Xí nghiệp */
+  isAdmin?: boolean;
 };
 
 export function HeThongShell({
   children,
   actions,
   subtitle = "Giám sát hoạt động và quản trị danh mục hệ thống",
+  isAdmin = false,
 }: Props) {
   const pathname = usePathname() || "/he-thong";
+  const modules = isAdmin ? ADMIN_MODULES : USER_MODULES;
 
   return (
     <div className="mx-auto max-w-6xl space-y-5 p-6">
@@ -65,11 +95,11 @@ export function HeThongShell({
             >
               ← Chọn phân hệ
             </Link>
-            {MODULES.map((m) => {
+            {modules.map((m) => {
               const on = m.match(pathname);
               return (
                 <Link
-                  key={m.href}
+                  key={`${m.label}-${m.href}`}
                   href={m.href}
                   className={`rounded-xl px-3 py-2 text-xs font-bold whitespace-nowrap transition ${
                     on ? m.active : m.idle

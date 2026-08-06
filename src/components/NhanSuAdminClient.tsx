@@ -63,7 +63,7 @@ function roleBadgeClass(vaiTro: string | null | undefined, chucDanh: string | nu
   return "bg-slate-100 text-slate-500";
 }
 
-export function NhanSuAdminClient() {
+export function NhanSuAdminClient({ isAdmin = false }: { isAdmin?: boolean }) {
   const [rows, setRows] = useState<NhanSu[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -214,20 +214,27 @@ export function NhanSuAdminClient() {
 
   return (
     <HeThongShell
-      subtitle="Nhân sự, cấp đăng nhập và phân tổ TV / TN / GS"
+      isAdmin={isAdmin}
+      subtitle={
+        isAdmin
+          ? "Nhân sự, cấp đăng nhập và phân tổ TV / TN / GS"
+          : "Danh sách tài khoản (chỉ xem)"
+      }
       actions={
-        <button
-          type="button"
-          onClick={startAdd}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-900 shadow-sm transition hover:bg-amber-100"
-        >
-          <span className="text-base leading-none">+</span>
-          Thêm mới
-        </button>
+        isAdmin ? (
+          <button
+            type="button"
+            onClick={startAdd}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 text-xs font-bold text-amber-900 shadow-sm transition hover:bg-amber-100"
+          >
+            <span className="text-base leading-none">+</span>
+            Thêm mới
+          </button>
+        ) : undefined
       }
     >
       <div className="space-y-5">
-      {showAddForm ? (
+      {isAdmin && showAddForm ? (
         <form
           onSubmit={onAddSubmit}
           className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 shadow-sm"
@@ -360,12 +367,12 @@ export function NhanSuAdminClient() {
           <table className="w-full min-w-[900px] table-fixed text-left text-sm">
             <colgroup>
               <col className="w-[8%]" />
-              <col className="w-[28%]" />
+              <col className={isAdmin ? "w-[28%]" : "w-[32%]"} />
               <col className="w-[19%]" />
               <col className="w-[12%]" />
               <col className="w-[15%]" />
               <col className="w-[10%]" />
-              <col className="w-[8%]" />
+              {isAdmin ? <col className="w-[8%]" /> : null}
             </colgroup>
             <thead className="bg-amber-100/70 text-xs font-bold tracking-wide text-amber-900 uppercase">
               <tr>
@@ -375,14 +382,16 @@ export function NhanSuAdminClient() {
                 <th className="px-3 py-2.5 text-center">Điện thoại</th>
                 <th className="px-3 py-2.5 text-center">Vai trò</th>
                 <th className="px-3 py-2.5 text-center">Tổ</th>
-                <th className="px-3 py-2.5 text-center">Thao tác</th>
+                {isAdmin ? (
+                  <th className="px-3 py-2.5 text-center">Thao tác</th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={isAdmin ? 7 : 6}
                     className="px-3 py-8 text-center text-slate-500"
                   >
                     Đang tải…
@@ -391,17 +400,23 @@ export function NhanSuAdminClient() {
               ) : rows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={isAdmin ? 7 : 6}
                     className="px-3 py-8 text-center text-slate-500"
                   >
-                    Chưa có nhân sự — chạy SQL{" "}
-                    <code className="text-xs">006</code> +{" "}
-                    <code className="text-xs">007</code>.
+                    {isAdmin ? (
+                      <>
+                        Chưa có nhân sự — chạy SQL{" "}
+                        <code className="text-xs">006</code> +{" "}
+                        <code className="text-xs">007</code>.
+                      </>
+                    ) : (
+                      "Chưa có tài khoản."
+                    )}
                   </td>
                 </tr>
               ) : (
                 rows.map((r) => {
-                  const editing = editingId === r.id;
+                  const editing = isAdmin && editingId === r.id;
                   const lockedTo =
                     r.vai_tro === "admin" || isTruongPhong(form.chuc_danh);
 
@@ -578,41 +593,43 @@ export function NhanSuAdminClient() {
                           ) : null}
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-center">
-                        <div className="flex items-center justify-center gap-3 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(r)}
-                            title="Sửa nhân sự"
-                            aria-label={`Sửa ${r.ho_ten}`}
-                            className="text-amber-700 transition hover:text-amber-900"
-                          >
-                            <PencilIcon />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={provisioningId === r.id || !r.active}
-                            onClick={() => void capDangNhap(r)}
-                            title={
-                              r.da_cap_dang_nhap
-                                ? "Đặt lại mật khẩu"
-                                : "Cấp đăng nhập"
-                            }
-                            aria-label={
-                              r.da_cap_dang_nhap
-                                ? `Đặt lại mật khẩu cho ${r.ho_ten}`
-                                : `Cấp đăng nhập cho ${r.ho_ten}`
-                            }
-                            className={`transition disabled:opacity-40 ${
-                              r.da_cap_dang_nhap
-                                ? "text-sky-600 hover:text-sky-800"
-                                : "text-slate-400 hover:text-sky-700"
-                            }`}
-                          >
-                            {provisioningId === r.id ? "…" : <KeyIcon />}
-                          </button>
-                        </div>
-                      </td>
+                      {isAdmin ? (
+                        <td className="px-3 py-2 text-center">
+                          <div className="flex items-center justify-center gap-3 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(r)}
+                              title="Sửa nhân sự"
+                              aria-label={`Sửa ${r.ho_ten}`}
+                              className="text-amber-700 transition hover:text-amber-900"
+                            >
+                              <PencilIcon />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={provisioningId === r.id || !r.active}
+                              onClick={() => void capDangNhap(r)}
+                              title={
+                                r.da_cap_dang_nhap
+                                  ? "Đặt lại mật khẩu"
+                                  : "Cấp đăng nhập"
+                              }
+                              aria-label={
+                                r.da_cap_dang_nhap
+                                  ? `Đặt lại mật khẩu cho ${r.ho_ten}`
+                                  : `Cấp đăng nhập cho ${r.ho_ten}`
+                              }
+                              className={`transition disabled:opacity-40 ${
+                                r.da_cap_dang_nhap
+                                  ? "text-sky-600 hover:text-sky-800"
+                                  : "text-slate-400 hover:text-sky-700"
+                              }`}
+                            >
+                              {provisioningId === r.id ? "…" : <KeyIcon />}
+                            </button>
+                          </div>
+                        </td>
+                      ) : null}
                     </tr>
                   );
                 })

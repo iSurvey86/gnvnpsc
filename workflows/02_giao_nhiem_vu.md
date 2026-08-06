@@ -1,7 +1,7 @@
-# Workflow — Giao nhiệm vụ theo dự án
+# Workflow — Giao nhiệm vụ theo Giao A
 
-> **Màn hình:** Quản lý dự án (bảng danh mục) · Giao nhiệm vụ · Soạn quyết định giao Xí nghiệp
-> **Route:** `/tvtk`, `/thi-nghiem`, `/tvgs`, `/du-an/[id]/giao-xn`, `/du-an/[id]/sua`
+> **Màn hình:** Danh sách Giao A · Theo dõi Giao A · Soạn quyết định giao Xí nghiệp
+> **Route:** `/tvtk`, `/thi-nghiem`, `/tvgs`, `/giao-a/[id]/theo-doi`, `/du-an/[id]/giao-xn/soan`
 
 ## Luồng nghiệp vụ
 
@@ -14,87 +14,51 @@ flowchart TD
   classDef exportClass fill:#FFEBEE,stroke:#D32F2F,stroke-width:2px,color:#000
 
   Hub(["👤 Chọn phân hệ sau đăng nhập"])
-  Bang["Bảng Quản lý dự án của phân hệ — chỉ dự án đã lưu"]
-  Chon{"Người dùng bấm gì trên dòng dự án?"}
-  Sua["Sửa thông tin chung của dự án"]
-  ChonXn["Chọn Xí nghiệp ngay trên bảng — có tìm kiếm"]
-  MoPdf["Mở tệp PDF Quyết định Giao A"]
-  Mo["Mở màn Giao nhiệm vụ"]
-  Info["Xem thông tin chung: mã, tên, địa điểm, cấp điện áp, quy mô"]
-  Cap{"Đã có cấp điện áp?"}
-  NoCap["Nhắc bổ sung cấp điện áp trước khi xuất Word"]
-  Cta["Bấm Giao nhiệm vụ"]
-  Form["Trang soạn quyết định dạng giấy"]
-  MacDinh["Tự điền căn cứ, chủ đầu tư, Xí nghiệp, ngày"]
-  BangCt["Bảng công trình — tick chọn giao lần này"]
-  Tien{"Thuộc loại trung hạ áp?"}
-  L1["Tính chi phí bước 1 và tạm ứng theo dòng đã chọn"]
+  Bang["Bảng theo dõi theo Quyết định Giao A"]
+  Mo["Mở hồ sơ Giao A — thông tin chung + tiến độ"]
+  XemCt["Xem danh sách công trình — đã giao bị mờ"]
+  Lap{"Lập mới hay mở quyết định đã có?"}
+  SoanMoi["Soạn — tick công trình còn lại, chọn Xí nghiệp"]
+  SoanCu["Mở soạn quyết định đã lập"]
   Valid{"Đủ đơn vị nhận và thông tin bắt buộc?"}
-  Save["Lưu quyết định — đồng bộ danh sách công trình đã tick"]
-  Map["Gắn các dự án cùng Giao A trùng tên công trình đã chọn vào quyết định"]
-  Warn{"Chọn hết công trình còn lại?"}
-  WarnMsg["Cảnh báo: có thể chia nhiều Xí nghiệp — xác nhận hoặc bỏ tick bớt"]
-  Log["Ghi nhật ký người giao nhiệm vụ"]
-  Word["Xuất Word theo mẫu — in / ký ngoài"]
-  UpPdf["Tải PDF quyết định đã ký"]
-  DaGiao["Chốt luồng — Đã giao"]
-  Xoa{"Cần bỏ quyết định đã soạn?"}
-  CheckTt{"Quyết định còn ở trạng thái Nháp?"}
-  Chan["Chặn xóa — quyết định đã giao chỉ Admin được xóa"]
-  XoaXong["Xóa dự thảo, gỡ gắn mọi dự án đã map, ghi nhật ký"]
-  MoMap{"Dòng dự án đã nằm trong quyết định khác?"}
-  MoQdCu["Mở đúng quyết định đã lập — không tạo bản mới"]
-  End(["Về bảng — nhãn: Đã có dự thảo / Đã giao / Đã có trong QĐ"])
+  Save["Lưu — gắn công trình đã tick vào quyết định"]
+  Word["Xuất Word / tải PDF đã ký"]
+  Tiep{"Còn công trình chưa giao?"}
+  Quay["Quay hồ sơ Giao A — giao tiếp phần còn lại"]
+  Xong(["✅ Đã giao hết công trình của Giao A"])
 
-  Hub --> Bang --> Chon
-  Chon -->|Biểu tượng sửa| Sua --> Bang
-  Chon -->|Ô Xí nghiệp| ChonXn --> Bang
-  Chon -->|Số Giao A| MoPdf
-  Chon -->|Tên dự án| Mo --> Info --> Cap
-  Cap -->|Chưa| NoCap --> Cta
-  Cap -->|Có| Cta
-  Cta --> MoMap
-  MoMap -->|Có| MoQdCu --> Form
-  MoMap -->|Chưa| Form
-  Form --> MacDinh --> BangCt --> Warn
-  Warn -->|Chọn hết · xác nhận| Tien
-  Warn -->|Bỏ tick bớt| BangCt
-  Warn -->|Không chọn hết| Tien
-  Tien -->|Có| L1 --> Valid
-  Tien -->|Không| Valid
-  Valid -->|Thiếu| Form
-  Valid -->|Đủ| Save --> Map --> Log --> Word --> UpPdf --> DaGiao --> End
-  Form --> Xoa
-  Xoa -->|Có| CheckTt
-  CheckTt -->|Không| Chan --> Form
-  CheckTt -->|Còn nháp| XoaXong --> End
+  Hub --> Bang
+  Bang --> Mo
+  Mo --> XemCt
+  XemCt --> Lap
+  Lap -->|Lập / giao tiếp| SoanMoi
+  Lap -->|Mở soạn| SoanCu
+  SoanMoi --> Valid
+  SoanCu --> Valid
+  Valid -->|Thiếu| SoanMoi
+  Valid -->|Đủ| Save
+  Save --> Word
+  Word --> Tiep
+  Tiep -->|Còn| Quay
+  Quay --> XemCt
+  Tiep -->|Hết| Xong
 
-  class Hub,Bang,Sua,ChonXn,MoPdf,Mo,Info,Cta,Form,MacDinh,BangCt,UpPdf,MoQdCu,WarnMsg userClass
-  class Chon,Cap,Tien,Valid,Xoa,CheckTt,MoMap,Warn processClass
-  class L1,Map aiClass
-  class Save,Log,DaGiao,End dbClass
-  class NoCap,Word,Chan,XoaXong exportClass
+  class Hub,Xong userClass
+  class Bang,Mo,XemCt,SoanMoi,SoanCu,Save,Quay processClass
+  class Valid,Lap,Tiep aiClass
+  class Word exportClass
 ```
-
-## Nhãn cột Giao Xí nghiệp
-
-| Tình huống | Hiện dưới tên Xí nghiệp |
-|---|---|
-| Chưa chọn / chưa soạn QĐ | Chưa giao hoặc Chưa lập QĐ |
-| Đã lưu dự thảo (dự án chủ) | Đã có dự thảo |
-| Đã tải PDF ký | Đã giao (bấm để xem PDF) |
-| Dự án khác đã nằm trong cùng quyết định | Đã có trong QĐ (hoặc Trong QĐ + số) — bấm mở quyết định đã lập |
 
 ## Một quyết định — nhiều công trình
 
-Khi soạn từ **một** dự án, mục **Công trình giao lần này** liệt kê phụ lục Giao A: **tick** công trình giao cho Xí nghiệp đang chọn (dòng đã giao đơn vị khác bị khóa). Lưu / xuất Word / tải PDF ký **gắn** các dự án khớp tên đã tick. Muốn chia nhiều Xí nghiệp: bỏ tick phần còn lại → lưu QĐ 1 → lập QĐ tiếp cho phần còn lại. Xóa dự thảo → gỡ toàn bộ gắn kết.
+Từ hồ sơ Giao A: **Lập giao** / **Giao tiếp còn lại** → trang soạn liệt kê phụ lục, **tick** công trình chưa giao (đã giao bị khóa/mờ). Lưu / Xuất Word / PDF ký gắn các dự án khớp tên đã tick. Chia nhiều Xí nghiệp: giao một phần → lưu → quay hồ sơ → giao phần còn lại.
 ## Nội dung màn hình
 
 | Phần | Nội dung |
 |------|----------|
-| Bảng Quản lý dự án | Số thứ tự · Mã dự án · Tên dự án (bấm để giao nhiệm vụ) · Loại · Số/ngày Giao A kèm người quét · Xí nghiệp (chọn trực tiếp) · Trạng thái · Sửa |
-| Màn Giao nhiệm vụ | Thông tin chung, trích yếu Giao A, quy mô và một nút hành động duy nhất |
-| Trang soạn | Giấy quyết định theo loại (110 kV xanh dương · trung hạ áp xanh ngọc · thí nghiệm vàng cát); Lưu · xuất Word |
+| Bảng Giao A | STT · Số Giao A + ngày · Người quét · Số công trình · Đã giao (x/y CT) · Xóa (icon, chỉ Admin/Trưởng phòng); bấm số Giao A để mở theo dõi |
+| Xóa hồ sơ Giao A | Chỉ Admin / Trưởng phòng; quét sai → báo Trưởng phòng xóa || Hồ sơ Giao A | Thông tin chung + bảng CT (đã giao mờ) + quyết định đã lập + nút giao |
+| Trang soạn | Giấy quyết định; tick CT; Lưu · Word · PDF ký; đóng về hồ sơ Giao A |
 
 ## Quy tắc soạn (đã chốt)
 
@@ -123,11 +87,10 @@ Khi soạn từ **một** dự án, mục **Công trình giao lần này** liệ
 | Mục | Chi tiết |
 |-----|----------|
 | Hub chọn phân hệ | `page.tsx` · `hub-phan-he-stats.ts` |
-| Bảng danh mục | `DuAnDashboard.tsx` — nguồn `GET /api/du-an?phan_he=` (lọc `da_luu = true`) + `qd_giao_xn_map` |
-| UI giao nhiệm vụ | `GiaoNhiemVuSection.tsx` |
-| Sửa thông tin chung | `/du-an/[id]/sua` · `SuaDuAnForm.tsx` |
-| UI soạn | `SoanQdGiaoXnEditor.tsx` · banner `QdGiaoXnDocBanner.tsx` |
-| Map nhiều DA | `qd-giao-xn-map.ts` · bảng `qd_giao_xn_du_an` · SQL `019_qd_giao_xn_du_an.sql` |
+| Bảng danh mục | `GiaoADashboard.tsx` — `GET /api/giao-a?phan_he=` |
+| Theo dõi Giao A | `GiaoATheoDoiClient.tsx` · `/giao-a/[id]/theo-doi` · `GET .../theo-doi` |
+| UI soạn | `SoanQdGiaoXnEditor.tsx` · `return_to` về hồ sơ Giao A |
+| Map nhiều DA | `qd-giao-xn-map.ts` · bảng `qd_giao_xn_du_an` · SQL `019` |
 | Danh xưng GD XN | `danh-xung-gd-xn.ts` · tag `{danh_xung_gd_xn}` |
 | Xóa dự thảo | `DELETE /api/qd-giao-xn/[id]` — chặn khi `trang_thai <> 'nhap'`, ghi nhật ký `GIAO_XN / DELETE` |
 | PDF đã ký | `POST/GET /api/qd-giao-xn/[id]/pdf-ky` · SQL `018_qd_giao_xn_pdf_ky.sql` · bucket `qd-giao-xn` |

@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import {
+  AuthError,
+  canXoaHoSoGiaoA,
+  requireSession,
+} from "@/lib/phan-he-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -35,11 +40,23 @@ export async function GET(_request: Request, ctx: Ctx) {
 }
 
 /**
- * DELETE hồ sơ Giao A + dự án thuộc hồ sơ (khi user Hủy sau cảnh báo trùng).
- * Không xóa nếu đã có QĐ giao XN gắn dự án.
+ * DELETE hồ sơ Giao A + dự án thuộc hồ sơ.
+ * Chỉ Admin / Trưởng phòng. Không xóa nếu đã có QĐ giao XN.
  */
 export async function DELETE(_request: Request, ctx: Ctx) {
   try {
+    const profile = await requireSession();
+    if (!canXoaHoSoGiaoA(profile)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Chỉ Quản trị hoặc Trưởng phòng được xóa hồ sơ Giao A. Quét sai — báo Trưởng phòng để xóa.",
+        },
+        { status: 403 },
+      );
+    }
+
     const { id } = await ctx.params;
     const supabase = createAdminClient();
 
@@ -74,6 +91,12 @@ export async function DELETE(_request: Request, ctx: Ctx) {
     if (error) throw new Error(error.message);
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { ok: false, error: err.message },
+        { status: err.status },
+      );
+    }
     const message = err instanceof Error ? err.message : "Lỗi hủy hồ sơ Giao A";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ loai?: string; qdId?: string }>;
+  searchParams: Promise<{ loai?: string; qdId?: string; return_to?: string }>;
 };
 
 function oneRel<T>(v: T | T[] | null | undefined): T | null {
@@ -41,6 +41,10 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
   const phanHe: PhanHeCode = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
   const loaiMacDinh = PHAN_HE[phanHe].defaultLoaiGiao;
   const loai: LoaiGiaoXn = parseLoaiGiao(sp.loai, loaiMacDinh);
+  const returnTo = sp.return_to?.trim() || null;
+  const returnQs = returnTo
+    ? `&return_to=${encodeURIComponent(returnTo)}`
+    : "";
 
   if (loai === "tvtk" && !(duAn as DuAn).cap_dien_ap) {
     redirect(`/du-an/${id}/giao-xn?phan_he=${phanHe}`);
@@ -57,7 +61,7 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
       .maybeSingle();
     if (owned) {
       redirect(
-        `/du-an/${id}/giao-xn/soan?loai=${owned.loai}&qdId=${owned.id}`,
+        `/du-an/${id}/giao-xn/soan?loai=${owned.loai}&qdId=${owned.id}${returnQs}`,
       );
     }
 
@@ -74,7 +78,7 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
       );
       if (q?.loai === loai) {
         redirect(
-          `/du-an/${q.du_an_id}/giao-xn/soan?loai=${q.loai}&qdId=${q.id}`,
+          `/du-an/${q.du_an_id}/giao-xn/soan?loai=${q.loai}&qdId=${q.id}${returnQs}`,
         );
       }
     }
@@ -108,7 +112,7 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
           .maybeSingle();
         if (mapOk) {
           redirect(
-            `/du-an/${qd.du_an_id}/giao-xn/soan?loai=${qd.loai}&qdId=${qd.id}`,
+            `/du-an/${qd.du_an_id}/giao-xn/soan?loai=${qd.loai}&qdId=${qd.id}${returnQs}`,
           );
         }
       } else {
@@ -148,6 +152,7 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
       loai={loaiHieuLuc}
       initial={initial}
       phuLucCtx={phuLucCtx}
+      backHrefOverride={returnTo}
     />
   );
 }

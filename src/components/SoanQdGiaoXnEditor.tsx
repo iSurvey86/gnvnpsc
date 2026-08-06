@@ -48,6 +48,8 @@ type Props = {
   loai: LoaiGiaoXn;
   initial: QdGiaoXn | null;
   phuLucCtx?: PhuLucGiaoXnContext;
+  /** Về trang theo dõi Giao A (hoặc home phân hệ) */
+  backHrefOverride?: string | null;
 };
 
 function labelLoai(loai: LoaiGiaoXn, cap: DuAn["cap_dien_ap"]): string {
@@ -109,12 +111,14 @@ export function SoanQdGiaoXnEditor({
   loai,
   initial,
   phuLucCtx,
+  backHrefOverride,
 }: Props) {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
   const phanHe = isPhanHeCode(duAn.phan_he) ? duAn.phan_he : "tvtk";
-  /** Ra bảng Quản lý dự án (không dừng ở trang giao XN trung gian). */
-  const backHref = PHAN_HE[phanHe].homeAfterSave;
+  /** Ra bảng Quản lý / theo dõi Giao A (không dừng ở trang giao XN trung gian). */
+  const backHref =
+    backHrefOverride?.trim() || PHAN_HE[phanHe].homeAfterSave;
   const isTvtkTha = loai === "tvtk" && duAn.cap_dien_ap === "trung_ha_ap";
   const isTvgs = loai === "tvgs" || phanHe === "tvgs";
   const showTinhTien = shouldTinhTienGiao(loai, duAn.cap_dien_ap) || isTvgs;

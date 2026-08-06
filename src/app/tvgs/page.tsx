@@ -1,5 +1,5 @@
-import { DuAnDashboard } from "@/components/DuAnDashboard";
+import { GiaoADashboard } from "@/components/GiaoADashboard";
 
 export default function TvgsPage() {
-  return <DuAnDashboard phanHe="tvgs" />;
+  return <GiaoADashboard phanHe="tvgs" />;
 }

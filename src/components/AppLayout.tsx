@@ -70,19 +70,18 @@ const nav: NavItem[] = [
     phanHeOnly: "tvtk",
   },
   {
-    href: "/he-thong/giam-sat",
-    label: "Danh sách tài khoản",
-    icon: "👥",
-    match: (p) => p.startsWith("/he-thong/giam-sat"),
-    adminOnly: false,
-    hideIfAdmin: true,
-  },
-  {
-    href: "/he-thong/giam-sat",
+    href: "/he-thong",
     label: "Quản lý hệ thống",
     icon: "⚙️",
     match: (p) => p.startsWith("/he-thong"),
-    adminOnly: true,
+    adminOnly: false,
+  },
+  {
+    href: "/huong-dan",
+    label: "Hướng dẫn sử dụng",
+    icon: "📖",
+    match: (p) => p.startsWith("/huong-dan"),
+    adminOnly: false,
   },
 ];
 
@@ -205,7 +204,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {visibleNav.map((item) => {
             const active = item.match(pathname);
             return (
-              <Link key={item.href} href={item.href}>
+              <Link key={`${item.label}-${item.href}`} href={item.href}>
                 <div
                   className={`flex cursor-pointer items-center rounded-lg px-2.5 py-2.5 text-sm font-bold transition-all ${
                     active

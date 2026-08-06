@@ -1,56 +1,30 @@
-# HDSD — Giao nhiệm vụ theo dự án
+# HDSD — Giao nhiệm vụ theo Giao A
 
-## Mở danh sách QĐ giao Xí nghiệp
+## Mở hồ sơ
 
-Sidebar → **QĐ giao Xí nghiệp**: bảng **STT · Mã dự án · Tên dự án · Loại · Số/Ngày · Xí nghiệp · Trạng thái** (tiêu đề cột căn giữa).
+1. Phân hệ → bảng **Giao A** → **Mở** một dòng.
+2. Xem thông tin Giao A + bảng công trình (đã giao = mờ).
+3. **Lập giao nhiệm vụ** hoặc **Giao tiếp còn lại** → trang soạn.
 
-## Mở màn hình
+## Lập / soạn quyết định
 
-Từ **Quản lý dự án**, mở một dòng dự án → trang **Giao nhiệm vụ**.
-
-## I. Thông tin chung
-
-- Xem mã, tên, địa điểm, cấp điện áp, **loại hình dự án**, **hướng giao**.
-- **Giao A số**: bấm để mở **file PDF** Quyết định giao danh mục (tab mới).
-- Đọc trích yếu và quy mô để đối chiếu khi soạn.
-
-## II. Phần giao nhiệm vụ
-
-Mỗi dự án chỉ hiện thẻ **TVTK đúng cấp điện áp** cùng thẻ Thí nghiệm (nếu thuộc hướng giao):
-
-| # | Thẻ | Khi hiện |
-|---|-----|----------|
-| 1 | Giao tư vấn thiết kế **110kV** | Cấp điện áp = 110 kV |
-| 2 | Giao Tư vấn thiết kế **trung, hạ áp** | Cấp điện áp = trung hạ áp |
-| 3 | Giao Thí nghiệm, **hiệu chỉnh** | Theo hướng giao |
-
-- Thẻ không thuộc hướng giao sẽ **khóa**.
-- Chưa có cấp điện áp: cảnh báo — cần cập nhật ở Review Giao A.
-- Đã có dự thảo: thẻ hiện đơn vị, thời hạn, trạng thái.
-
-### Lập / soạn quyết định
-
-1. Bấm **+ Lập** hoặc **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát, **TVGS xanh cyan**).
+1. Bấm **Lập** / **Giao tiếp** / **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát, **TVGS xanh cyan**).
 2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
 3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
-4. **Tính tiền:**
-   - TVTK THA: GHĐ theo loại hình (XDM/Cải tạo 3,3% · SCMBA/DMS 1,5%); tạm ứng 15%/16% theo địa bàn.
-   - TVGS: GHĐ **1%** × TMĐT (mọi cấp); **không** tạm ứng; có ô **Tiền bằng số / bằng chữ**.
-   - Cột **Giá trị HĐ** (và tạm ứng trên bảng) hiển thị **đồng** (vd `180.930.000`), không dùng dạng triệu có dấu phẩy.
+4. **Tick công trình** giao lần này (dòng đã giao đơn vị khác bị khóa). Có thể giao hết hoặc một phần.
+5. **Tính tiền:**
+   - TVTK THA: GHĐ theo loại hình; tạm ứng 15%/16% theo địa bàn; số **đồng**.
+   - TVGS: GHĐ **1%** × TMĐT; không tạm ứng; tiền bằng số/chữ.
    - TNHC: tính sau.
-5. Thanh nút: **Lưu** · **Lưu & đóng** · **Xuất Word** · **Tải PDF đã ký** (sau khi ký ngoài). Nút **Xuất PDF** đang tạm ẩn.
-6. Sau khi **Lưu**: danh mục dự án hiện **Đã có dự thảo** dưới tên Xí nghiệp. Các dự án khác **cùng Giao A** có tên khớp công trình còn lại trên bảng soạn cũng được gắn vào quyết định này (nhãn **Đã có trong QĐ**) — không cần / không được lập quyết định riêng. Nhật ký ghi **Tạo mới** / **Cập nhật** (phân hệ Giao Xí nghiệp).
-7. Sau khi **Tải PDF đã ký**: trạng thái **Đã giao**, bỏ dấu Dự thảo; bấm nhãn trên danh mục để xem PDF. Nhật ký ghi cập nhật «Tải PDF đã ký».
-8. **Xuất Word** cũng được ghi nhật ký (**Xuất văn bản**). Vì xuất thường lưu trước, có thể thấy hai dòng liền nhau (Cập nhật + Xuất văn bản).
+6. **Lưu** · **Lưu & đóng** (về hồ sơ Giao A) · **Xuất Word** · **Tải PDF đã ký**.
+7. Quay hồ sơ → giao tiếp phần còn lại nếu cần.
 
 ### Một quyết định phủ nhiều công trình
 
-1. Mở **bất kỳ** dự án trong cùng Giao A → soạn quyết định.
-2. Mục **Công trình giao lần này**: tick các công trình giao cho Xí nghiệp đang chọn (110 kV và trung hạ áp đều có). Công trình đã giao đơn vị khác bị khóa.
-3. Muốn chia nhiều Xí nghiệp: bỏ tick phần giao sau → Lưu QĐ 1 → mở dự án còn lại → tick phần còn lại cho XN khác.
-4. Khi tick hết phần còn lại (≥2 dòng), hệ thống hỏi xác nhận trước khi lưu.
-5. **Lưu** / Xuất Word / Tải PDF ký: gắn dự án khớp tên đã tick vào quyết định.
-6. Cần chạy SQL [019_qd_giao_xn_du_an.sql](d:\AIProject\gnvnpsc\scripts\sql\019_qd_giao_xn_du_an.sql) trên Supabase trước khi dùng.
+1. Từ hồ sơ Giao A → **Lập** / **Giao tiếp còn lại**.
+2. Tick công trình giao cho Xí nghiệp đang chọn; đã giao bị khóa/mờ.
+3. Chia nhiều XN: giao một phần → Lưu → quay hồ sơ → giao phần còn lại.
+4. Cần SQL [019](d:\AIProject\gnvnpsc\scripts\sql\019_qd_giao_xn_du_an.sql) nếu chưa chạy.
 
 ### Tải PDF đã ký (chốt luồng)
 

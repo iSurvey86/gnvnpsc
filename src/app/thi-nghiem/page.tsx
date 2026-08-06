@@ -1,5 +1,5 @@
-import { DuAnDashboard } from "@/components/DuAnDashboard";
+import { GiaoADashboard } from "@/components/GiaoADashboard";
 
 export default function ThiNghiemPage() {
-  return <DuAnDashboard phanHe="thi_nghiem" />;
+  return <GiaoADashboard phanHe="thi_nghiem" />;
 }

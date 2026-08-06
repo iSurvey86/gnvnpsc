@@ -26,7 +26,7 @@ const cellInput =
 const field =
   "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200/50";
 
-export function XiNghiepAdminClient() {
+export function XiNghiepAdminClient({ isAdmin = false }: { isAdmin?: boolean }) {
   const [rows, setRows] = useState<XiNghiep[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function XiNghiepAdminClient() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/xi-nghiep?all=1");
+      const res = await fetch(isAdmin ? "/api/xi-nghiep?all=1" : "/api/xi-nghiep");
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "Lỗi tải");
       setRows(json.data as XiNghiep[]);
@@ -49,7 +49,7 @@ export function XiNghiepAdminClient() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAdmin]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => void load(), 0);
@@ -129,20 +129,27 @@ export function XiNghiepAdminClient() {
 
   return (
     <HeThongShell
-      subtitle="Đơn vị nhận giao nhiệm vụ theo phân hệ TV / TN / GS"
+      isAdmin={isAdmin}
+      subtitle={
+        isAdmin
+          ? "Đơn vị nhận giao nhiệm vụ theo phân hệ TV / TN / GS"
+          : "Danh sách Xí nghiệp (chỉ xem)"
+      }
       actions={
-        <button
-          type="button"
-          onClick={startAdd}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-900 shadow-sm transition hover:bg-emerald-100"
-        >
-          <span className="text-base leading-none">+</span>
-          Thêm mới
-        </button>
+        isAdmin ? (
+          <button
+            type="button"
+            onClick={startAdd}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-900 shadow-sm transition hover:bg-emerald-100"
+          >
+            <span className="text-base leading-none">+</span>
+            Thêm mới
+          </button>
+        ) : undefined
       }
     >
       <div className="space-y-5">
-      {showAddForm ? (
+      {isAdmin && showAddForm ? (
         <form
           onSubmit={onAddSubmit}
           className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-sm"
@@ -212,11 +219,11 @@ export function XiNghiepAdminClient() {
           <table className="w-full min-w-[780px] table-fixed text-left text-sm">
             <colgroup>
               <col className="w-[14%]" />
-              <col className="w-[46%]" />
+              <col className={isAdmin ? "w-[46%]" : "w-[54%]"} />
               <col className="w-[8%]" />
               <col className="w-[8%]" />
               <col className="w-[8%]" />
-              <col className="w-[16%]" />
+              {isAdmin ? <col className="w-[16%]" /> : null}
             </colgroup>
             <thead className="bg-emerald-100/70 text-xs font-bold tracking-wide text-emerald-900 uppercase">
               <tr>
@@ -225,27 +232,36 @@ export function XiNghiepAdminClient() {
                 <th className="px-3 py-2.5 text-center">TV</th>
                 <th className="px-3 py-2.5 text-center">TN</th>
                 <th className="px-3 py-2.5 text-center">GS</th>
-                <th className="px-3 py-2.5 text-center">Thao tác</th>
+                {isAdmin ? (
+                  <th className="px-3 py-2.5 text-center">Thao tác</th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
+                  <td
+                    colSpan={isAdmin ? 6 : 5}
+                    className="px-3 py-8 text-center text-slate-500"
+                  >
                     Đang tải…
                   </td>
                 </tr>
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
-                    Chưa có Xí nghiệp — bấm + Thêm mới.
+                  <td
+                    colSpan={isAdmin ? 6 : 5}
+                    className="px-3 py-8 text-center text-slate-500"
+                  >
+                    {isAdmin
+                      ? "Chưa có Xí nghiệp — bấm + Thêm mới."
+                      : "Chưa có Xí nghiệp."}
                   </td>
                 </tr>
               ) : (
                 rows.map((r) => {
-                  const editing = editingId === r.id;
-                  if (editing) {
-                    return (
+                  const editing = isAdmin && editingId === r.id;
+                  if (editing) {                    return (
                       <tr
                         key={r.id}
                         className="border-t border-emerald-100 bg-emerald-50/40"
@@ -330,19 +346,21 @@ export function XiNghiepAdminClient() {
                           tone="amber"
                         />
                       </td>
-                      <td className="px-3 py-2 text-center">
-                        <div className="flex items-center justify-center gap-3 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(r)}
-                            title="Sửa Xí nghiệp"
-                            aria-label={`Sửa ${r.ten}`}
-                            className="text-emerald-700 transition hover:text-emerald-900"
-                          >
-                            <PencilIcon />
-                          </button>
-                        </div>
-                      </td>
+                      {isAdmin ? (
+                        <td className="px-3 py-2 text-center">
+                          <div className="flex items-center justify-center gap-3 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(r)}
+                              title="Sửa Xí nghiệp"
+                              aria-label={`Sửa ${r.ten}`}
+                              className="text-emerald-700 transition hover:text-emerald-900"
+                            >
+                              <PencilIcon />
+                            </button>
+                          </div>
+                        </td>
+                      ) : null}
                     </tr>
                   );
                 })

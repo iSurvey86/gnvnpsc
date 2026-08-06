@@ -29,10 +29,10 @@ function resolveAssignments(
 export async function GET() {
   try {
     const profile = await getSessionProfile();
-    if (!profile?.isAdmin) {
+    if (!profile) {
       return NextResponse.json(
-        { ok: false, error: "Chỉ Admin được quản lý nhân sự" },
-        { status: 403 },
+        { ok: false, error: "Chưa đăng nhập" },
+        { status: 401 },
       );
     }
 
