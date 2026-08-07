@@ -3,9 +3,9 @@
 ## Danh sách Giao A (trang chủ phân hệ)
 
 1. Mở hệ thống → chọn phân hệ → vào bảng **theo Quyết định Giao A** (không còn một dòng = một công trình).
-2. Cột: **STT · Giao A (số + ngày) · Người quét · Số công trình · Đã giao (đã giao/tổng CT)** · **Thao tác (icon Xóa)** chỉ hiện với **Quản trị / Trưởng phòng**. Bấm vào số Giao A để mở theo dõi / giao nhiệm vụ. Lọc theo **Năm** / **Người quét** cạnh ô tìm.
+2. Cột: **STT · Giao A (số + ngày) · Người quét · Số công trình · Đã giao (đã giao/tổng CT)** · **Thao tác**: icon **Sửa** (mọi user — mở Review để bổ sung cấp điện áp, loại hình…) · icon **Xóa** chỉ **Quản trị / Trưởng phòng**. Bấm vào số Giao A để mở theo dõi / giao nhiệm vụ. Lọc theo **Năm** / **Người quét** cạnh ô tìm.
 3. Tìm theo số Giao A, ngày; lọc năm / người quét.
-4. Quét sai hoặc cần xóa hồ sơ Giao A: **báo Trưởng phòng** (hoặc Quản trị) xóa — nhân viên không tự xóa trên danh sách.
+4. Quét sai hoặc cần xóa hồ sơ Giao A: **báo Trưởng phòng** (hoặc Quản trị) xóa — nhân viên không tự xóa trên danh sách. Thiếu cấp điện áp: bấm **Sửa** → chọn 110 kV / trung hạ áp → Lưu.
 5. Bấm **Nhập dự án (Giao A)** để thêm danh mục từ PDF.
 
 ## Trong hồ sơ Giao A

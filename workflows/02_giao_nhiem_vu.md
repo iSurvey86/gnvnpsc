@@ -56,7 +56,8 @@ Từ hồ sơ Giao A: **Lập giao** / **Giao tiếp còn lại** → trang so�
 
 | Phần | Nội dung |
 |------|----------|
-| Bảng Giao A | STT · Số Giao A + ngày · Người quét · Số công trình · Đã giao (x/y CT) · Xóa (icon, chỉ Admin/Trưởng phòng); bấm số Giao A để mở theo dõi |
+| Bảng Giao A | STT · Số Giao A + ngày · Người quét · Số công trình · Đã giao (x/y CT) · Sửa (Review) · Xóa (chỉ Admin/Trưởng phòng); bấm số Giao A để mở theo dõi |
+| Sửa hồ sơ Giao A | Icon Sửa → Review: bổ sung cấp điện áp, loại hình, tên CT… rồi Lưu |
 | Xóa hồ sơ Giao A | Chỉ Admin / Trưởng phòng; quét sai → báo Trưởng phòng xóa || Hồ sơ Giao A | Thông tin chung + bảng CT (đã giao mờ) + quyết định đã lập + nút giao |
 | Trang soạn | Giấy quyết định; tick CT; Lưu · Word · PDF ký; đóng về hồ sơ Giao A |
 

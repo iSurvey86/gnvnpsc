@@ -138,7 +138,7 @@ export function GiaoADashboard({
     }
   }
 
-  const colSpan = canXoaGiaoA ? 6 : 5;
+  const colSpan = 6;
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 p-3 md:p-4">
@@ -227,9 +227,7 @@ export function GiaoADashboard({
                 <th className="min-w-[10rem] px-2 py-2.5">Người quét</th>
                 <th className="w-28 px-2 py-2.5">Số công trình</th>
                 <th className="w-28 px-2 py-2.5">Đã giao</th>
-                {canXoaGiaoA ? (
-                  <th className="w-20 px-2 py-2.5">Thao tác</th>
-                ) : null}
+                <th className="w-24 px-2 py-2.5">Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -262,6 +260,7 @@ export function GiaoADashboard({
                 pageRows.map((r, i) => {
                   const stt = (page - 1) * pageSize + i + 1;
                   const href = `/giao-a/${r.id}/theo-doi?phan_he=${phanHe}`;
+                  const suaHref = `/giao-a/${r.id}?phan_he=${phanHe}`;
                   const labelGiaoA = r.ngay_qd
                     ? `${vietTatSoQdGiaoA(r.so_qd)} ngày ${formatNgayVN(r.ngay_qd)}`
                     : vietTatSoQdGiaoA(r.so_qd);
@@ -299,24 +298,34 @@ export function GiaoADashboard({
                           {r.da_giao_ct}/{r.tong_ct} CT
                         </span>
                       </td>
-                      {canXoaGiaoA ? (
-                        <td className="px-2 py-2 text-center">
-                          <button
-                            type="button"
-                            disabled={deletingId === r.id}
-                            onClick={() => void onDelete(r)}
-                            className="inline-flex p-1 text-rose-500 transition hover:text-rose-700 disabled:opacity-50"
-                            title="Xóa Giao A"
-                            aria-label="Xóa Giao A"
+                      <td className="px-2 py-2 text-center">
+                        <div className="inline-flex items-center justify-center gap-0.5">
+                          <Link
+                            href={suaHref}
+                            className={`inline-flex p-1 transition ${t.softText} hover:opacity-70`}
+                            title="Sửa / bổ sung thông tin Giao A (cấp điện áp, loại hình…)"
+                            aria-label="Sửa Giao A"
                           >
-                            {deletingId === r.id ? (
-                              <span className="text-[11px]">…</span>
-                            ) : (
-                              <TrashIcon />
-                            )}
-                          </button>
-                        </td>
-                      ) : null}
+                            <PencilIcon />
+                          </Link>
+                          {canXoaGiaoA ? (
+                            <button
+                              type="button"
+                              disabled={deletingId === r.id}
+                              onClick={() => void onDelete(r)}
+                              className="inline-flex p-1 text-rose-500 transition hover:text-rose-700 disabled:opacity-50"
+                              title="Xóa Giao A"
+                              aria-label="Xóa Giao A"
+                            >
+                              {deletingId === r.id ? (
+                                <span className="text-[11px]">…</span>
+                              ) : (
+                                <TrashIcon />
+                              )}
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
@@ -355,6 +364,19 @@ export function GiaoADashboard({
         </div>
       </div>
     </div>
+  );
+}
+
+function PencilIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+      />
+    </svg>
   );
 }
 

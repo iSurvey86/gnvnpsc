@@ -57,10 +57,10 @@ export default async function GiaoADetailPage({ params, searchParams }: Props) {
               Phân hệ {cfg.short} · mã -{cfg.maSuffix}
             </p>
             <h1 className="mt-0.5 text-[17px] font-black tracking-tight text-slate-800 uppercase">
-              Review sau ScanAI
+              Sửa / Review danh mục Giao A
             </h1>
             <p className="mt-1 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
-              Chỉnh danh mục dự án · rồi soạn QĐ giao Xí nghiệp
+              Bổ sung cấp điện áp · loại hình · chỉnh CT · rồi giao nhiệm vụ
             </p>
           </div>
         </div>
