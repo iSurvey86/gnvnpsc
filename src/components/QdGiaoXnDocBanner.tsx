@@ -35,19 +35,12 @@ export function QdGiaoXnDocBanner({
         </span>
       ) : null}
       {/* Cùng leading + gap đều giữa các dòng */}
-      <div className="mx-auto flex max-w-xl flex-col gap-1 px-10 leading-snug md:px-12">
+      <div className="mx-auto flex max-w-3xl flex-col gap-1 px-10 leading-snug md:px-12">
         <p
-          className={`text-[15px] font-semibold uppercase md:text-[17px] ${theme.bannerTitle}`}
+          className={`text-[13px] font-bold uppercase tracking-wide md:text-[15px] ${theme.bannerTitle}`}
         >
-          Công ty Dịch vụ Điện lực miền Bắc
-        </p>
-        <p
-          className={`text-[13px] font-semibold uppercase md:text-[14px] ${theme.bannerTitle}`}
-        >
-          Quyết định
-        </p>
-        <p className={`text-[12px] font-normal md:text-[13px] ${theme.bannerSub}`}>
-          Về việc giao nhiệm vụ {loaiNhiemVu} cho
+          Về việc giao nhiệm vụ {loaiNhiemVu}
+          {"\u00A0"}cho
         </p>
         <p
           className={`text-[12px] font-medium uppercase md:text-[13px] ${theme.bannerTitle}`}

@@ -10,7 +10,7 @@
 
 1. Bấm **Lập** / **Giao tiếp** / **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát, **TVGS xanh cyan**).
 2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
-3. Kiểm tra / sửa: số QĐ, năm ĐTXD, phạm vi, thời hạn.
+3. Kiểm tra / sửa: số QĐ, năm ĐTXD, thời hạn. Quy mô chi tiết từng công trình nằm ở phụ lục khi xuất Word (không còn ô phạm vi chung trên form soạn).
 4. **Tick công trình** giao lần này (dòng đã giao đơn vị khác bị khóa). Có thể giao hết hoặc một phần.
 5. **Tính tiền:**
    - TVTK THA: GHĐ theo loại hình; tạm ứng 15%/16% theo địa bàn; số **đồng**.

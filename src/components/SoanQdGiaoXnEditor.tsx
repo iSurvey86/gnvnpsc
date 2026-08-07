@@ -195,9 +195,6 @@ export function SoanQdGiaoXnEditor({
     () => initial?.ngay_du_thao?.trim() || "",
   );
   const [xiId, setXiId] = useState(defaultXiId);
-  const [phamVi, setPhamVi] = useState(
-    initial?.pham_vi ?? duAn.quy_mo ?? "",
-  );
   const [thoiHan, setThoiHan] = useState(initial?.thoi_han ?? "");
   const [canCu, setCanCu] = useState(
     () =>
@@ -383,7 +380,7 @@ export function SoanQdGiaoXnEditor({
       so_qd_du_thao: soQd || null,
       ngay_du_thao: ngay || null,
       xi_nghiep_id: xiId || null,
-      pham_vi: phamVi || null,
+      pham_vi: null,
       thoi_han: thoiHan || null,
       can_cu: canCu || null,
       cong_trinh: congTrinhDaChon,
@@ -828,20 +825,8 @@ export function SoanQdGiaoXnEditor({
               />
             </section>
 
-            <section className={theme.panelAlt}>
-              <SectionHead n={2} className="mb-1" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
-                Phạm vi / nội dung giao
-              </SectionHead>
-              <textarea
-                value={phamVi}
-                onChange={(e) => setPhamVi(e.target.value)}
-                rows={1}
-                className={`${fieldAuto} min-h-[2.25rem] bg-white/90`}
-              />
-            </section>
-
             <section className={theme.panel}>
-              <SectionHead n={3} className="mb-1" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+              <SectionHead n={2} className="mb-1" badgeClass={theme.badge} titleClass={theme.sectionTitle}>
                 Chủ đầu tư & Xí nghiệp
               </SectionHead>
               <div className="flex flex-wrap items-stretch gap-2">
@@ -893,7 +878,7 @@ export function SoanQdGiaoXnEditor({
             {congTrinhBase.length > 0 ? (
               <section className={`space-y-2 ${theme.panelAlt}`}>
                 <div className="flex flex-wrap items-end justify-between gap-2">
-                  <SectionHead n={4} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                  <SectionHead n={3} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
                     Công trình giao lần này
                   </SectionHead>
                   <div className="flex flex-wrap gap-1.5">
@@ -1001,7 +986,7 @@ export function SoanQdGiaoXnEditor({
             {showTinhTien ? (
               <section className={`space-y-2 ${theme.panel}`}>
                 <div className="flex flex-wrap items-end justify-between gap-2">
-                  <SectionHead n={5} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
+                  <SectionHead n={4} badgeClass={theme.badge} titleClass={theme.sectionTitle}>
                     {isTvgs
                       ? "Giá trị hợp đồng"
                       : "Giá trị hợp đồng & tạm ứng"}

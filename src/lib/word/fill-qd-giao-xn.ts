@@ -257,7 +257,7 @@ export function buildWordTagData(opts: {
     ct_danh_dau_goi: empty,
     ct_gia_tri_hd: empty,
     ct_chi_phi_l1: empty,
-    pham_vi: draft.pham_vi?.trim() || duAn.quy_mo?.trim() || empty,
+    pham_vi: draft.pham_vi?.trim() || empty,
     thoi_han: draft.thoi_han?.trim() || empty,
     can_cu: draft.can_cu?.trim() || empty,
     ten_du_an: duAn.ten_du_an,
