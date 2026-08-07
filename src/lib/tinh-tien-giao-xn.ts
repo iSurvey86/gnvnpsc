@@ -144,7 +144,10 @@ export type DongTinhTien = {
   ct_ten: string;
   ct_tmdt: string;
   ct_tmdt_so: number | null;
-  /** Giá trị hợp đồng (= L1 / chi phí lần 01) */
+  /**
+   * Chi phí / cấp tạm ứng lần 01 (= tạm ứng 15%/16% × GHĐ khi TVTK THA).
+   * Không còn đồng nghĩa với giá trị HĐ.
+   */
   ct_chi_phi_l1: string;
   ct_chi_phi_l1_so: number | null;
   ct_gia_tri_hd: string;
@@ -225,8 +228,8 @@ export function tinhChiPhiL1TuPhuLuc(opts: {
       ct_ten: (r.ct_ten ?? "").toString(),
       ct_tmdt: tmdtSo != null ? formatTrieuDong(tmdtSo) : tmdtRaw,
       ct_tmdt_so: tmdtSo,
-      ct_chi_phi_l1: ghdStr,
-      ct_chi_phi_l1_so: ghdSo,
+      ct_chi_phi_l1: tuStr,
+      ct_chi_phi_l1_so: tuSo,
       ct_gia_tri_hd: ghdStr,
       ct_gia_tri_hd_so: ghdSo,
       ct_gia_tri_tam_ung: tuStr,
@@ -264,8 +267,8 @@ export function tinhChiPhiL1TuPhuLuc(opts: {
     rows,
     tong_tmdt: tongTmdtSo != null ? formatTrieuDong(tongTmdtSo) : "",
     tong_tmdt_so: tongTmdtSo,
-    tong_chi_phi_l1: tongGhdSo != null ? formatDongTuTrieu(tongGhdSo) : "",
-    tong_chi_phi_l1_so: tongGhdSo,
+    tong_chi_phi_l1: tongTuSo != null ? formatDongTuTrieu(tongTuSo) : "",
+    tong_chi_phi_l1_so: tongTuSo,
     tong_gia_tri_hd: tongGhdSo != null ? formatDongTuTrieu(tongGhdSo) : "",
     tong_gia_tri_hd_so: tongGhdSo,
     tong_gia_tri_tam_ung: tongTuSo != null ? formatDongTuTrieu(tongTuSo) : "",

@@ -111,8 +111,8 @@ function mapCongTrinhRows(
     const tvgs = (r.ct_danh_dau_tvgs ?? "").toString();
     const calc = tinh.rows[i];
     const tmdt = calc?.ct_tmdt || (r.ct_tmdt ?? "").toString();
-    const ghd = calc?.ct_gia_tri_hd || calc?.ct_chi_phi_l1 || "";
-    const tu = calc?.ct_gia_tri_tam_ung || "";
+    const ghd = calc?.ct_gia_tri_hd || "";
+    const tu = calc?.ct_gia_tri_tam_ung || calc?.ct_chi_phi_l1 || "";
     return {
       stt: r.stt ?? i + 1,
       ct_ten: (r.ct_ten ?? "").toString(),
@@ -127,7 +127,8 @@ function mapCongTrinhRows(
       ct_danh_dau_tvtk: tvtk,
       ct_danh_dau_tvgs: tvgs,
       ct_gia_tri_hd: ghd || (r.ct_gia_tri_hd ?? "").toString(),
-      ct_chi_phi_l1: ghd || (r.ct_chi_phi_l1 ?? "").toString(),
+      /** Cột phụ lục «cấp chi phí lần 01» = tạm ứng lần 1 (không phải GHĐ) */
+      ct_chi_phi_l1: tu || (r.ct_chi_phi_l1 ?? "").toString(),
       ct_gia_tri_tam_ung: tu,
       ct_khv: (r.ct_khv ?? "").toString(),
       ct_tdtm: (r.ct_tdtm ?? "").toString(),

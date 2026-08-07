@@ -50,11 +50,13 @@ Trên mẫu: `{#cong_trinh}` … `{/cong_trinh}`.
 | `{ct_danh_dau_tvtk}` | Đánh dấu cột gói TVTK (vd `X`) |
 | `{ct_danh_dau_tvgs}` | Đánh dấu cột gói TVGS |
 | `{ct_gia_tri_hd}` | Giá trị HĐ tạm tính — **đồng** (TMĐT × tỷ lệ × 1.000.000) |
-| `{ct_chi_phi_l1}` | Chi phí lần 01 — **đồng** (cùng số với GHĐ THA) |
+| `{ct_chi_phi_l1}` | Cấp chi phí / tạm ứng lần 01 — **đồng** (= 15%/16% × GHĐ khi TVTK THA) |
+| `{ct_gia_tri_tam_ung}` | Cùng số với `{ct_chi_phi_l1}` (alias) |
 | `{tong_gia_tri_hd}` | Tổng giá trị HĐ — **đồng** |
-| `{tong_chi_phi_l1}` | Tổng chi phí L1 — **đồng** |
+| `{tong_chi_phi_l1}` | Tổng tạm ứng lần 01 — **đồng** |
+| `{tong_gia_tri_tam_ung}` | Cùng số với `{tong_chi_phi_l1}` (alias) |
 | `{ten_goi_thau}` | Tên gói thầu (thân QĐ) |
-| `{so_tien_tam_ung}` / `{so_tien_tam_ung_chu}` | Tạm ứng (nhập tay) |
+| `{so_tien_tam_ung}` / `{so_tien_tam_ung_chu}` | Tạm ứng tổng (thân QĐ) |
 
 **Quy tắc tính:**
 
