@@ -1014,13 +1014,9 @@ export function SoanQdGiaoXnEditor({
                           (ketQuaTien.ty_le ?? 0) * 100
                         )
                           .toLocaleString("vi-VN")
-                          .replace(".", ",")}% × TMĐT · Tạm ứng ${(
+                          .replace(".", ",")}% × TMĐT · Tạm ứng lần 1 = ${(
                           (ketQuaTien.ty_le_tam_ung ?? 0) * 100
-                        ).toLocaleString("vi-VN")}% × GHĐ (${
-                          cungDiaBan
-                            ? "cùng địa bàn tỉnh"
-                            : "khác địa bàn tỉnh"
-                        })`
+                        ).toLocaleString("vi-VN")}% × GHĐ (làm tròn hàng triệu)`
                       : "Chưa có loại hình dự án (XDM / Cải tạo / SCMBA / DMS) — mặc định GHĐ 3,3%"}
                   </p>
                 ) : null}
@@ -1283,9 +1279,7 @@ export function SoanQdGiaoXnEditor({
                     {formatVndTuTrieu(ketQuaTien.tong_gia_tri_tam_ung_so) ||
                       "—"}
                     <span className={`ml-1.5 text-[10px] font-normal ${theme.textMuted}`}>
-                      {cungDiaBan
-                        ? "15% cùng tỉnh"
-                        : "16% khác tỉnh"}
+                      10% × GHĐ · làm tròn hàng triệu
                     </span>
                   </p>
                 </fieldset>

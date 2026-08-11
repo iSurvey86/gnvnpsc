@@ -23,14 +23,20 @@ export function toActor(profile: SessionProfile): ActorInfo {
   return {
     userId: profile.userId,
     email: profile.email,
-    hoTen: profile.nhanSu?.ho_ten?.trim() || profile.email,
-    nhanSuId: profile.nhanSu?.id ?? null,
-    isAdmin: profile.isAdmin,
+    // Nhật ký luôn ghi Admin thật khi đang xem với quyền
+    hoTen: profile.actorHoTen || profile.nhanSu?.ho_ten?.trim() || profile.email,
+    nhanSuId:
+      profile.viewAs && profile.nhanSu?.id?.startsWith("view-as-")
+        ? null
+        : (profile.nhanSu?.id ?? null),
+    isAdmin: profile.realIsAdmin,
   };
 }
 
 /** Xóa hồ sơ Giao A trên danh sách — chỉ Admin hoặc Trưởng phòng. */
 export function canXoaHoSoGiaoA(profile: SessionProfile): boolean {
+  if (profile.viewAs === "truong_phong") return true;
+  if (profile.viewAs) return false;
   if (profile.isAdmin) return true;
   return isTruongPhong(profile.nhanSu?.chuc_danh);
 }
@@ -62,6 +68,12 @@ export async function getPhanHeRole(
   profile: SessionProfile,
   phanHe: PhanHeCode,
 ): Promise<VaiTroPhanHe | "admin" | null> {
+  // «Xem với quyền»: cả 3 tổ được thao tác thật theo cấp giả lập
+  if (profile.viewAs === "truong_phong") return "manager";
+  if (profile.viewAs === "pho_phong" || profile.viewAs === "nhan_vien") {
+    return "assigner";
+  }
+
   if (profile.isAdmin) return "admin";
   if (!profile.nhanSu?.id) {
     // Chưa map nhân sự: chỉ xem

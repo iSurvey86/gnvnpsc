@@ -9,11 +9,11 @@
 ## Lập / soạn quyết định
 
 1. Bấm **Lập** / **Giao tiếp** / **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát, **TVGS xanh cyan**).
-2. Hệ thống tự điền: căn cứ từ Giao A, chủ đầu tư (PC tỉnh), Xí nghiệp cùng tỉnh, ngày ban hành.
-3. Kiểm tra / sửa: số QĐ, năm ĐTXD, thời hạn. Quy mô chi tiết từng công trình nằm ở phụ lục khi xuất Word (không còn ô phạm vi chung trên form soạn).
+2. Hệ thống tự điền: căn cứ từ Giao A, **chủ đầu tư** (PC tỉnh — giữ theo dự án), gợi ý Xí nghiệp cùng tỉnh (có thể đổi), ngày ban hành. Khi xuất Word, mục **Nơi nhận** theo **Xí nghiệp đã chọn giao** (không theo địa bàn dự án).
+3. Kiểm tra / sửa: số QĐ, năm ĐTXD, thời hạn, **Xí nghiệp nhận**. Quy mô chi tiết từng công trình nằm ở phụ lục khi xuất Word (không còn ô phạm vi chung trên form soạn).
 4. **Tick công trình** giao lần này (dòng đã giao đơn vị khác bị khóa). Có thể giao hết hoặc một phần.
 5. **Tính tiền:**
-   - TVTK THA: GHĐ theo loại hình; tạm ứng 15%/16% theo địa bàn; số **đồng**.
+   - TVTK THA: GHĐ theo loại hình; tạm ứng lần 1 = **10%** × GHĐ (làm tròn hàng triệu); số **đồng**.
    - TVGS: GHĐ **1%** × TMĐT; không tạm ứng; tiền bằng số/chữ.
    - TNHC: tính sau.
 6. **Lưu** · **Lưu & đóng** (về hồ sơ Giao A) · **Xuất Word** · **Tải PDF đã ký**.
@@ -44,7 +44,7 @@
 
 | Nút | Kết quả |
 |-----|---------|
-| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Tên tệp: `GNV-[viết tắt XN]-[mã dự án]-[yyyyMMdd]-[HHmmss].docx` (giờ VN). Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. Điều 3: Giám đốc XN Hà Giang = Bà, XN khác = Ông. Mẫu TVGS: `qd-giao-nhiem-vu-tvgs.docx`. |
+| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Tên tệp: `GNV-[viết tắt XN]-[mã dự án]-[yyyyMMdd]-[HHmmss].docx` (giờ VN). Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. Điều 3: Giám đốc XN **Tuyên Quang** = Bà, XN khác = Ông (mọi mẫu TVTK / TVGS / TNHC). Mẫu TVGS: `qd-giao-nhiem-vu-tvgs.docx`. |
 
 ### Gợi ý thao tác
 

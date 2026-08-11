@@ -22,10 +22,24 @@ export const TY_LE_GHD_SCMBA_DMS = 0.015;
 export const TY_LE_GHD_CQT = TY_LE_GHD_XDM_CAI_TAO;
 export const TY_LE_L1_TVTK_THA = TY_LE_GHD_XDM_CAI_TAO;
 
-/** TVTK THA: cùng tỉnh → tạm ứng 15% × GHĐ */
-export const TY_LE_TAM_UNG_CUNG_TINH = 0.15;
-/** TVTK THA: khác tỉnh → tạm ứng 16% × GHĐ */
-export const TY_LE_TAM_UNG_KHAC_TINH = 0.16;
+/**
+ * TVTK THA: tạm ứng lần 1 = 10% × GHĐ tạm tính (làm tròn hàng triệu).
+ * Lần 2 cấp sau khi ký hợp đồng — không dùng 15%/16% theo địa bàn nữa.
+ */
+export const TY_LE_TAM_UNG_LAN_1 = 0.1;
+
+/** @deprecated Dùng TY_LE_TAM_UNG_LAN_1 */
+export const TY_LE_TAM_UNG_CUNG_TINH = TY_LE_TAM_UNG_LAN_1;
+/** @deprecated Dùng TY_LE_TAM_UNG_LAN_1 */
+export const TY_LE_TAM_UNG_KHAC_TINH = TY_LE_TAM_UNG_LAN_1;
+
+/**
+ * Làm tròn số tiền (đơn vị triệu đồng) về hàng triệu nguyên.
+ * Ví dụ: 18,093 → 18 (tức 18.000.000 đồng).
+ */
+export function lamTronHangTrieu(trieu: number): number {
+  return Math.round(trieu);
+}
 
 /** Format số triệu đồng kiểu VN: 15.500,123 (làm tròn 3 chữ số thập phân nếu cần) */
 export function formatTrieuDong(n: number | null | undefined): string {
@@ -106,23 +120,23 @@ export function shouldTinhTienGiao(
   return loai === "tvtk" && cap === "trung_ha_ap";
 }
 
-export function tyLeTamUngTheoDiaBan(cungDiaBan: boolean): number {
-  return cungDiaBan ? TY_LE_TAM_UNG_CUNG_TINH : TY_LE_TAM_UNG_KHAC_TINH;
+export function tyLeTamUngTheoDiaBan(_cungDiaBan?: boolean): number {
+  return TY_LE_TAM_UNG_LAN_1;
 }
 
-/** Tỷ lệ tạm ứng lần 1 — TVGS không tạm ứng; TVTK THA theo địa bàn. */
+/** Tỷ lệ tạm ứng lần 1 — TVGS không tạm ứng; TVTK THA = 10% × GHĐ. */
 export function tyLeTamUngGiaoXn(
   loai: LoaiGiaoXn,
-  cungDiaBan: boolean,
+  _cungDiaBan?: boolean,
 ): number | null {
   if (loai === "tvgs") return null;
-  if (loai === "tvtk") return tyLeTamUngTheoDiaBan(cungDiaBan);
+  if (loai === "tvtk") return TY_LE_TAM_UNG_LAN_1;
   return null;
 }
 
 /**
  * Cùng địa bàn tỉnh: tên tỉnh từ Chủ đầu tư (PC) có trong tên Xí nghiệp.
- * Không suy ra được → coi là khác địa bàn (16%).
+ * (Giữ để tham chiếu UI; không còn quyết định tỷ lệ tạm ứng.)
  */
 export function laCungDiaBanTinh(opts: {
   tenPcTinh?: string | null;
@@ -145,7 +159,7 @@ export type DongTinhTien = {
   ct_tmdt: string;
   ct_tmdt_so: number | null;
   /**
-   * Chi phí / cấp tạm ứng lần 01 (= tạm ứng 15%/16% × GHĐ khi TVTK THA).
+   * Chi phí / cấp tạm ứng lần 01 (= 10% × GHĐ, làm tròn hàng triệu — TVTK THA).
    * Không còn đồng nghĩa với giá trị HĐ.
    */
   ct_chi_phi_l1: string;
@@ -175,7 +189,7 @@ export type KetQuaTinhTien = {
 
 /**
  * Tính Giá trị HĐ (+ tạm ứng nếu có) theo dòng từ phụ lục.
- * - TVTK THA: GHĐ theo loại hình (3,3% / 1,5%); tạm ứng 15%/16% theo địa bàn
+ * - TVTK THA: GHĐ theo loại hình (3,3% / 1,5%); tạm ứng lần 1 = 10% × GHĐ, làm tròn hàng triệu
  * - TVGS (mọi cấp): GHĐ 1% × TMĐT; không tạm ứng
  * - TNHC: chưa áp dụng (tính sau)
  */
@@ -219,7 +233,7 @@ export function tinhChiPhiL1TuPhuLuc(opts: {
       ghdSo = tmdtSo * ty_le;
       ghdStr = formatDongTuTrieu(ghdSo);
       if (ty_le_tam_ung != null) {
-        tuSo = ghdSo * ty_le_tam_ung;
+        tuSo = lamTronHangTrieu(ghdSo * ty_le_tam_ung);
         tuStr = formatDongTuTrieu(tuSo);
       }
     }

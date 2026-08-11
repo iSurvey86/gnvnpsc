@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { logHoatDong } from "@/lib/activity-log";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionProfile } from "@/lib/session";
+import { VIEW_AS_COOKIE, viewAsCookieOptions } from "@/lib/view-as";
 
 export async function POST(request: Request) {
   const profile = await getSessionProfile().catch(() => null);
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
       hanhDong: "LOGOUT",
       chiTietNgan: "Đăng xuất hệ thống",
       email: profile.email,
-      hoTen: profile.nhanSu?.ho_ten || profile.email,
+      hoTen: profile.actorHoTen || profile.email,
       authUserId: profile.userId,
     });
   }
@@ -21,7 +22,12 @@ export async function POST(request: Request) {
 
   const url = new URL(request.url);
   const redirectTo = new URL("/login", url.origin);
-  return NextResponse.redirect(redirectTo, { status: 303 });
+  const res = NextResponse.redirect(redirectTo, { status: 303 });
+  res.cookies.set(VIEW_AS_COOKIE, "", {
+    ...viewAsCookieOptions(0),
+    maxAge: 0,
+  });
+  return res;
 }
 
 /** Cho phép mở link đăng xuất nhanh */

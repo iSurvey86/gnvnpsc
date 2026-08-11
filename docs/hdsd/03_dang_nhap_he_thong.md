@@ -6,11 +6,17 @@
 2. Nhập **email** và **mật khẩu** (mặc định khi được cấp login).
 3. Sau khi đăng nhập thành công vào trang **chọn phân hệ** — Tư vấn thiết kế · Thí nghiệm hiệu chỉnh · Tư vấn giám sát. Mỗi thẻ hiện **Đã giao nhiệm vụ** / **Chưa giao nhiệm vụ** (dự án đã lưu; đã giao = đã có quyết định giao Xí nghiệp, kể cả được phủ trong QĐ chung). Chọn phân hệ của tổ mình để vào Quản lý dự án.
 
-### Đăng xuất / Tài khoản (sidebar)
+## Đăng xuất / Tài khoản (sidebar)
 
 - Bấm **avatar** (cuối sidebar) → hiện **họ tên**.
 - Menu: **Tài khoản** · **Đăng xuất**.
 - Trang **Tài khoản**: họ và tên · email · đổi mật khẩu (tùy chọn) · đăng xuất.
+
+### Xem với quyền (chỉ Admin)
+
+- Sidebar → **Xem với quyền** → chọn persona: Trưởng phòng / Phó phòng / Nhân viên (cả 3 tổ; **thao tác thật** theo quyền giả lập).
+- Banner vàng trên cùng: **XEM QUYỀN** · **Thoát chế độ xem**.
+- Không đổi phân quyền DB; nhật ký vẫn ghi Admin đăng nhập (có gắn `view_as`).
 
 ### Đổi mật khẩu
 
@@ -19,7 +25,8 @@ Vào **Tài khoản** (từ avatar) → form đổi mật khẩu. **Đề nghị
 ## Danh sách tài khoản
 
 - **User thường:** sidebar → **Quản lý hệ thống** → tab **Danh sách tài khoản** / **Danh sách Xí nghiệp** (chỉ xem; **không** cột Thao tác, không Thêm mới).
-- **Admin:** cùng các tab + **Nhật ký hoạt động**; có cột **Thao tác** (sửa · cấp đăng nhập) và **+ Thêm mới**.
+- **Admin:** cùng các tab + **Nhật ký hoạt động**; có cột **Thao tác** (phân quyền · cấp đăng nhập) và **+ Thêm mới**.
+- Danh sách **không hiện** tài khoản Admin hệ thống.
 
 ## Nhật ký hoạt động (chỉ Admin)
 
@@ -33,9 +40,10 @@ Vào **Tài khoản** (từ avatar) → form đổi mật khẩu. **Đề nghị
 
 1. Chạy SQL [005_nhan_su.sql](d:\AIProject\gnvnpsc\scripts\sql\005_nhan_su.sql) trên Supabase, sau đó [014_quyen_truong_phong.sql](d:\AIProject\gnvnpsc\scripts\sql\014_quyen_truong_phong.sql) và [015_phan_biet_pho_phong.sql](d:\AIProject\gnvnpsc\scripts\sql\015_phan_biet_pho_phong.sql).
 2. **Quản lý hệ thống → Danh sách tài khoản** (Admin).
-3. Bấm **+ Thêm mới** để thêm người; bấm biểu tượng bút chì để **sửa ngay tại dòng** (gồm cột **Tổ**: TV / TN / GS).
-4. Bấm biểu tượng chìa khóa để **cấp đăng nhập / đặt lại mật khẩu** — mật khẩu mặc định `Gnvnpsc@2026` (hoặc biến `DEFAULT_USER_PASSWORD`).
-5. Trưởng phòng xem và sửa được **cả ba phân hệ**; nhân viên và Phó phòng theo tổ được phân công, vào phân hệ khác chỉ xem.
+3. Bấm **+ Thêm mới** để thêm người; chọn **Phân quyền** (Trưởng phòng / Phó phòng / Nhân viên) và tổ TV / TN / GS.
+4. Bấm biểu tượng khiên để mở **panel Phân quyền** (bên phải): dropdown cấp quyền · chọn tổ · sửa thông tin liên hệ → **Lưu phân quyền**.
+5. Bấm biểu tượng chìa khóa để **cấp đăng nhập / đặt lại mật khẩu** — mật khẩu mặc định `Gnvnpsc@2026` (hoặc biến `DEFAULT_USER_PASSWORD`).
+6. Trưởng phòng xem và sửa được **cả ba phân hệ**; nhân viên và Phó phòng theo tổ được phân công, vào phân hệ khác chỉ xem.
 
 ## Quản lý hệ thống
 

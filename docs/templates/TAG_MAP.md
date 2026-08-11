@@ -21,9 +21,10 @@
 |-----|---------|---------------|
 | `{so_qd}` | Số QĐ dự thảo (trước `/QĐ-NPSC`) | `qd_giao_xn.so_qd_du_thao` |
 | `{ngay_ban_hanh_chu}` | Dòng ngày văn bản | từ `ngay_du_thao` |
-| `{ten_xi_nghiep}` | Tên Xí nghiệp nhận | `xi_nghiep.ten` |
-| `{ten_pc_tinh}` | Công ty Điện lực / PC tỉnh | form / địa điểm |
-| `{ten_tinh}` | Tên tỉnh | form / địa điểm |
+| `{ten_xi_nghiep}` | Tên Xí nghiệp nhận (thân QĐ + **Nơi nhận**) | `xi_nghiep.ten` đã chọn khi giao |
+| `{danh_xung_gd_xn}` | Ông / Bà trước «Giám đốc» (Điều 3) | `danhXungGiamDocXn` — **Tuyên Quang** (và Hà Giang cũ) = Bà; còn lại = Ông |
+| `{ten_pc_tinh}` | Công ty Điện lực / PC tỉnh (**Chủ đầu tư** — theo dự án/Giao A) | form / địa điểm |
+| `{ten_tinh}` | Tên tỉnh (khi mẫu còn dùng) | form / địa điểm |
 | `{ten_du_an}` | Tên dự án (Điều 1) — mẫu 110 | `du_an.ten_du_an` |
 | `{nam_ke_hoach}` | Năm ĐTXD / kế hoạch | form / ngày QĐ Giao A |
 | `{so_qd_thanh_lap_xn}` / `{ngay_qd_thanh_lap_xn}` | QĐ thành lập XN | form |
@@ -50,7 +51,7 @@ Trên mẫu: `{#cong_trinh}` … `{/cong_trinh}`.
 | `{ct_danh_dau_tvtk}` | Đánh dấu cột gói TVTK (vd `X`) |
 | `{ct_danh_dau_tvgs}` | Đánh dấu cột gói TVGS |
 | `{ct_gia_tri_hd}` | Giá trị HĐ tạm tính — **đồng** (TMĐT × tỷ lệ × 1.000.000) |
-| `{ct_chi_phi_l1}` | Cấp chi phí / tạm ứng lần 01 — **đồng** (= 15%/16% × GHĐ khi TVTK THA) |
+| `{ct_chi_phi_l1}` | Cấp chi phí / tạm ứng lần 01 — **đồng** (= **10%** × GHĐ, làm tròn hàng triệu — TVTK THA) |
 | `{ct_gia_tri_tam_ung}` | Cùng số với `{ct_chi_phi_l1}` (alias) |
 | `{tong_gia_tri_hd}` | Tổng giá trị HĐ — **đồng** |
 | `{tong_chi_phi_l1}` | Tổng tạm ứng lần 01 — **đồng** |
@@ -63,7 +64,7 @@ Trên mẫu: `{#cong_trinh}` … `{/cong_trinh}`.
 | Loại | Giá trị HĐ | Tạm ứng lần 1 |
 |------|------------|---------------|
 | TVTK 110kV | Không tính | — |
-| TVTK trung hạ áp | XDM/Cải tạo 3,3% · SCMBA/DMS 1,5% × TMĐT | 15% cùng tỉnh / 16% khác tỉnh × GHĐ |
+| TVTK trung hạ áp | XDM/Cải tạo 3,3% · SCMBA/DMS 1,5% × TMĐT | **10%** × GHĐ, làm tròn hàng triệu (lần 2 sau ký HĐ) |
 | TVGS (mọi cấp) | **1%** × TMĐT → điền **đồng** (`{ct_gia_tri_hd}` / `{tong_gia_tri_hd}`) | **Không** |
 | TNHC | Tính sau | Tính sau |
 

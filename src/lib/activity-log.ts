@@ -59,17 +59,19 @@ export async function logHoatDong(input: LogHoatDongInput): Promise<void> {
     let hoTen = input.hoTen?.trim() || null;
     let authUserId = input.authUserId ?? null;
 
-    if (!email || !hoTen || !authUserId) {
-      const profile = await getSessionProfile().catch(() => null);
-      if (profile) {
-        email = email || profile.email;
-        hoTen =
-          hoTen ||
-          profile.nhanSu?.ho_ten?.trim() ||
-          profile.email;
-        authUserId = authUserId || profile.userId;
-      }
+    let viewAsCap: string | null = null;
+    const profile = await getSessionProfile().catch(() => null);
+    if (profile) {
+      email = email || profile.email;
+      hoTen = hoTen || profile.actorHoTen || profile.email;
+      authUserId = authUserId || profile.userId;
+      viewAsCap = profile.viewAs;
     }
+
+    const duLieuDong = {
+      ...(input.duLieuDong ?? {}),
+      ...(viewAsCap ? { view_as: viewAsCap } : {}),
+    };
 
     const admin = createAdminClient();
     const { error } = await admin.from("nhat_ky_hoat_dong").insert({
@@ -80,7 +82,7 @@ export async function logHoatDong(input: LogHoatDongInput): Promise<void> {
       hanh_dong: input.hanhDong,
       doi_tuong_id: input.doiTuongId ? String(input.doiTuongId) : null,
       chi_tiet_ngan: input.chiTietNgan,
-      du_lieu_dong: input.duLieuDong ?? {},
+      du_lieu_dong: duLieuDong,
       trang_thai: input.trangThai ?? "Thành công",
     });
 

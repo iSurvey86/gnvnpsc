@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   APP_FULL_NAME,
   APP_SYSTEM_LABEL,
@@ -11,10 +11,12 @@ import {
   isHubPath,
   isThiNghiemPath,
   isTvgsPath,
-  isTvtkPath,
   resolvePhanHeFromPath,
 } from "@/lib/phan-he";
+import type { ViewAsCap } from "@/lib/view-as";
 import { SidebarUserFooter } from "@/components/SidebarUserFooter";
+import { ViewAsPermissionBanner } from "@/components/ViewAsPermissionBanner";
+import { ViewAsSidebarMenu } from "@/components/ViewAsSidebarMenu";
 
 const PIN_KEY = "gnvnpsc_sidebar_pinned";
 
@@ -28,6 +30,13 @@ type NavItem = {
   /** Chỉ hiện khi đang trong phân hệ tương ứng */
   phanHeOnly?: "tvtk" | "thi_nghiem" | "tvgs";
 };
+
+type ViewAsInfo = {
+  cap: ViewAsCap;
+  ma_nv: string;
+  ho_ten: string;
+  label: string;
+} | null;
 
 const nav: NavItem[] = [
   {
@@ -89,6 +98,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || "/";
   const [pinned, setPinned] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [realIsAdmin, setRealIsAdmin] = useState(false);
+  const [viewAs, setViewAs] = useState<ViewAsInfo>(null);
+  const [viewAsExiting, setViewAsExiting] = useState(false);
 
   useEffect(() => {
     try {
@@ -98,14 +110,39 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  useEffect(() => {
+  const loadMe = useCallback(() => {
     void fetch("/api/me")
       .then((r) => r.json())
       .then((json) => {
-        if (json?.ok) setIsAdmin(Boolean(json.data?.is_admin));
+        if (!json?.ok) {
+          setIsAdmin(false);
+          setRealIsAdmin(false);
+          setViewAs(null);
+          return;
+        }
+        setIsAdmin(Boolean(json.data?.is_admin));
+        setRealIsAdmin(Boolean(json.data?.real_is_admin));
+        setViewAs(
+          json.data?.view_as
+            ? {
+                cap: json.data.view_as.cap,
+                ma_nv: json.data.view_as.ma_nv,
+                ho_ten: json.data.view_as.ho_ten,
+                label: json.data.view_as.label,
+              }
+            : null,
+        );
       })
-      .catch(() => setIsAdmin(false));
-  }, [pathname]);
+      .catch(() => {
+        setIsAdmin(false);
+        setRealIsAdmin(false);
+        setViewAs(null);
+      });
+  }, []);
+
+  useEffect(() => {
+    loadMe();
+  }, [pathname, loadMe]);
 
   const togglePin = () => {
     setPinned((prev) => {
@@ -118,6 +155,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       return next;
     });
   };
+
+  async function exitViewAs() {
+    if (viewAsExiting) return;
+    setViewAsExiting(true);
+    try {
+      const res = await fetch("/api/view-as", { method: "DELETE" });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error ?? "Không thoát được");
+      loadMe();
+      window.location.reload();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Lỗi");
+    } finally {
+      setViewAsExiting(false);
+    }
+  }
 
   const hideChrome =
     pathname.startsWith("/nhap-du-an") ||
@@ -220,16 +273,40 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+
+          {realIsAdmin ? (
+            <ViewAsSidebarMenu
+              pinned={pinned}
+              labelClass={labelClass}
+              viewAs={viewAs}
+              onChanged={() => {
+                loadMe();
+                window.location.reload();
+              }}
+            />
+          ) : null}
         </nav>
 
         <SidebarUserFooter
           pinned={pinned}
           labelClass={labelClass}
-          isAdmin={isAdmin}
+          isAdmin={realIsAdmin && !viewAs}
         />
       </aside>
 
-      <main className="min-w-0 flex-1 overflow-auto bg-[#f7fbfa]">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {viewAs ? (
+          <ViewAsPermissionBanner
+            hoTen={viewAs.ho_ten}
+            label={viewAs.label}
+            exiting={viewAsExiting}
+            onExit={() => void exitViewAs()}
+          />
+        ) : null}
+        <main className="min-w-0 flex-1 overflow-auto bg-[#f7fbfa]">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
