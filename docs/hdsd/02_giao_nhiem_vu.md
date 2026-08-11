@@ -44,7 +44,7 @@
 
 | Nút | Kết quả |
 |-----|---------|
-| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Tên tệp: `GNV-[viết tắt XN]-[mã dự án]-[yyyyMMdd]-[HHmmss].docx` (giờ VN). Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. Điều 3: Giám đốc XN **Tuyên Quang** = Bà, XN khác = Ông (mọi mẫu TVTK / TVGS / TNHC). Mẫu TVGS: `qd-giao-nhiem-vu-tvgs.docx`. |
+| Xuất Word | Điền mẫu Word theo loại + cấp điện áp, tải `.docx`. Tên tệp: `GNV-[viết tắt XN]-[mã dự án]-[yyyyMMdd]-[HHmmss].docx` (giờ VN). Số QĐ / ngày ban hành để trống → khoảng trắng để điền tay hoặc Doffice. **Điều 3:** `{Ông/Bà} Giám đốc {tên XN}…` — XN **Tuyên Quang** = Bà, XN khác = Ông (TVTK / TVGS / TNHC). |
 
 ### Gợi ý thao tác
 

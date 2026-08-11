@@ -72,7 +72,7 @@ Từ hồ sơ Giao A: **Lập giao** / **Giao tiếp còn lại** → trang so�
 | Địa điểm trống | Suy từ chủ đầu tư / tên dự án khi tải danh mục |
 | Số quyết định trống | Xuất Word chèn khoảng trắng để điền tay / Doffice |
 | Ngày ban hành trống | Xuất Word: «ngày … tháng … năm …» thành khoảng trắng (không dấu chấm) để Doffice điền |
-| Danh xưng Giám đốc XN (Điều 3) | Xí nghiệp DVĐL **Tuyên Quang** → Bà; các Xí nghiệp khác → Ông (TVTK 110/THA, TVGS, TNHC) |
+| Danh xưng Giám đốc XN (Điều 3) | Câu gọn: `{danh_xung_gd_xn} Giám đốc {ten_xi_nghiep}…` — **Tuyên Quang** → Bà; XN khác → Ông (TVTK 110/THA, TVGS, TNHC) |
 | Tư vấn thiết kế trung hạ áp | Chi phí bước 1 / GHĐ theo loại hình (XDM·Cải tạo 3,3% · SCMBA·DMS 1,5%); tạm ứng lần 1 = **10%** × GHĐ (làm tròn hàng triệu); số tiền **đồng** |
 | Tư vấn thiết kế 110 kV | Không tính chi phí bước 1 / tạm ứng |
 | Tư vấn giám sát | Giá trị HĐ = TMĐT × **1%** → hiển thị/xuất **đồng**; không tạm ứng; tiền bằng số/chữ; mẫu `qd-giao-nhiem-vu-tvgs.docx` |
