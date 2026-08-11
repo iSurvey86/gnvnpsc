@@ -67,7 +67,8 @@ Từ hồ sơ Giao A: **Lập giao** / **Giao tiếp còn lại** → trang so�
 |-----|---------|
 | Chỉ dự án đã lưu | Bản quét nháp chưa hiện trên bảng nên không thể giao nhiệm vụ |
 | Loại quyết định | Theo phân hệ và cấp điện áp của dự án |
-| Chủ đầu tư | Chỉ «Công ty Điện lực [tỉnh]» — cắt phần «để thực hiện…» |
+| Chủ đầu tư | Chỉ «Công ty Điện lực [tỉnh]» — cắt phần «để thực hiện…»; **giữ theo dự án** khi giao XN khác tỉnh |
+| Nơi nhận (Word) | Theo **Xí nghiệp đã chọn giao** (`{ten_xi_nghiep}`), không theo địa bàn dự án |
 | Địa điểm trống | Suy từ chủ đầu tư / tên dự án khi tải danh mục |
 | Số quyết định trống | Xuất Word chèn khoảng trắng để điền tay / Doffice |
 | Ngày ban hành trống | Xuất Word: «ngày … tháng … năm …» thành khoảng trắng (không dấu chấm) để Doffice điền |
