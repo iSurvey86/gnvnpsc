@@ -49,8 +49,9 @@ flowchart TD
 
 | Vai trò | Nội dung |
 |---------|----------|
-| Admin | Tab Nhật ký hoạt động + Danh sách tài khoản; thao tác cấp / đặt lại MK |
-| User thường | Chỉ danh sách tài khoản (không tab nhật ký); sidebar mục «Danh sách tài khoản» |
+| Admin | Tab Nhật ký hoạt động + Danh sách tài khoản + Xí nghiệp; cấp / đặt lại MK; **panel Phân quyền** (Trưởng / Phó / Nhân viên · tổ) |
+| Admin — Xem với quyền | Sidebar **Xem với quyền** → giả lập TP / PP / NV (cả 3 tổ, thao tác thật); banner **Thoát chế độ xem** |
+| User thường | Chỉ danh sách tài khoản + Xí nghiệp (không nhật ký; không Thao tác / Thêm mới) |
 | Avatar sidebar | Hiện họ tên; menu: Tài khoản · Đăng xuất |
 | Tài khoản | Họ và tên · Email · đổi MK (tùy chọn) — không hiện User ID |
 
@@ -59,7 +60,7 @@ flowchart TD
 | Cột | Nội dung |
 |-----|----------|
 | STT | Theo trang đang xem |
-| Người thực hiện | Họ tên; dòng phụ là email (riêng tài khoản `admin@gnvnpsc.local` hiện **Admin**) |
+| Người thực hiện | Họ tên; dòng phụ là email (riêng tài khoản Admin hiện **Admin**) |
 | Phân hệ | Nhóm nghiệp vụ: Xác thực · Dự án · Quyết định Giao A · Giao Xí nghiệp · Hệ thống |
 | Hành động | Đăng nhập · Đăng xuất · Tạo mới · Cập nhật · Xóa · Xuất văn bản · Quét tài liệu · Cấp đăng nhập… kèm thời điểm |
 | Chi tiết | Mô tả việc đã làm, mã đối tượng đầy đủ và các thông tin kèm theo |
@@ -79,17 +80,22 @@ Quy ước trình bày nhật ký:
 
 | Cột | Ghi chú |
 |-----|---------|
-| Mã NV | Sắp tăng dần (KD01…KD17) |
+| Mã NV | Sắp tăng dần |
 | Họ tên | |
 | Email | |
 | Số điện thoại | |
-| Thao tác | Chỉ Admin — Cấp đăng nhập / Đặt lại MK |
+| Vai trò | Trưởng phòng / Phó phòng / Nhân viên (badge) |
+| Tổ | TV / TN / GS |
+| Thao tác | Chỉ Admin — **Phân quyền** (khiên) · Cấp đăng nhập / Đặt lại MK |
+
+Danh sách **không hiện** tài khoản Admin hệ thống.
 
 ## Phụ lục kỹ thuật
 
 | Mục | Chi tiết |
 |-----|----------|
 | SQL | `scripts/sql/010_nhat_ky_hoat_dong.sql` → bảng `nhat_ky_hoat_dong` |
-| Logger | `src/lib/activity-log.ts` — login / logout / cấp TK / DA / Giao A / Giao XN (CREATE·UPDATE·EXPORT·DELETE·PDF ký) |
-| API | `GET/POST /api/nhat-ky` · `GET /api/tai-khoan` |
-| UI | `GiamSatHeThongClient.tsx` · `SidebarUserFooter.tsx` |
+| Logger | `src/lib/activity-log.ts` — login / logout / cấp TK / DA / Giao A / Giao XN; gắn `view_as` khi đang xem quyền |
+| API | `GET/POST /api/nhat-ky` · `GET/PATCH /api/nhan-su` · `POST/DELETE /api/view-as` · `GET /api/me` |
+| UI | `GiamSatHeThongClient.tsx` · `NhanSuAdminClient.tsx` · `ViewAsSidebarMenu.tsx` · `SidebarUserFooter.tsx` |
+| Xem với quyền | `src/lib/view-as.ts` · cookie `gnvnpsc_view_as` · overlay trong `session.ts` |
