@@ -9,9 +9,9 @@
 ## Lập / soạn quyết định
 
 1. Bấm **Lập** / **Giao tiếp** / **Mở soạn** → trang soạn dạng giấy QĐ (110 xanh dương, THA xanh ngọc, Thí nghiệm vàng cát, **TVGS xanh cyan**).
-2. Hệ thống tự điền: căn cứ từ Giao A, **chủ đầu tư** (PC tỉnh — giữ theo dự án), gợi ý Xí nghiệp cùng tỉnh (có thể đổi), ngày ban hành. Khi xuất Word, mục **Nơi nhận** theo **Xí nghiệp đã chọn giao** (không theo địa bàn dự án).
+2. Hệ thống tự điền: căn cứ từ Giao A, **chủ đầu tư** (PC tỉnh — giữ theo dự án), gợi ý Xí nghiệp cùng tỉnh (có thể đổi), ngày ban hành. **Nơi nhận** trên Word: Như Điều 3 · Ban Giám đốc · Lưu VT, KD (không liệt kê lại XN). Tên Xí nghiệp nhận vẫn ở thân QĐ / Điều 3.
 3. Kiểm tra / sửa: số QĐ, năm ĐTXD, thời hạn, **Xí nghiệp nhận**. Quy mô chi tiết từng công trình nằm ở phụ lục khi xuất Word (không còn ô phạm vi chung trên form soạn).
-4. **Tick công trình** giao lần này (dòng đã giao đơn vị khác bị khóa). Có thể giao hết hoặc một phần.
+4. **Tick công trình** giao lần này. Công trình **đã Lưu** vào QĐ khác cùng loại bị **khóa/mờ** (không tick lại). Chỉ tick rồi thoát chưa Lưu thì quay lại vẫn chọn được.
 5. **Tính tiền:**
    - TVTK THA: GHĐ theo loại hình; tạm ứng lần 1 = **10%** × GHĐ (làm tròn hàng triệu); số **đồng**.
    - TVGS: GHĐ **1%** × TMĐT; không tạm ứng; tiền bằng số/chữ.

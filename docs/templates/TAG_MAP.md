@@ -21,7 +21,7 @@
 |-----|---------|---------------|
 | `{so_qd}` | Số QĐ dự thảo (trước `/QĐ-NPSC`) | `qd_giao_xn.so_qd_du_thao` |
 | `{ngay_ban_hanh_chu}` | Dòng ngày văn bản | từ `ngay_du_thao` |
-| `{ten_xi_nghiep}` | Tên Xí nghiệp nhận (thân QĐ + **Nơi nhận**) | `xi_nghiep.ten` đã chọn khi giao |
+| `{ten_xi_nghiep}` | Tên Xí nghiệp nhận (thân QĐ / Điều 3) | `xi_nghiep.ten` đã chọn khi giao |
 | `{danh_xung_gd_xn}` | Ông / Bà trước «Giám đốc» (Điều 3) | `danhXungGiamDocXn` — **Tuyên Quang** (và Hà Giang cũ) = Bà; còn lại = Ông |
 | `{ten_pc_tinh}` | Công ty Điện lực / PC tỉnh (**Chủ đầu tư** — theo dự án/Giao A) | form / địa điểm |
 | `{ten_tinh}` | Tên tỉnh (khi mẫu còn dùng) | form / địa điểm |
