@@ -74,7 +74,9 @@ function buildInitialSelected(
   return rows.map((r) => {
     const k = normalizeTenDuAn(r.ct_ten);
     if (k && lockedKeys.has(k)) return false;
+    // Mở soạn dự thảo: tick đúng CT thuộc QĐ này
     if (editing && thisQdKeys.size > 0) return Boolean(k && thisQdKeys.has(k));
+    // Soạn mới / giao tiếp còn lại: tick các CT còn mở
     return true;
   });
 }
@@ -134,10 +136,19 @@ export function SoanQdGiaoXnEditor({
     return m;
   }, [phuLucCtx?.daGiaoKhac]);
 
-  const thisQdKeys = useMemo(
-    () => new Set(phuLucCtx?.tenTrongQdHienTai ?? []),
-    [phuLucCtx?.tenTrongQdHienTai],
-  );
+  const thisQdKeys = useMemo(() => {
+    const keys = new Set(phuLucCtx?.tenTrongQdHienTai ?? []);
+    const chon = initial?.cong_trinh_chon;
+    if (Array.isArray(chon)) {
+      for (const r of chon) {
+        const k = normalizeTenDuAn(
+          typeof r === "string" ? r : (r as PhuLucCongTrinh)?.ct_ten,
+        );
+        if (k) keys.add(k);
+      }
+    }
+    return keys;
+  }, [phuLucCtx?.tenTrongQdHienTai, initial?.cong_trinh_chon]);
 
   const phuLucTenGop = useMemo(
     () =>
@@ -429,9 +440,9 @@ export function SoanQdGiaoXnEditor({
     if (!json.ok) throw new Error(json.error ?? "Lưu thất bại");
     const id = json.data.id as string;
     setQdId(id);
-    router.replace(
-      `/du-an/${duAn.id}/giao-xn/soan?loai=${loai}&qdId=${id}`,
-    );
+    const qs = new URLSearchParams({ loai, qdId: id });
+    if (backHrefOverride?.trim()) qs.set("return_to", backHrefOverride.trim());
+    router.replace(`/du-an/${duAn.id}/giao-xn/soan?${qs}`);
     const mappedCount =
       (json.map?.mapped_du_an_ids as string[] | undefined)?.length ?? 0;
     return { id, mappedCount };
@@ -494,14 +505,15 @@ export function SoanQdGiaoXnEditor({
   }
 
   async function onExportWord() {
+    if (!qdId) {
+      setError("Lưu dự thảo trước khi xuất Word");
+      return;
+    }
     setBusy("word");
     setError(null);
     setOkMsg(null);
     try {
-      const result = await save();
-      if (!result) return;
-      const { id } = result;
-      const res = await fetch(`/api/qd-giao-xn/${id}/export/word`, {
+      const res = await fetch(`/api/qd-giao-xn/${qdId}/export/word`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -662,9 +674,12 @@ export function SoanQdGiaoXnEditor({
             </button>
             <button
               type="button"
-              disabled={disabled}
+              disabled={disabled || !qdId}
               onClick={() => void onExportWord()}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium shadow-sm disabled:opacity-50 ${theme.btnWord}`}
+              title={
+                qdId ? undefined : "Lưu dự thảo trước khi xuất Word"
+              }
             >
               {busy === "word" ? "Đang xuất…" : "Xuất Word"}
             </button>
@@ -726,11 +741,26 @@ export function SoanQdGiaoXnEditor({
                 {busy === "delete" ? "Đang xóa…" : "Xóa dự thảo"}
               </button>
             ) : null}
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => {
+                if (typeof window !== "undefined" && window.history.length > 1) {
+                  router.back();
+                  return;
+                }
+                router.push(backHref);
+              }}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium disabled:opacity-50 ${theme.closeBtn}`}
+              title="Quay lại trang trước"
+            >
+              ← Quay lại
+            </button>
             <Link
               href={backHref}
               className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${theme.closeBtn}`}
             >
-              ← Đóng
+              Đóng
             </Link>
           </div>
         </div>

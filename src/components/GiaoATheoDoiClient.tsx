@@ -55,18 +55,21 @@ export function GiaoATheoDoiClient({ giaoAId, phanHe }: Props) {
     if (!chua) return null;
     const q = new URLSearchParams({
       loai,
+      moi: "1",
       return_to: returnTo,
     });
     return `/du-an/${data.du_an_chu_goi_y_id}/giao-xn/soan?${q}`;
   }
 
-  function soanQdHref(ownerId: string, qdId: string): string {
+  function soanQdHref(ownerId: string | null, qdId: string): string {
+    const daId = ownerId ?? data?.du_an_chu_goi_y_id;
+    if (!daId) return "#";
     const q = new URLSearchParams({
       loai,
       qdId,
       return_to: returnTo,
     });
-    return `/du-an/${ownerId}/giao-xn/soan?${q}`;
+    return `/du-an/${daId}/giao-xn/soan?${q}`;
   }
 
   if (loading) {
@@ -258,20 +261,22 @@ export function GiaoATheoDoiClient({ giaoAId, phanHe }: Props) {
               {cong_trinh.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="px-3 py-8 text-center text-slate-500">
-                    Chưa có công trình đã lưu thuộc Giao A này.
+                    Chưa có công trình trong phụ lục Giao A.
                   </td>
                 </tr>
               ) : (
                 cong_trinh.map((c, i) => (
                   <tr
-                    key={c.du_an_id}
+                    key={c.row_key}
                     className={`border-t ${t.border} ${
                       c.da_giao
                         ? `opacity-55 ${t.softBg}`
                         : "bg-white"
                     }`}
                   >
-                    <td className="px-2 py-2 text-center tabular-nums">{i + 1}</td>
+                    <td className="px-2 py-2 text-center tabular-nums">
+                      {c.stt ?? i + 1}
+                    </td>
                     <td className="min-w-0 px-2 py-2">
                       <p className="line-clamp-2 text-justify leading-snug">
                         {c.ten_du_an}

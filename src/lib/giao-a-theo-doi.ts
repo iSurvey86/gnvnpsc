@@ -20,17 +20,23 @@ export type GiaoAListItem = {
   trich_yeu: string | null;
   scanned_by_ho_ten: string | null;
   storage_path: string | null;
-  /** Số công trình (dự án đã lưu) thuộc phân hệ */
+  /** Tổng CT (ưu tiên phụ lục Giao A; không có → số DA) */
   tong_ct: number;
-  /** Số đã gắn vào ít nhất một QĐ giao XN của phân hệ */
+  /**
+   * Số đã giao: ưu tiên CT tick trong `cong_trinh_chon`;
+   * dự thảo cũ chưa có tick → fallback số DA đã có dự thảo QĐ.
+   */
   da_giao_ct: number;
   created_at: string;
 };
 
 export type CongTrinhTheoDoi = {
-  du_an_id: string;
+  /** Khóa ổn định (phụ lục: stt+ten) */
+  row_key: string;
+  du_an_id: string | null;
   ma_du_an: string | null;
   ten_du_an: string;
+  stt?: number | string | null;
   dia_diem: string | null;
   cap_dien_ap: string | null;
   loai_hinh_du_an: string | null;

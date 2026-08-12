@@ -9,7 +9,13 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ loai?: string; qdId?: string; return_to?: string }>;
+  searchParams: Promise<{
+    loai?: string;
+    qdId?: string;
+    return_to?: string;
+    /** Lập QĐ mới cho CT còn lại — không redirect sang dự thảo đã có */
+    moi?: string;
+  }>;
 };
 
 function oneRel<T>(v: T | T[] | null | undefined): T | null {
@@ -45,12 +51,15 @@ export default async function SoanQdGiaoXnPage({ params, searchParams }: Props) 
   const returnQs = returnTo
     ? `&return_to=${encodeURIComponent(returnTo)}`
     : "";
+  const lapMoi = sp.moi === "1" || sp.moi === "true";
 
   if (loai === "tvtk" && !(duAn as DuAn).cap_dien_ap) {
     redirect(`/du-an/${id}/giao-xn?phan_he=${phanHe}`);
   }
 
-  if (!sp.qdId) {
+  // Có qdId → mở dự thảo đó. moi=1 → soạn mới (CT đã giao bị khóa).
+  // Không có cả hai → nếu đã có QĐ thì redirect sang dự thảo gần nhất.
+  if (!sp.qdId && !lapMoi) {
     const { data: owned } = await supabase
       .from("qd_giao_xn")
       .select("id, loai, du_an_id")

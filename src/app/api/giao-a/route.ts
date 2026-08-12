@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  demCtPhuLuc,
+  tenKeysTuCongTrinhChon,
+} from "@/lib/giao-a-ct-stats";
 import type { GiaoAListItem } from "@/lib/giao-a-theo-doi";
 import {
   AuthError,
@@ -82,10 +86,52 @@ export async function GET(request: Request) {
       }
     }
 
+    const giaoAIds = [...byGiaoA.keys()];
+    const phuLucByGiaoA = new Map<string, unknown>();
+
+    if (giaoAIds.length) {
+      const { data: qdPhuLuc, error: plErr } = await supabase
+        .from("qd_giao_a")
+        .select("id, phu_luc")
+        .in("id", giaoAIds);
+      if (plErr) throw new Error(plErr.message);
+      for (const q of qdPhuLuc ?? []) {
+        phuLucByGiaoA.set(q.id as string, q.phu_luc);
+      }
+    }
+
     const allIds = rows.map((r) => r.id);
-    const assigned = new Set<string>();
+    const assignedDa = new Set<string>();
+    const daGiaoCtKeysByGiaoA = new Map<string, Set<string>>();
 
     if (allIds.length) {
+      const { data: qdXns, error: qxErr } = await supabase
+        .from("qd_giao_xn")
+        .select("du_an_id, phan_he, cong_trinh_chon")
+        .in("du_an_id", allIds);
+      if (qxErr) throw new Error(qxErr.message);
+
+      const duAnToGiaoA = new Map<string, string>();
+      for (const r of rows) {
+        duAnToGiaoA.set(r.id, r.qd_giao_a_id);
+      }
+
+      for (const q of qdXns ?? []) {
+        if (q.phan_he && q.phan_he !== phanHe) continue;
+        const daId = q.du_an_id as string;
+        assignedDa.add(daId);
+        const giaoAId = duAnToGiaoA.get(daId);
+        if (!giaoAId) continue;
+        const keys = tenKeysTuCongTrinhChon(q.cong_trinh_chon);
+        if (!keys.size) continue;
+        let bucket = daGiaoCtKeysByGiaoA.get(giaoAId);
+        if (!bucket) {
+          bucket = new Set();
+          daGiaoCtKeysByGiaoA.set(giaoAId, bucket);
+        }
+        for (const k of keys) bucket.add(k);
+      }
+
       const { data: maps } = await supabase
         .from("qd_giao_xn_du_an")
         .select(
@@ -101,7 +147,7 @@ export async function GET(request: Request) {
         const q = Array.isArray(qRaw) ? qRaw[0] : qRaw;
         if (!q) continue;
         if (q.phan_he && q.phan_he !== phanHe) continue;
-        assigned.add(m.du_an_id as string);
+        assignedDa.add(m.du_an_id as string);
       }
 
       const { data: owned } = await supabase
@@ -110,17 +156,25 @@ export async function GET(request: Request) {
         .in("du_an_id", allIds);
       for (const o of owned ?? []) {
         if (o.phan_he && o.phan_he !== phanHe) continue;
-        assigned.add(o.du_an_id as string);
+        assignedDa.add(o.du_an_id as string);
       }
     }
 
     const list: GiaoAListItem[] = [...byGiaoA.values()]
       .map(({ qd, duAnIds }) => {
         const unique = [...new Set(duAnIds)];
-        let daGiao = 0;
+        let daGiaoDa = 0;
         for (const id of unique) {
-          if (assigned.has(id)) daGiao += 1;
+          if (assignedDa.has(id)) daGiaoDa += 1;
         }
+        const daGiaoKeys =
+          daGiaoCtKeysByGiaoA.get(qd.id) ?? new Set<string>();
+        const { tong_ct, da_giao_ct } = demCtPhuLuc({
+          phuLuc: phuLucByGiaoA.get(qd.id),
+          daGiaoKeys,
+          fallbackTong: unique.length,
+          fallbackDaGiao: daGiaoDa,
+        });
         return {
           id: qd.id,
           so_qd: qd.so_qd,
@@ -128,8 +182,8 @@ export async function GET(request: Request) {
           trich_yeu: qd.trich_yeu,
           scanned_by_ho_ten: qd.scanned_by_ho_ten,
           storage_path: qd.storage_path,
-          tong_ct: unique.length,
-          da_giao_ct: daGiao,
+          tong_ct,
+          da_giao_ct,
           created_at: qd.created_at,
         };
       })

@@ -96,7 +96,10 @@ export async function POST(request: Request) {
       const q = Array.isArray(m.qd_giao_xn) ? m.qd_giao_xn[0] : m.qd_giao_xn;
       return q?.loai === body.loai;
     });
-    if (conflict) {
+    // Giao tách phụ lục (còn CT): cho phép nhiều QĐ cùng dự án chủ
+    const giaoTachPhuLuc =
+      Array.isArray(body.cong_trinh) && body.cong_trinh.length > 0;
+    if (conflict && !giaoTachPhuLuc) {
       return NextResponse.json(
         {
           ok: false,
@@ -138,6 +141,8 @@ export async function POST(request: Request) {
         thoi_han: body.thoi_han ?? null,
         can_cu: body.can_cu ?? null,
         trang_thai: body.trang_thai ?? "nhap",
+        cong_trinh_chon:
+          body.cong_trinh && body.cong_trinh.length ? body.cong_trinh : null,
         created_by: actor.userId,
         updated_by: actor.userId,
       })

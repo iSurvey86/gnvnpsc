@@ -123,6 +123,8 @@ export type QdGiaoXn = {
   thoi_han: string | null;
   can_cu: string | null;
   trang_thai: TrangThaiQdXn;
+  /** Dòng phụ lục đã tick khi lưu soạn */
+  cong_trinh_chon?: PhuLucCongTrinh[] | null;
   word_storage_path: string | null;
   /** PDF quyết định đã ký — có thì coi như đã giao */
   pdf_ky_storage_path?: string | null;

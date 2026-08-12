@@ -4,6 +4,13 @@ import type {
   GiaoATheoDoiPayload,
   QdXnTheoDoi,
 } from "@/lib/giao-a-theo-doi";
+import {
+  demCtPhuLuc,
+  parsePhuLucCongTrinh,
+  rowKeyPhuLuc,
+  tenKeysTuCongTrinhChon,
+} from "@/lib/giao-a-ct-stats";
+import { normalizeTenDuAn } from "@/lib/du-an-trung";
 import { PHAN_HE } from "@/lib/phan-he";
 import {
   AuthError,
@@ -70,6 +77,7 @@ export async function GET(request: Request, ctx: Ctx) {
       loai_hinh_du_an: string | null;
     }>;
     const ids = list.map((d) => d.id);
+    const duAnChuId = list[0]?.id ?? null;
 
     type AssignInfo = {
       qdId: string;
@@ -77,13 +85,60 @@ export async function GET(request: Request, ctx: Ctx) {
       soQd: string | null;
       xn: string | null;
       trangThai: string | null;
-      pdfKy: string | null;
       loai: string;
     };
-    const assigned = new Map<string, AssignInfo>();
-    const qdById = new Map<string, QdXnTheoDoi & { _ct: Set<string> }>();
+    const assignedDa = new Map<string, AssignInfo>();
+    const qdById = new Map<
+      string,
+      QdXnTheoDoi & { _ctKeys: Set<string> }
+    >();
 
     if (ids.length) {
+      const { data: qdXns, error: qxErr } = await supabase
+        .from("qd_giao_xn")
+        .select(
+          `id, du_an_id, loai, phan_he, trang_thai, so_qd_du_thao, pdf_ky_storage_path, cong_trinh_chon,
+           xi_nghiep:xi_nghiep_id ( ten )`,
+        )
+        .eq("loai", loai)
+        .in("du_an_id", ids);
+      if (qxErr) throw new Error(qxErr.message);
+
+      for (const q of qdXns ?? []) {
+        if (q.phan_he && q.phan_he !== phanHe) continue;
+        const info: AssignInfo = {
+          qdId: q.id as string,
+          ownerId: q.du_an_id as string,
+          soQd: q.so_qd_du_thao as string | null,
+          xn: oneXn(
+            q.xi_nghiep as { ten: string } | { ten: string }[] | null,
+          ),
+          trangThai: q.trang_thai as string,
+          loai: q.loai as string,
+        };
+        assignedDa.set(q.du_an_id as string, info);
+
+        const ctKeys = tenKeysTuCongTrinhChon(q.cong_trinh_chon);
+        let bucket = qdById.get(q.id as string);
+        if (!bucket) {
+          bucket = {
+            id: q.id as string,
+            du_an_id: q.du_an_id as string,
+            loai: q.loai as string,
+            trang_thai: q.trang_thai as string,
+            so_qd_du_thao: q.so_qd_du_thao as string | null,
+            pdf_ky_storage_path: q.pdf_ky_storage_path as string | null,
+            xi_nghiep_ten: info.xn,
+            so_ct: ctKeys.size || 1,
+            _ctKeys: ctKeys,
+          };
+          qdById.set(q.id as string, bucket);
+        } else {
+          for (const k of ctKeys) bucket._ctKeys.add(k);
+          bucket.so_ct = bucket._ctKeys.size || bucket.so_ct;
+        }
+      }
+
       const { data: maps } = await supabase
         .from("qd_giao_xn_du_an")
         .select(
@@ -121,102 +176,156 @@ export async function GET(request: Request, ctx: Ctx) {
         const q = Array.isArray(qRaw) ? qRaw[0] : qRaw;
         if (!q) continue;
         if (q.phan_he && q.phan_he !== phanHe) continue;
-        if (q.loai !== loai && phanHe !== "tvtk") {
-          /* TVTK: loai = tvtk; TVGS/TN: match default */
-        }
         if (q.loai !== loai) continue;
 
-        const info: AssignInfo = {
-          qdId: q.id,
-          ownerId: q.du_an_id,
-          soQd: q.so_qd_du_thao,
-          xn: oneXn(q.xi_nghiep),
-          trangThai: q.trang_thai,
-          pdfKy: q.pdf_ky_storage_path,
-          loai: q.loai,
-        };
-        assigned.set(m.du_an_id as string, info);
-
-        let bucket = qdById.get(q.id);
-        if (!bucket) {
-          bucket = {
-            id: q.id,
-            du_an_id: q.du_an_id,
+        if (!assignedDa.has(m.du_an_id as string)) {
+          assignedDa.set(m.du_an_id as string, {
+            qdId: q.id,
+            ownerId: q.du_an_id,
+            soQd: q.so_qd_du_thao,
+            xn: oneXn(q.xi_nghiep),
+            trangThai: q.trang_thai,
             loai: q.loai,
-            trang_thai: q.trang_thai,
-            so_qd_du_thao: q.so_qd_du_thao,
-            pdf_ky_storage_path: q.pdf_ky_storage_path,
-            xi_nghiep_ten: oneXn(q.xi_nghiep),
-            so_ct: 0,
-            _ct: new Set(),
-          };
-          qdById.set(q.id, bucket);
+          });
         }
-        bucket._ct.add(m.du_an_id as string);
       }
+    }
 
-      const { data: owned } = await supabase
+    const phuLucRows = parsePhuLucCongTrinh(qd.phu_luc);
+    const ctAssignMap = new Map<
+      string,
+      {
+        qdId: string;
+        ownerId: string;
+        soQd: string | null;
+        xn: string | null;
+        trangThai: string | null;
+      }
+    >();
+
+    if (ids.length) {
+      const { data: qdXnsRaw } = await supabase
         .from("qd_giao_xn")
         .select(
-          `id, du_an_id, loai, phan_he, trang_thai, so_qd_du_thao, pdf_ky_storage_path,
+          `id, du_an_id, loai, phan_he, trang_thai, so_qd_du_thao, cong_trinh_chon,
            xi_nghiep:xi_nghiep_id ( ten )`,
         )
         .eq("loai", loai)
         .in("du_an_id", ids);
-
-      for (const q of owned ?? []) {
+      for (const q of qdXnsRaw ?? []) {
         if (q.phan_he && q.phan_he !== phanHe) continue;
-        if (!assigned.has(q.du_an_id as string)) {
-          assigned.set(q.du_an_id as string, {
-            qdId: q.id as string,
-            ownerId: q.du_an_id as string,
-            soQd: q.so_qd_du_thao as string | null,
-            xn: oneXn(
-              q.xi_nghiep as { ten: string } | { ten: string }[] | null,
-            ),
-            trangThai: q.trang_thai as string,
-            pdfKy: q.pdf_ky_storage_path as string | null,
-            loai: q.loai as string,
-          });
-        }
-        let bucket = qdById.get(q.id as string);
-        if (!bucket) {
-          bucket = {
-            id: q.id as string,
-            du_an_id: q.du_an_id as string,
-            loai: q.loai as string,
-            trang_thai: q.trang_thai as string,
-            so_qd_du_thao: q.so_qd_du_thao as string | null,
-            pdf_ky_storage_path: q.pdf_ky_storage_path as string | null,
-            xi_nghiep_ten: oneXn(
-              q.xi_nghiep as { ten: string } | { ten: string }[] | null,
-            ),
-            so_ct: 0,
-            _ct: new Set(),
-          };
-          qdById.set(q.id as string, bucket);
-        }
-        bucket._ct.add(q.du_an_id as string);
+        const keys = tenKeysTuCongTrinhChon(q.cong_trinh_chon);
+        const info = {
+          qdId: q.id as string,
+          ownerId: q.du_an_id as string,
+          soQd: q.so_qd_du_thao as string | null,
+          xn: oneXn(
+            q.xi_nghiep as { ten: string } | { ten: string }[] | null,
+          ),
+          trangThai: q.trang_thai as string,
+        };
+        for (const k of keys) ctAssignMap.set(k, info);
       }
     }
 
-    const cong_trinh: CongTrinhTheoDoi[] = list.map((d) => {
-      const a = assigned.get(d.id);
-      return {
-        du_an_id: d.id,
-        ma_du_an: d.ma_du_an,
-        ten_du_an: d.ten_du_an,
-        dia_diem: d.dia_diem,
-        cap_dien_ap: d.cap_dien_ap,
-        loai_hinh_du_an: d.loai_hinh_du_an,
-        da_giao: Boolean(a),
-        qd_giao_xn_id: a?.qdId ?? null,
-        so_qd_du_thao: a?.soQd ?? null,
-        xi_nghiep_ten: a?.xn ?? null,
-        trang_thai: a?.trangThai ?? null,
-        qd_owner_du_an_id: a?.ownerId ?? null,
-      };
-    });
+    const soDaCoDuThao = assignedDa.size;
+    const dungFallbackDuThao =
+      phuLucRows.length > 0 && ctAssignMap.size === 0 && soDaCoDuThao > 0;
+
+    let cong_trinh: CongTrinhTheoDoi[];
+
+    if (phuLucRows.length) {
+      // Fallback dự thảo cũ: khớp tên DA → phụ lục; phần còn lại gán lần lượt
+      const usedDa = new Set<string>();
+      const rowAssign = new Map<
+        number,
+        {
+          qdId: string;
+          ownerId: string;
+          soQd: string | null;
+          xn: string | null;
+          trangThai: string | null;
+        }
+      >();
+
+      if (dungFallbackDuThao) {
+        for (let i = 0; i < phuLucRows.length; i++) {
+          const key = normalizeTenDuAn(phuLucRows[i]?.ct_ten);
+          if (!key) continue;
+          for (const d of list) {
+            if (usedDa.has(d.id)) continue;
+            if (!assignedDa.has(d.id)) continue;
+            if (normalizeTenDuAn(d.ten_du_an) !== key) continue;
+            const a = assignedDa.get(d.id)!;
+            usedDa.add(d.id);
+            rowAssign.set(i, {
+              qdId: a.qdId,
+              ownerId: a.ownerId,
+              soQd: a.soQd,
+              xn: a.xn,
+              trangThai: a.trangThai,
+            });
+            break;
+          }
+        }
+        for (const d of list) {
+          if (usedDa.has(d.id) || !assignedDa.has(d.id)) continue;
+          const emptyIdx = phuLucRows.findIndex((_, i) => !rowAssign.has(i));
+          if (emptyIdx < 0) break;
+          const a = assignedDa.get(d.id)!;
+          usedDa.add(d.id);
+          rowAssign.set(emptyIdx, {
+            qdId: a.qdId,
+            ownerId: a.ownerId,
+            soQd: a.soQd,
+            xn: a.xn,
+            trangThai: a.trangThai,
+          });
+        }
+      }
+
+      cong_trinh = phuLucRows.map((row, i) => {
+        const key = normalizeTenDuAn(row.ct_ten);
+        const a = key ? ctAssignMap.get(key) : undefined;
+        const fb = rowAssign.get(i);
+        const hit = a ?? fb;
+        return {
+          row_key: rowKeyPhuLuc(row, i),
+          du_an_id: hit?.ownerId ?? duAnChuId,
+          ma_du_an: list[0]?.ma_du_an ?? null,
+          ten_du_an: row.ct_ten?.trim() ?? "—",
+          stt: row.stt ?? i + 1,
+          dia_diem: list[0]?.dia_diem ?? null,
+          cap_dien_ap: list[0]?.cap_dien_ap ?? null,
+          loai_hinh_du_an: list[0]?.loai_hinh_du_an ?? null,
+          da_giao: Boolean(hit),
+          qd_giao_xn_id: hit?.qdId ?? null,
+          so_qd_du_thao: hit?.soQd ?? null,
+          xi_nghiep_ten: hit?.xn ?? null,
+          trang_thai: hit?.trangThai ?? null,
+          qd_owner_du_an_id: hit?.ownerId ?? duAnChuId,
+        };
+      });
+    } else {
+      cong_trinh = list.map((d) => {
+        const a = assignedDa.get(d.id);
+        return {
+          row_key: d.id,
+          du_an_id: d.id,
+          ma_du_an: d.ma_du_an,
+          ten_du_an: d.ten_du_an,
+          dia_diem: d.dia_diem,
+          cap_dien_ap: d.cap_dien_ap,
+          loai_hinh_du_an: d.loai_hinh_du_an,
+          da_giao: Boolean(a),
+          qd_giao_xn_id: a?.qdId ?? null,
+          so_qd_du_thao: a?.soQd ?? null,
+          xi_nghiep_ten: a?.xn ?? null,
+          trang_thai: a?.trangThai ?? null,
+          qd_owner_du_an_id: a?.ownerId ?? null,
+        };
+      });
+    }
 
     const qd_giao_xn: QdXnTheoDoi[] = [...qdById.values()].map((q) => ({
       id: q.id,
@@ -226,8 +335,16 @@ export async function GET(request: Request, ctx: Ctx) {
       so_qd_du_thao: q.so_qd_du_thao,
       pdf_ky_storage_path: q.pdf_ky_storage_path,
       xi_nghiep_ten: q.xi_nghiep_ten,
-      so_ct: q._ct.size || 1,
+      so_ct: q._ctKeys.size || q.so_ct,
     }));
+
+    const daGiaoKeys = new Set(ctAssignMap.keys());
+    const { tong_ct, da_giao_ct } = demCtPhuLuc({
+      phuLuc: qd.phu_luc,
+      daGiaoKeys,
+      fallbackTong: list.length || cong_trinh.length,
+      fallbackDaGiao: soDaCoDuThao,
+    });
 
     const chuaGiao = cong_trinh.find((c) => !c.da_giao);
     const payload: GiaoATheoDoiPayload = {
@@ -245,9 +362,9 @@ export async function GET(request: Request, ctx: Ctx) {
       phan_he: phanHe,
       cong_trinh,
       qd_giao_xn,
-      tong_ct: cong_trinh.length,
-      da_giao_ct: cong_trinh.filter((c) => c.da_giao).length,
-      du_an_chu_goi_y_id: chuaGiao?.du_an_id ?? cong_trinh[0]?.du_an_id ?? null,
+      tong_ct,
+      da_giao_ct,
+      du_an_chu_goi_y_id: duAnChuId ?? chuaGiao?.du_an_id ?? null,
     };
 
     return NextResponse.json({ ok: true, data: payload });

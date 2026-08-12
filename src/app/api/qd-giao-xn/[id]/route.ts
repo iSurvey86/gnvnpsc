@@ -93,6 +93,9 @@ export async function PATCH(request: Request, ctx: Ctx) {
     ) {
       patch.trang_thai = body.trang_thai;
     }
+    if (body.cong_trinh !== undefined) {
+      patch.cong_trinh_chon = body.cong_trinh;
+    }
 
     const { data, error } = await supabase
       .from("qd_giao_xn")
