@@ -22,6 +22,7 @@ flowchart TD
   SoanCu["Mở soạn quyết định đã lập"]
   Valid{"Đủ đơn vị nhận và thông tin bắt buộc?"}
   Save["Lưu — gắn công trình đã tick vào quyết định"]
+  DaLuu{"Đã lưu dự thảo?"}
   Word["Xuất Word / tải PDF đã ký"]
   Tiep{"Còn công trình chưa giao?"}
   Quay["Quay hồ sơ Giao A — giao tiếp phần còn lại"]
@@ -37,7 +38,9 @@ flowchart TD
   SoanCu --> Valid
   Valid -->|Thiếu| SoanMoi
   Valid -->|Đủ| Save
-  Save --> Word
+  Save --> DaLuu
+  DaLuu -->|Chưa| Save
+  DaLuu -->|Rồi| Word
   Word --> Tiep
   Tiep -->|Còn| Quay
   Quay --> XemCt
@@ -45,21 +48,35 @@ flowchart TD
 
   class Hub,Xong userClass
   class Bang,Mo,XemCt,SoanMoi,SoanCu,Save,Quay processClass
-  class Valid,Lap,Tiep aiClass
+  class Valid,Lap,Tiep,DaLuu aiClass
   class Word exportClass
 ```
 
 ## Một quyết định — nhiều công trình
 
-Từ hồ sơ Giao A: **Lập giao** / **Giao tiếp còn lại** → trang soạn liệt kê phụ lục, **tick** công trình chưa giao (đã giao bị khóa/mờ). Lưu / Xuất Word / PDF ký gắn các dự án khớp tên đã tick. Chia nhiều Xí nghiệp: giao một phần → lưu → quay hồ sơ → giao phần còn lại.
+Từ hồ sơ Giao A:
+
+- **Giao tiếp còn lại** → soạn **mới**: công trình đã giao **bỏ tick + khóa**; chỉ tick phần còn lại.
+- **Mở soạn** → mở đúng dự thảo đã lập: tick lại công trình thuộc quyết định đó.
+
+Lưu gắn danh sách công trình đã tick. Chia nhiều Xí nghiệp: giao một phần → lưu → quay hồ sơ → giao tiếp phần còn lại.
+
+## Đếm tiến độ (x/y CT)
+
+| Thành phần | Quy tắc |
+|------------|---------|
+| **Số công trình (y)** | Số dòng phụ lục Giao A; không có phụ lục → số dự án đã lưu |
+| **Đã giao (x)** | Số dòng phụ lục đã gắn QĐ (đã Lưu tick); dự thảo cũ chưa có danh sách tick → fallback «có dự thảo = đã giao» (theo số dự án có dự thảo) |
+
 ## Nội dung màn hình
 
 | Phần | Nội dung |
 |------|----------|
 | Bảng Giao A | STT · Số Giao A + ngày · Người quét · Số công trình · Đã giao (x/y CT) · Sửa (Review) · Xóa (chỉ Admin/Trưởng phòng); bấm số Giao A để mở theo dõi |
 | Sửa hồ sơ Giao A | Icon Sửa → Review: bổ sung cấp điện áp, loại hình, tên CT… rồi Lưu |
-| Xóa hồ sơ Giao A | Chỉ Admin / Trưởng phòng; quét sai → báo Trưởng phòng xóa || Hồ sơ Giao A | Thông tin chung + bảng CT (đã giao mờ) + quyết định đã lập + nút giao |
-| Trang soạn | Giấy quyết định; tick CT; Lưu · Word · PDF ký; đóng về hồ sơ Giao A |
+| Xóa hồ sơ Giao A | Chỉ Admin / Trưởng phòng; quét sai → báo Trưởng phòng xóa |
+| Hồ sơ Giao A | Thông tin chung + bảng CT theo phụ lục (đã giao mờ) + quyết định đã lập + nút giao |
+| Trang soạn | Giấy quyết định; tick CT; **Lưu trước** rồi Xuất Word; Quay lại / Đóng về hồ sơ Giao A |
 
 ## Quy tắc soạn (đã chốt)
 
@@ -82,16 +99,19 @@ Từ hồ sơ Giao A: **Lập giao** / **Giao tiếp còn lại** → trang so�
 | Tải PDF đã ký | Nút trên trang soạn — lưu tệp, chuyển «Đã giao», bỏ dấu Dự thảo |
 | Xóa dự thảo | Chỉ khi còn Nháp; đã giao thì chỉ Admin được xóa để dọn dữ liệu sai |
 | Xóa dự án | Dự án còn quyết định giao Xí nghiệp thì bị chặn xóa — phải xóa dự thảo quyết định trước |
-| Một QĐ nhiều công trình | Tick chọn công trình giao lần này; map theo tên đã tick; chặn lập trùng; xóa QĐ gỡ map |
+| Một QĐ nhiều công trình | Tick chọn công trình giao lần này; lưu danh sách tick; map theo tên; chặn lập trùng; xóa QĐ gỡ map |
+| Xuất Word | Chỉ bật sau khi đã **Lưu** dự thảo (không tự lưu khi xuất) |
+| Giao tiếp còn lại | Soạn mới — CT đã giao khóa + bỏ tick; **Mở soạn** mới tick CT của dự thảo đó |
 
 ## Phụ lục kỹ thuật
 
 | Mục | Chi tiết |
 |-----|----------|
 | Hub chọn phân hệ | `page.tsx` · `hub-phan-he-stats.ts` |
-| Bảng danh mục | `GiaoADashboard.tsx` — `GET /api/giao-a?phan_he=` |
+| Bảng danh mục | `GiaoADashboard.tsx` — `GET /api/giao-a?phan_he=` · đếm CT `giao-a-ct-stats.ts` |
 | Theo dõi Giao A | `GiaoATheoDoiClient.tsx` · `/giao-a/[id]/theo-doi` · `GET .../theo-doi` |
-| UI soạn | `SoanQdGiaoXnEditor.tsx` · `return_to` về hồ sơ Giao A |
+| UI soạn | `SoanQdGiaoXnEditor.tsx` · `return_to` · `moi=1` soạn mới phần còn lại |
+| CT đã tick | cột `qd_giao_xn.cong_trinh_chon` · SQL `024` |
 | Map nhiều DA | `qd-giao-xn-map.ts` · bảng `qd_giao_xn_du_an` · SQL `019` |
 | Danh xưng GD XN | `danh-xung-gd-xn.ts` · tag `{danh_xung_gd_xn}` |
 | Xóa dự thảo | `DELETE /api/qd-giao-xn/[id]` — chặn khi `trang_thai <> 'nhap'`, ghi nhật ký `GIAO_XN / DELETE` |

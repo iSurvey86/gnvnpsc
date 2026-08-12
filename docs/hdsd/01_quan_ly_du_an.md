@@ -3,7 +3,7 @@
 ## Danh sách Giao A (trang chủ phân hệ)
 
 1. Mở hệ thống → chọn phân hệ → vào bảng **theo Quyết định Giao A** (không còn một dòng = một công trình).
-2. Cột: **STT · Giao A (số + ngày) · Người quét · Số công trình · Đã giao (đã giao/tổng CT)** · **Thao tác**: icon **Sửa** (mọi user — mở Review để bổ sung cấp điện áp, loại hình…) · icon **Xóa** chỉ **Quản trị / Trưởng phòng**. Bấm vào số Giao A để mở theo dõi / giao nhiệm vụ. Lọc theo **Năm** / **Người quét** cạnh ô tìm.
+2. Cột: **STT · Giao A (số + ngày) · Người quét · Số công trình · Đã giao (x/y CT theo phụ lục)** · **Thao tác**: icon **Sửa** (mọi user — mở Review để bổ sung cấp điện áp, loại hình…) · icon **Xóa** chỉ **Quản trị / Trưởng phòng**. Bấm vào số Giao A để mở theo dõi / giao nhiệm vụ. Lọc theo **Năm** / **Người quét** cạnh ô tìm.
 3. Tìm theo số Giao A, ngày; lọc năm / người quét.
 4. Quét sai hoặc cần xóa hồ sơ Giao A: **báo Trưởng phòng** (hoặc Quản trị) xóa — nhân viên không tự xóa trên danh sách. Thiếu cấp điện áp: bấm **Sửa** → chọn 110 kV / trung hạ áp → Lưu.
 5. Bấm **Nhập dự án (Giao A)** để thêm danh mục từ PDF.
@@ -14,7 +14,7 @@
 2. **Giao nhiệm vụ:**
    - Danh sách quyết định đã lập (mở soạn lại nếu cần).
    - Bảng công trình: dòng **đã giao** bị mờ; dòng còn lại = chưa giao.
-   - **Lập giao nhiệm vụ** / **Giao tiếp … còn lại** → trang soạn (tick CT, chọn Xí nghiệp, Xuất Word / PDF ký).
+   - **Lập giao nhiệm vụ** / **Giao tiếp … còn lại** → soạn **mới** (CT đã giao khóa). **Mở soạn** → sửa đúng dự thảo đã lập.
 3. Có thể giao hết một lần cho một Xí nghiệp, hoặc giao từng phần rồi tiếp Xí nghiệp khác.
 
 ## Nhập từ Quyết định Giao A
