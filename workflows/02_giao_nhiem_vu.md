@@ -66,7 +66,7 @@ Lưu gắn danh sách công trình đã tick. Chia nhiều Xí nghiệp: giao m�
 | Thành phần | Quy tắc |
 |------------|---------|
 | **Số công trình (y)** | Số dòng phụ lục Giao A; không có phụ lục → số dự án đã lưu |
-| **Đã giao (x)** | Số dòng phụ lục đã gắn QĐ (đã Lưu tick); dự thảo cũ chưa có danh sách tick → fallback «có dự thảo = đã giao» (theo số dự án có dự thảo) |
+| **Đã giao (x)** | Số dòng phụ lục khớp `cong_trinh_chon` đã Lưu; chưa tick (dự thảo cũ) → tối đa **1 CT / 1 QĐ** qua `ganCtKeysChoQdXn` — **không** đếm theo số dự án có link QĐ |
 
 ## Nội dung màn hình
 
@@ -93,7 +93,7 @@ Lưu gắn danh sách công trình đã tick. Chia nhiều Xí nghiệp: giao m�
 | Tư vấn thiết kế trung hạ áp | Chi phí bước 1 / GHĐ theo loại hình (XDM·Cải tạo 3,3% · SCMBA·DMS 1,5%); tạm ứng lần 1 = **10%** × GHĐ (làm tròn hàng triệu); số tiền **đồng** |
 | Tư vấn thiết kế 110 kV | Không tính chi phí bước 1 / tạm ứng |
 | Tư vấn giám sát | Giá trị HĐ = TMĐT × **1%** → hiển thị/xuất **đồng**; không tạm ứng; tiền bằng số/chữ; mẫu `qd-giao-nhiem-vu-tvgs.docx` |
-| Thí nghiệm | Tính sau |
+| Thí nghiệm | Tính sau; **Số lượng công trình** trên form = tự đếm theo tick (chỉ đọc) |
 | Tên tệp Word | `GNV-[viết tắt XN]-[mã DA]-[yyyyMMdd]-[HHmmss].docx` |
 | Xuất PDF | Tạm ẩn nút; giữ logic để bật lại sau |
 | Tải PDF đã ký | Nút trên trang soạn — lưu tệp, chuyển «Đã giao», bỏ dấu Dự thảo |
@@ -107,7 +107,7 @@ Lưu gắn danh sách công trình đã tick. Chia nhiều Xí nghiệp: giao m�
 
 | Mục | Chi tiết |
 |-----|----------|
-| Hub chọn phân hệ | `page.tsx` · `hub-phan-he-stats.ts` |
+| Hub chọn phân hệ | `page.tsx` · `hub-phan-he-stats.ts` — đếm **CT phụ lục** (đã/chưa giao), khớp list Giao A |
 | Bảng danh mục | `GiaoADashboard.tsx` — `GET /api/giao-a?phan_he=` · đếm CT `giao-a-ct-stats.ts` |
 | Theo dõi Giao A | `GiaoATheoDoiClient.tsx` · `/giao-a/[id]/theo-doi` · `GET .../theo-doi` |
 | UI soạn | `SoanQdGiaoXnEditor.tsx` · `return_to` · `moi=1` soạn mới phần còn lại |
@@ -121,4 +121,4 @@ Lưu gắn danh sách công trình đã tick. Chia nhiều Xí nghiệp: giao m�
 | Tiền bước 1 / số thành chữ | `tinh-tien-giao-xn.ts` · `so-tien-bang-chu.ts` |
 | Word | `fill-qd-giao-xn.ts` · `format-ngay.ts` · `template-path.ts` · mẫu `public/templates/` (gồm `qd-giao-nhiem-vu-tvgs.docx`) |
 | PDF Giao A | `GET /api/giao-a/[id]/pdf` |
-| SQL | `008` · `009` · `012` · `018` · `019` · `020_loai_hinh_xdm_cai_tao.sql` · `021_loai_hinh_tnhc_tvgs.sql` · `022_xi_nghiep_dien_bien.sql` |
+| SQL | `008` · `009` · `012` · `018` · `019` · `020` · `021` · `022` · `023` · `024` |

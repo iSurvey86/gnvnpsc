@@ -72,7 +72,7 @@ Quy ước trình bày nhật ký:
 - Mã đối tượng hiện đủ, dùng phông đơn cách để đối chiếu khi tra cứu.
 - Nội dung mọi ô căn giữa theo chiều dọc; tiêu đề cột căn giữa.
 - Bộ lọc Phân hệ và Hành động cũng dùng tên đầy đủ tiếng Việt.
-- Checkbox **Hide Admin**: khi bật, ẩn dòng do tài khoản Admin thực hiện — chỉ xem hoạt động non-admin.
+- Checkbox **Hide Admin**: mặc định **bật** khi mở nhật ký; khi bật, ẩn dòng do tài khoản Admin thực hiện — chỉ xem hoạt động non-admin.
 
 **Giao Xí nghiệp được ghi:** tạo dự thảo · lưu dự thảo · xuất Word · tải PDF đã ký · xóa dự thảo (phân hệ «Giao Xí nghiệp»). Xuất Word thường kèm một dòng Lưu ngay trước đó.
 

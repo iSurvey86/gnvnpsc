@@ -4,7 +4,7 @@
 
 1. Mở hệ thống → nếu chưa đăng nhập sẽ vào màn **Đăng nhập**.
 2. Nhập **email** và **mật khẩu** (mặc định khi được cấp login).
-3. Sau khi đăng nhập thành công vào trang **chọn phân hệ** — Tư vấn thiết kế · Thí nghiệm hiệu chỉnh · Tư vấn giám sát. Mỗi thẻ hiện **Đã giao nhiệm vụ** / **Chưa giao nhiệm vụ** (dự án đã lưu; đã giao = đã có quyết định giao Xí nghiệp, kể cả được phủ trong QĐ chung). Chọn phân hệ của tổ mình để vào Quản lý dự án.
+3. Sau khi đăng nhập thành công vào trang **chọn phân hệ** — Tư vấn thiết kế · Thí nghiệm hiệu chỉnh · Tư vấn giám sát. Mỗi thẻ hiện **Đã giao nhiệm vụ** / **Chưa giao nhiệm vụ** theo **số công trình phụ lục** đã/chưa giao (cùng quy tắc với cột x/y CT trên bảng Giao A). Chọn phân hệ của tổ mình để vào Quản lý dự án.
 
 ## Đăng xuất / Tài khoản (sidebar)
 
@@ -32,7 +32,7 @@ Vào **Tài khoản** (từ avatar) → form đổi mật khẩu. **Đề nghị
 
 1. Chạy SQL [010_nhat_ky_hoat_dong.sql](d:\AIProject\gnvnpsc\scripts\sql\010_nhat_ky_hoat_dong.sql) và [012_phan_he_truy_vet.sql](d:\AIProject\gnvnpsc\scripts\sql\012_phan_he_truy_vet.sql) trên Supabase.
 2. Vào **Quản lý hệ thống** — mở sẵn **Nhật ký hoạt động** (user thường không thấy mục này).
-3. Lọc theo phân hệ / hành động · tích **Hide Admin** để chỉ xem thao tác non-admin · làm mới · xuất CSV.
+3. Lọc theo phân hệ / hành động · tích **Hide Admin** (mặc định **bật** khi mở trang) để chỉ xem thao tác non-admin · làm mới · xuất CSV.
 4. Hệ thống ghi tự động: đăng nhập thành công/thất bại, đăng xuất, cấp / đặt lại đăng nhập, quét Giao A, lưu / hủy bản quét, thêm–sửa–xóa dự án, xóa dự thảo quyết định giao Xí nghiệp, sửa nhân sự và Xí nghiệp.
 5. Cột **Chi tiết** ghi rõ bằng tiếng Việt: người thực hiện, tổ, số quyết định, số dự án, mã đối tượng đầy đủ.
 

@@ -3,7 +3,7 @@
 ## Mở hồ sơ
 
 1. Phân hệ → bảng **Giao A** → **Mở** một dòng.
-2. Cột **Số công trình** / **Đã giao x/y CT** lấy theo **phụ lục** Giao A (có dự thảo = đã giao; dự thảo mới lưu đúng CT đã tick).
+2. Cột **Số công trình** / **Đã giao x/y CT** lấy theo **phụ lục** Giao A (tick đã Lưu; dự thảo cũ chưa tick → tối đa 1 CT/QĐ).
 3. Xem thông tin Giao A + bảng công trình theo phụ lục (đã giao = mờ).
 4. **Lập giao nhiệm vụ** hoặc **Giao tiếp còn lại** → trang soạn **mới** (CT đã giao khóa, bỏ tick).
 5. **Mở soạn** trên quyết định đã lập → tick đúng CT thuộc quyết định đó.
@@ -19,7 +19,7 @@
 5. **Tính tiền:**
    - TVTK THA: GHĐ theo loại hình; tạm ứng lần 1 = **10%** × GHĐ (làm tròn hàng triệu); số **đồng**.
    - TVGS: GHĐ **1%** × TMĐT; không tạm ứng; tiền bằng số/chữ.
-   - TNHC: tính sau.
+   - TNHC: tính sau; **Số lượng công trình** tự đếm theo tick (chỉ đọc, không nhập tay).
 6. **Lưu** trước · **Lưu & đóng** · rồi mới **Xuất Word** (nút xuất tắt nếu chưa lưu lần nào) · **Tải PDF đã ký**.
 7. **Quay lại** (trang trước) hoặc **Đóng** (về hồ sơ Giao A) → giao tiếp phần còn lại nếu cần.
 

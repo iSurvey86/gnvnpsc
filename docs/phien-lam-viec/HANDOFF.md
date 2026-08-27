@@ -5,6 +5,43 @@
 
 ---
 
+## 2026-08-27 — Đếm CT thống nhất, hub, TNHC số lượng, Hide Admin
+
+**Version:** `0.1.12`
+
+### Đã chốt / đã làm
+
+- **Đếm x/y CT:** bỏ fallback «DA có QĐ = CT đã giao»; list + theo dõi dùng `ganCtKeysChoQdXn` (tick Lưu hoặc tối đa 1 CT/QĐ cũ).
+- **Hub:** thẻ phân hệ đếm CT phụ lục đã/chưa giao — khớp list (vd 1/7 không còn hiện 7/7).
+- **TNHC:** «Số lượng công trình» tự đếm tick, chỉ đọc.
+- **Hide Admin** mặc định bật khi mở nhật ký.
+- Rà 3 module: TVTK/TVGS ~sẵn UAT; TNHC chờ **chốt tiền** với PCM (TAG_MAP ×1,5% chỉ gợi ý).
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [giao-a-ct-stats.ts](d:\AIProject\gnvnpsc\src\lib\giao-a-ct-stats.ts) | Đếm / gán CT |
+| [hub-phan-he-stats.ts](d:\AIProject\gnvnpsc\src\lib\hub-phan-he-stats.ts) | Hub CT |
+| [giao-a/route.ts](d:\AIProject\gnvnpsc\src\app\api\giao-a\route.ts) · [theo-doi](d:\AIProject\gnvnpsc\src\app\api\giao-a\[id]\theo-doi\route.ts) | API list/theo dõi |
+| [SoanQdGiaoXnEditor.tsx](d:\AIProject\gnvnpsc\src\components\SoanQdGiaoXnEditor.tsx) · [GiamSatHeThongClient.tsx](d:\AIProject\gnvnpsc\src\components\GiamSatHeThongClient.tsx) | UI |
+| [workflow 02/03](d:\AIProject\gnvnpsc\workflows) · [HDSD 02/03](d:\AIProject\gnvnpsc\docs\hdsd) | Tài liệu |
+
+### Việc tiếp
+
+- [ ] SQL `024` (+ `023` nếu chưa) trên Supabase.
+- [ ] UAT hub + list + theo dõi cùng một Giao A (số khớp).
+- [ ] TNHC: PCM chốt công thức tiền → implement.
+- [ ] (Tùy chọn) ScanAI `\*)` trên quy mô.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF v0.1.12. Đếm CT thống nhất; hub khớp list; TNHC số lượng tự đếm. Tiếp: SQL 024 / UAT / tiền TNHC.
+
+Chi tiết: [2026-08-27-dem-ct-hub-tnhc.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-08-27-dem-ct-hub-tnhc.md)
+
+---
+
 ## 2026-08-12 (b) — Đếm CT phụ lục + khóa tick giao phần còn lại
 
 **Version:** `0.1.11`
