@@ -224,7 +224,6 @@ export function SoanQdGiaoXnEditor({
   const [soTienHd, setSoTienHd] = useState("");
   const [soTienHdChu, setSoTienHdChu] = useState("");
   const [ghdDirty, setGhdDirty] = useState(false);
-  const [soLuongCt, setSoLuongCt] = useState("");
   /** Tick chọn công trình giao lần này (theo index phụ lục). */
   const [selected, setSelected] = useState<boolean[]>(() =>
     buildInitialSelected(
@@ -291,6 +290,8 @@ export function SoanQdGiaoXnEditor({
   }, [congTrinhBase, lockedByKey]);
 
   const soDongDaChon = selected.filter(Boolean).length;
+  /** TNHC: số lượng công trình = số dòng đã tick (tự đếm, không nhập tay). */
+  const soLuongCt = String(soDongDaChon);
 
   const loaiHinhDa = useMemo(
     () => resolveLoaiHinhDuAn(duAn.cap_dien_ap, duAn.loai_hinh_du_an),
@@ -1339,8 +1340,10 @@ export function SoanQdGiaoXnEditor({
                   <span className={labelCls}>Số lượng công trình</span>
                   <input
                     value={soLuongCt}
-                    onChange={(e) => setSoLuongCt(e.target.value)}
-                    className={field}
+                    readOnly
+                    tabIndex={-1}
+                    aria-readonly
+                    className={`${field} cursor-default bg-slate-50/80`}
                   />
                 </label>
               </section>

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   demCtPhuLuc,
-  tenKeysTuCongTrinhChon,
+  ganCtKeysChoQdXn,
+  parsePhuLucCongTrinh,
 } from "@/lib/giao-a-ct-stats";
 import type { GiaoAListItem } from "@/lib/giao-a-theo-doi";
 import {
@@ -22,6 +23,14 @@ type QdRef = {
   storage_path: string | null;
   created_at: string;
 };
+
+function oneXn(
+  v: { ten: string } | { ten: string }[] | null | undefined,
+): string | null {
+  if (!v) return null;
+  const x = Array.isArray(v) ? v[0] : v;
+  return x?.ten?.trim() || null;
+}
 
 /**
  * GET danh sách Giao A.
@@ -50,7 +59,7 @@ export async function GET(request: Request) {
     const { data: duAns, error: daErr } = await supabase
       .from("du_an")
       .select(
-        `id, qd_giao_a_id,
+        `id, ten_du_an, qd_giao_a_id,
          qd_giao_a:qd_giao_a_id (
            id, so_qd, ngay_qd, trich_yeu, scanned_by_ho_ten, storage_path, created_at
          )`,
@@ -65,13 +74,14 @@ export async function GET(request: Request) {
 
     const rows = (duAns ?? []) as Array<{
       id: string;
+      ten_du_an: string;
       qd_giao_a_id: string;
       qd_giao_a: QdRef | QdRef[] | null;
     }>;
 
     const byGiaoA = new Map<
       string,
-      { qd: QdRef; duAnIds: string[] }
+      { qd: QdRef; duAnIds: string[]; duAns: Array<{ id: string; ten_du_an: string }> }
     >();
 
     for (const r of rows) {
@@ -79,10 +89,12 @@ export async function GET(request: Request) {
       const qd = Array.isArray(qdRaw) ? qdRaw[0] : qdRaw;
       if (!qd?.id) continue;
       const cur = byGiaoA.get(qd.id);
+      const da = { id: r.id, ten_du_an: r.ten_du_an };
       if (cur) {
         cur.duAnIds.push(r.id);
+        cur.duAns.push(da);
       } else {
-        byGiaoA.set(qd.id, { qd, duAnIds: [r.id] });
+        byGiaoA.set(qd.id, { qd, duAnIds: [r.id], duAns: [da] });
       }
     }
 
@@ -101,79 +113,68 @@ export async function GET(request: Request) {
     }
 
     const allIds = rows.map((r) => r.id);
-    const assignedDa = new Set<string>();
-    const daGiaoCtKeysByGiaoA = new Map<string, Set<string>>();
+    const qdsByGiaoA = new Map<
+      string,
+      Array<{
+        id: string;
+        du_an_id: string;
+        so_qd_du_thao: string | null;
+        cong_trinh_chon: unknown;
+        xi_nghiep_ten: string | null;
+      }>
+    >();
 
     if (allIds.length) {
-      const { data: qdXns, error: qxErr } = await supabase
-        .from("qd_giao_xn")
-        .select("du_an_id, phan_he, cong_trinh_chon")
-        .in("du_an_id", allIds);
-      if (qxErr) throw new Error(qxErr.message);
-
       const duAnToGiaoA = new Map<string, string>();
       for (const r of rows) {
         duAnToGiaoA.set(r.id, r.qd_giao_a_id);
       }
 
-      for (const q of qdXns ?? []) {
-        if (q.phan_he && q.phan_he !== phanHe) continue;
-        const daId = q.du_an_id as string;
-        assignedDa.add(daId);
-        const giaoAId = duAnToGiaoA.get(daId);
-        if (!giaoAId) continue;
-        const keys = tenKeysTuCongTrinhChon(q.cong_trinh_chon);
-        if (!keys.size) continue;
-        let bucket = daGiaoCtKeysByGiaoA.get(giaoAId);
-        if (!bucket) {
-          bucket = new Set();
-          daGiaoCtKeysByGiaoA.set(giaoAId, bucket);
-        }
-        for (const k of keys) bucket.add(k);
-      }
-
-      const { data: maps } = await supabase
-        .from("qd_giao_xn_du_an")
+      const { data: qdXns, error: qxErr } = await supabase
+        .from("qd_giao_xn")
         .select(
-          `du_an_id, qd_giao_xn:qd_giao_xn_id ( id, phan_he, loai )`,
+          "id, du_an_id, phan_he, cong_trinh_chon, so_qd_du_thao, xi_nghiep:xi_nghiep_id ( ten )",
         )
         .in("du_an_id", allIds);
+      if (qxErr) throw new Error(qxErr.message);
 
-      for (const m of maps ?? []) {
-        const qRaw = m.qd_giao_xn as
-          | { id: string; phan_he?: string; loai?: string }
-          | { id: string; phan_he?: string; loai?: string }[]
-          | null;
-        const q = Array.isArray(qRaw) ? qRaw[0] : qRaw;
-        if (!q) continue;
+      for (const q of qdXns ?? []) {
         if (q.phan_he && q.phan_he !== phanHe) continue;
-        assignedDa.add(m.du_an_id as string);
-      }
-
-      const { data: owned } = await supabase
-        .from("qd_giao_xn")
-        .select("du_an_id, phan_he")
-        .in("du_an_id", allIds);
-      for (const o of owned ?? []) {
-        if (o.phan_he && o.phan_he !== phanHe) continue;
-        assignedDa.add(o.du_an_id as string);
+        const giaoAId = duAnToGiaoA.get(q.du_an_id as string);
+        if (!giaoAId) continue;
+        let bucket = qdsByGiaoA.get(giaoAId);
+        if (!bucket) {
+          bucket = [];
+          qdsByGiaoA.set(giaoAId, bucket);
+        }
+        bucket.push({
+          id: q.id as string,
+          du_an_id: q.du_an_id as string,
+          so_qd_du_thao: q.so_qd_du_thao as string | null,
+          cong_trinh_chon: q.cong_trinh_chon,
+          xi_nghiep_ten: oneXn(
+            q.xi_nghiep as { ten: string } | { ten: string }[] | null,
+          ),
+        });
       }
     }
 
     const list: GiaoAListItem[] = [...byGiaoA.values()]
-      .map(({ qd, duAnIds }) => {
+      .map(({ qd, duAnIds, duAns: daList }) => {
         const unique = [...new Set(duAnIds)];
-        let daGiaoDa = 0;
-        for (const id of unique) {
-          if (assignedDa.has(id)) daGiaoDa += 1;
-        }
-        const daGiaoKeys =
-          daGiaoCtKeysByGiaoA.get(qd.id) ?? new Set<string>();
+        const phuLuc = phuLucByGiaoA.get(qd.id);
+        const phuLucRows = parsePhuLucCongTrinh(phuLuc);
+        const qds = qdsByGiaoA.get(qd.id) ?? [];
+        const assignMap = ganCtKeysChoQdXn({
+          phuLucRows,
+          duAns: daList,
+          qds,
+        });
+        const daGiaoKeys = new Set(assignMap.keys());
         const { tong_ct, da_giao_ct } = demCtPhuLuc({
-          phuLuc: phuLucByGiaoA.get(qd.id),
+          phuLuc,
           daGiaoKeys,
           fallbackTong: unique.length,
-          fallbackDaGiao: daGiaoDa,
         });
         return {
           id: qd.id,

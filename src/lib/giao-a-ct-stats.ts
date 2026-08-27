@@ -59,25 +59,21 @@ export function mapCtDaGiaoTuQdXn(
 }
 
 /**
- * Đếm tổng / đã giao.
- * - Có phụ lục: mẫu số = số dòng phụ lục.
- * - Tử số ưu tiên khớp `cong_trinh_chon`.
- * - Chưa có `cong_trinh_chon` (dự thảo cũ): fallback «có dự thảo = đã giao»
- *   → dùng số DA đã gắn QĐ (capped theo mẫu số).
- * - Không có phụ lục: đếm theo DA như cũ.
+ * Đếm tổng / đã giao theo phụ lục.
+ * - Có phụ lục: mẫu số = số dòng phụ lục; tử số = số dòng khớp `daGiaoKeys`
+ *   (từ `cong_trinh_chon` hoặc `ganCtKeysChoQdXn` — tối đa 1 CT/QĐ khi chưa tick).
+ * - Không có phụ lục: đếm theo số khóa đã giao / tổng dự án fallback.
  */
 export function demCtPhuLuc(opts: {
   phuLuc: unknown;
   daGiaoKeys: Set<string>;
   fallbackTong?: number;
-  /** Số dự án đã có dự thảo QĐ giao XN */
-  fallbackDaGiao?: number;
 }): { tong_ct: number; da_giao_ct: number } {
   const rows = parsePhuLucCongTrinh(opts.phuLuc);
   if (!rows.length) {
     return {
       tong_ct: opts.fallbackTong ?? 0,
-      da_giao_ct: opts.fallbackDaGiao ?? 0,
+      da_giao_ct: opts.daGiaoKeys.size,
     };
   }
   let daGiao = 0;
@@ -85,15 +81,18 @@ export function demCtPhuLuc(opts: {
     const k = normalizeTenDuAn(r.ct_ten);
     if (k && opts.daGiaoKeys.has(k)) daGiao += 1;
   }
-  // Data cũ: chưa lưu tick phụ lục → đếm theo số DA có dự thảo
-  if (
-    daGiao === 0 &&
-    opts.daGiaoKeys.size === 0 &&
-    (opts.fallbackDaGiao ?? 0) > 0
-  ) {
-    daGiao = Math.min(opts.fallbackDaGiao!, rows.length);
-  }
   return { tong_ct: rows.length, da_giao_ct: daGiao };
+}
+
+/** Số CT giao theo từng QĐ (từ map phụ lục → QĐ). */
+export function demSoCtTheoQd(
+  assignMap: Map<string, CtQdAssign>,
+): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const a of assignMap.values()) {
+    out.set(a.qdId, (out.get(a.qdId) ?? 0) + 1);
+  }
+  return out;
 }
 
 export function rowKeyPhuLuc(row: PhuLucCongTrinh, index: number): string {

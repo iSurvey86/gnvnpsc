@@ -254,7 +254,7 @@ export function GiamSatHeThongClient({ isAdmin }: Props) {
   const [q, setQ] = useState("");
   const [phanHe, setPhanHe] = useState<string>("ALL");
   const [hanhDong, setHanhDong] = useState<string>("ALL");
-  const [hideAdmin, setHideAdmin] = useState(false);
+  const [hideAdmin, setHideAdmin] = useState(true);
   const [page, setPage] = useState(1);
   const [logs, setLogs] = useState<NhatKyHoatDong[]>([]);
   const [total, setTotal] = useState(0);
