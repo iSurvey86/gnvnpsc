@@ -5,6 +5,40 @@
 
 ---
 
+## 2026-09-25 — Xuất sơ đồ Mermaid (`export:diagrams`)
+
+**Version:** `0.1.13`
+
+### Đã chốt / đã làm
+
+- Thêm `npm run export:diagrams` — Mermaid trong `workflows/*.md` → PNG `workflows/diagrams/` (4 file `00`–`03`).
+- Script [`export-diagrams.mjs`](d:\AIProject\gnvnpsc\scripts\export-diagrams.mjs) + `@mermaid-js/mermaid-cli`.
+- Cập nhật [workflow 00](d:\AIProject\gnvnpsc\workflows\00_tong_quan_toan_du_an.md) ghi chú xuất PNG.
+- **Không đổi HDSD** (lệnh agent/dev, không đổi UX user).
+
+### File chính
+
+| File | Vai trò |
+|------|---------|
+| [export-diagrams.mjs](d:\AIProject\gnvnpsc\scripts\export-diagrams.mjs) | Xuất sơ đồ |
+| [workflows/diagrams/](d:\AIProject\gnvnpsc\workflows\diagrams) | PNG đã xuất |
+| [00_tong_quan_toan_du_an.md](d:\AIProject\gnvnpsc\workflows\00_tong_quan_toan_du_an.md) | Ghi chú lệnh |
+
+### Việc tiếp
+
+- [ ] SQL `024` (+ `023` nếu chưa) trên Supabase.
+- [ ] UAT hub + list + theo dõi cùng một Giao A.
+- [ ] TNHC: PCM chốt công thức tiền → implement.
+- [ ] (Tùy chọn) ScanAI `\*)` trên quy mô.
+
+### Câu mở phiên sau
+
+> Đọc HANDOFF v0.1.13. Có `npm run export:diagrams`. Tiếp: SQL 024 / UAT / tiền TNHC.
+
+Chi tiết: [2026-09-25-export-diagrams.md](d:\AIProject\gnvnpsc\docs\phien-lam-viec\2026-09-25-export-diagrams.md)
+
+---
+
 ## 2026-08-27 — Đếm CT thống nhất, hub, TNHC số lượng, Hide Admin
 
 **Version:** `0.1.12`

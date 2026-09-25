@@ -1,6 +1,7 @@
 # Workflow 00 — Sơ đồ tổng thể các module
 
-> **Mục đích:** Nhìn nhanh cấu trúc module toàn hệ thống. Chi tiết từng luồng xem ở các workflow `01`–`03`.
+> **Mục đích:** Nhìn nhanh cấu trúc module toàn hệ thống. Chi tiết từng luồng xem ở các workflow `01`–`03`.  
+> **Xuất PNG:** `npm run export:diagrams` → ảnh trong [`diagrams/`](./diagrams/).
 
 ## Sơ đồ phân rã module
 
@@ -73,3 +74,9 @@ flowchart TD
 - [01 — Nhập dự án từ Giao A](./01_nhap_du_an.md)
 - [02 — Giao nhiệm vụ theo dự án](./02_giao_nhiem_vu.md)
 - [03 — Giám sát hoạt động và tài khoản](./03_giam_sat_he_thong.md)
+
+## Phụ lục kỹ thuật
+
+| Mục | Chi tiết |
+|-----|----------|
+| Xuất sơ đồ PNG | `npm run export:diagrams` · [`scripts/export-diagrams.mjs`](../scripts/export-diagrams.mjs) · `@mermaid-js/mermaid-cli` · thư mục [`diagrams/`](./diagrams/) |
