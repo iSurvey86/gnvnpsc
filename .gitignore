@@ -40,6 +40,9 @@ yarn-error.log*
 # temp extract/tag Word
 /tmp-templates-*/
 
+# mermaid export temp
+/workflows/diagrams/.tmp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:auth": "node scripts/seed-auth-from-nhan-su.mjs"
+    "seed:auth": "node scripts/seed-auth-from-nhan-su.mjs",
+    "export:diagrams": "node scripts/export-diagrams.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",
@@ -20,6 +21,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^12.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
